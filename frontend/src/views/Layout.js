@@ -157,10 +157,10 @@ export default function Layout() {
         //         </div>
         //     </UserProvider>
         // </div>
-        <div className="max-w-screen min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col">
             <UserProvider>
                 <Navbar />
-                <div className="navbar max-w-screen"></div>
+                <div className="navbar"></div>
                 <div className="container mx-auto flex flex-1 gap-4">
                     {/* Sidebar */}
                     <div className="hidden md:block md:w-1/5 lg:w-1/6 xl:w-1/6">

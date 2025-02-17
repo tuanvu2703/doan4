@@ -4,17 +4,24 @@ export default function LayoutSearch() {
     const handChaneSearch = () => {
     }
     return (
-        <div className="flex flex-col md:flex-row min-h-screen">
+        <div className="flex flex-col md:flex-row min-h-screen relative">
+            {/* Nội dung chính */}
             <div className="w-full md:w-[80%] px-4">
                 <Outlet />
             </div>
-            <div className="flex flex-col shadow-md shadow-slate-500 w-full md:w-1/5 min-h-screen fixed md:static right-0 items-center px-4 hidden md:flex">
+
+            {/* Sidebar bên phải */}
+            <div className="flex flex-col shadow-md shadow-slate-500 w-full md:w-1/5 h-full absolute md:fixed right-0 items-center px-4 hidden md:flex overflow-y-auto">
+
+                {/* Tiêu đề */}
                 <div className="w-full border-b border-b-gray-400 py-4 text-2xl">
                     <strong>Kết quả tìm kiếm</strong>
                 </div>
+
+                {/* Bộ lọc */}
                 <div className="flex flex-col w-full pt-3">
-                    <strong className="pb-2">Bộc lọc</strong>
-                    <Link to={`/search/all`} className="w-full p-3 pl-5 rounded-2xl text-start hover:bg-blue-100 ">
+                    <strong className="pb-2">Bộ lọc</strong>
+                    <Link to={`/search/all`} className="w-full p-3 pl-5 rounded-2xl text-start hover:bg-blue-100">
                         <strong>Tất cả</strong>
                     </Link>
                     <Link to={`/search/content`} className="w-full p-3 pl-5 rounded-2xl text-start hover:bg-blue-100">
@@ -26,5 +33,6 @@ export default function LayoutSearch() {
                 </div>
             </div>
         </div>
+
     )
 };

@@ -129,9 +129,8 @@ export default function ModalStatus({ user }) {
     }
     // console.log(formData)
     return (
-        <dialog id="my_modal_1" className="modal">
-
-            <form className="modal-box"
+        <dialog id="my_modal_1" className="modal max-w-screen-[1300px] w-screen absolute">
+            <form className="modal-box w-full max-w-2xl mx-auto"
                 method='POST'
                 enctype="multipart/form-data"
                 onSubmit={handleSubmit}
@@ -236,7 +235,7 @@ export default function ModalStatus({ user }) {
                         {nodata && (<div className="text-red-500">Vui lòng nhập nội dung hoặc chọn ảnh</div>)}
                         {filePreview && (
                             <div className="mt-4">
-                                <FileViewChane  file={formData?.files}/>
+                                <FileViewChane file={formData?.files} />
                                 {/* <img src={filePreview} alt="Preview" className="max-w-full h-32 rounded-lg" /> */}
                             </div>
                         )}

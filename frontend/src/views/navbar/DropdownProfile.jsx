@@ -13,23 +13,26 @@ export default function DropdownProfile({ user }) {
     }
 
     return (
-        <div className="dropdown dropdown-end  hover:bg-gray-100">
+        <div className="dropdown dropdown-end hover:bg-gray-300 p-3 rounded-3xl">
             <div tabIndex={0} role="button" className="ml-3 flex flex-row items-center">
                 <img
-                    className='rounded-full aspect-square w-10'
+                    className="rounded-full aspect-square w-10"
                     alt="Profile"
-                    src={`${user && user.avatar ? user.avatar : "https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain"}`} />
+                    src={`${user && user.avatar ? user.avatar : "https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain"}`}
+                />
+                {/* Ẩn tên user trên màn hình nhỏ */}
                 <h3
-                    className="font-semibold truncate w-[110px] overflow-hidden whitespace-nowrap ml-3"
+                    className="font-semibold truncate w-[110px] overflow-hidden whitespace-nowrap ml-3 hidden md:block"
                     title={user ? ` ${user.firstName || ''}`.trim() : "No Name"}
                 >
                     {user ? ` ${user.firstName || ''}`.trim() : "No Name"}
                 </h3>
             </div>
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow gap-2">
+
+            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box w-52 p-2 shadow gap-2">
                 <li>
                     <Link to={"myprofile"} className="btn">
-                        <UserCircleIcon className='size-5' />
+                        <UserCircleIcon className="size-5" />
                         Trang cá nhân
                     </Link>
                 </li>
@@ -44,9 +47,9 @@ export default function DropdownProfile({ user }) {
                     </Link>
                 </li>
             </ul>
-            {logout && (
-                <LogOut btnOffLogout={sys} />
-            )}
+
+            {logout && <LogOut btnOffLogout={sys} />}
         </div>
+
     )
 }

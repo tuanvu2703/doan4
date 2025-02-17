@@ -10,7 +10,7 @@ export default function Myfriend() {
             }}
         >
             {/* Sidebar chuyển sang bên phải */}
-            <div className="flex flex-col shadow-md shadow-slate-500 w-1/5 fixed right-0 items-center min-h-full px-4">
+            <div className="flex flex-col shadow-md shadow-slate-500 w-1/5 fixed z-0 right-0 items-center min-h-full px-4">
                 <div className="w-full border-b border-b-gray-400 py-4 text-2xl">
                     <strong>Bạn bè</strong>
                 </div>
