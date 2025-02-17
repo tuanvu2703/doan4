@@ -14,7 +14,7 @@ export default function DropdownProfile({ user }) {
 
     return (
         <div className="dropdown dropdown-end hover:bg-gray-300 p-3 rounded-3xl">
-            <div tabIndex={0} role="button" className="ml-3 flex flex-row items-center">
+            <div tabIndex={0} role="button" className="ml-3 flex flex-row  items-center">
                 <img
                     className="rounded-full aspect-square w-10"
                     alt="Profile"
@@ -29,20 +29,20 @@ export default function DropdownProfile({ user }) {
                 </h3>
             </div>
 
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box w-52 p-2 shadow gap-2">
+            <ul tabIndex={0} className="menu dropdown-content bg-base-200 rounded-box z-[1] mt-4 w-52 p-2 shadow">
                 <li>
-                    <Link to={"myprofile"} className="btn">
+                    <Link to={"myprofile"} className="btn btn-outline btn-info">
                         <UserCircleIcon className="size-5" />
                         Trang cá nhân
                     </Link>
                 </li>
                 <li>
-                    <Link to={"changepass"} className="btn">
+                    <Link to={"changepass"} className="btn btn-outline btn-accent mt-1">
                         Đổi mật khẩu
                     </Link>
                 </li>
                 <li>
-                    <Link onClick={sys} className="btn btn-error">
+                    <Link onClick={sys} className="btn btn-outline btn-error mt-1">
                         Đăng xuất
                     </Link>
                 </li>
