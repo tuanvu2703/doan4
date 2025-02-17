@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.html {
+  background-color: white;
+}
+
+@keyframes colorWave {
+  0% {
+    color: #ff0000;
+  }
+
+  /* Red */
+  25% {
+    color: #ff7f00;
+  }
+
+  /* Orange */
+  50% {
+    color: #ffff00;
+  }
+
+  /* Yellow */
+  75% {
+    color: #00ff00;
+  }
+
+  /* Green */
+  100% {
+    color: #0000ff;
+  }
+
+  /* Blue */
+}
+
+.custom-scroll {
+  scrollbar-width: none;
+  /* Ẩn thanh cuộn trên Firefox */
+  -ms-overflow-style: none;
+  /* Ẩn thanh cuộn trên IE và Edge */
+}
+
+.custom-scroll::-webkit-scrollbar {
+  display: none;
+  /* Ẩn thanh cuộn trên Chrome, Safari và Edge */
+}
+
+.message-container {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+/* Apply custom styles to all scrollable areas */
+::-webkit-scrollbar {
+  width: 8px;
+  /* Width of the scrollbar */
+  height: 8px;
+  /* Height of the scrollbar (for horizontal scroll) */
+}
+
+::-webkit-scrollbar-thumb {
+  /* Custom gradient */
+  border-radius: 4px;
+  /* Rounded edges */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  /* Track background color */
+  border-radius: 4px;
+  /* Match the thumb radius */
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+  /* Corner where vertical and horizontal scrollbars meet */
+}
+
+/* Apply consistent styles for Firefox */
+* {
+  scrollbar-width: thin;
+  /* Thin scrollbar */
+  /* Thumb color and track color */
+}
+
+/* @keyframes dotsAnimation {
+    0% {
+      content: ".";
+    }
+    33% {
+      content: "..";
+    }
+    66% {
+      content: "...";
+    }
+    100% {
+      content: ".";
+    }
+  }
+  
+  .dotss {
+    display: inline-block;
+    animation: dotsAnimation 1.5s infinite;
+  } */
