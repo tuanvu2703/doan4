@@ -19,27 +19,21 @@ export default function DropdownOtherPost({ postId }) {
             <div tabIndex={0} role="button" className="p-2 hover:bg-gray-300 rounded-full">
                 <EllipsisHorizontalIcon className="size-5" />
             </div>
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 shadow-xl border-[1px] border-gray-300 rounded-box z-[1] w-52 p-2 ">
+            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                 <li>
 
                     <button
                         onClick={handleBookmarkAdd}
                         className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
                         <BookmarkIcon className="size-5 text-amber-600" />
-                        <span> Lưu bài viết</span>
+                        Lưu bài viết
                     </button>
                 </li>
 
                 <li>
                     <Link className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
                         <TrashIcon className="size-5  text-red-600" />
-                        <span className='font-semibold'>Ẩn bài viêt</span>
-                    </Link>
-                </li>
-                <li>
-                    <Link className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
-                        <TrashIcon className="size-5  text-red-600" />
-                        <span className='font-semibold'>Báo cáo</span>
+                        Ẩn bài viêt
                     </Link>
                 </li>
             </ul>

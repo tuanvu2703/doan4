@@ -16,17 +16,17 @@ export default function DropdownPostPersonal({ postId }) {
     finally {
       setTimeout(() => {
         window.location.reload()
-      }, 1000)
+      },1000)
     }
   }
 
 
   return (
-    <div className="dropdown dropdown-end ">
+    <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="p-2 hover:bg-gray-300 rounded-full">
         <EllipsisHorizontalIcon className="size-5" />
       </div>
-      <ul tabIndex={0} className="dropdown-content menu bg-base-100 border-2 border-gray-300 rounded-box z-[1] w-52 p-2 shadow">
+      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
 
         <li>
           <Link className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to={`/updatepost/${postId}`}>

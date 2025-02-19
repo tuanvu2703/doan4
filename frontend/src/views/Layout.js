@@ -167,7 +167,7 @@ export default function Layout() {
                         <SideBar />
                     </div>
                     {/* Main Content */}
-                    <main className="bg-background w-full md:w-4/5 lg:w-5/6 xl:w-5/6 p-4">
+                    <main className="bg-background w-full md:w-4/5 lg:w-5/6 xl:w-5/6 ">
                         <Outlet />
                     </main>
                 </div>

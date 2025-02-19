@@ -1,8 +1,6 @@
 'use client';
 import React from 'react';
 import { useState } from 'react';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 export default function SearchBar({ query }) {
     const [searchTerm, setSearchTerm] = useState("");
@@ -27,21 +25,21 @@ export default function SearchBar({ query }) {
         setSearchTerm("/search");
     };
     return (
-        <Link to={`/search/all?search=${searchTerm}`} action="" className="relative w-full justify-center">
-            <button
-                type="text"
-                value={searchTerm}
-                onChange={handleInputChange}
-                className="rounded-3xl min-w-64 border border-gray-300 py-2 text-black input input-bordered w-24 md:w-auto bg-white focus:outline-none"
-                placeholder="Tìm kiếm..."
-            />
-            {searchTerm && (
-                <button onClick={handleClearSearch} className='absolute right-4 top-[40%] transform -translate-y-1/2 text-gray-400 h-4 w-4'>
-                    <XMarkIcon className="size-6 fill-black" />
-                </button>
-            )}
-            <a href={`/search/all?search=${searchTerm}`} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" type="submit"><MagnifyingGlassIcon className='size-5 fill-black' />
-            </a>
+        <Link to={`/search/all?search=${searchTerm}`} action="" className="flex items-center rounded-full shadow-md w-full sm:w-52 border-2 border-blue-50">
+            <button className="btn btn-ghost btn-circle">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
             {/* onChange={(e) => debounceSearch(e.target.value)}
              defaultValue={searchParams.get("query")?.toString()} */}
         </Link>

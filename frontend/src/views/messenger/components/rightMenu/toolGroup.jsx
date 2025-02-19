@@ -116,8 +116,8 @@ const ToolGroup = () => {
         setOpenDialog(false);
     };
     return (
-        <div className="flex flex-col h-full">
-            <div className="border-2 flex justify-center items-center h-[56px] shadow-xl bg-white">
+        <div className="flex flex-col h-full border-2">
+            <div className=" flex justify-center items-center h-[56px] shadow-xl bg-white">
                 <div className='flex flex-col w-full ml-12'>
                     <strong className="text-center w-full">Thông tin nhóm</strong>
                     <h3 className='text-center w-full'>{groupdt?.name}</h3>

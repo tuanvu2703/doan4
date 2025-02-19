@@ -146,76 +146,115 @@ export default function AllPostOther({ user }) {
     console.log(posts)
     return (
         <>
-            {
-                posts.map((post) => (
-                    <div key={post._id} className='grid p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3'>
-                        <div className='flex items-start gap-3'>
-                            <AVTUser user={user} />
-                            <div className='grid gap-2 w-full'>
-                                <div className='flex justify-between'>
-                                    <article className='text-wrap grid gap-5'>
-                                        <div className='grid'>
-
-                                            <Link className='font-bold text-lg hover:link break-words w-screen max-w-xl' to="#">{user.lastName} {user.firstName}</Link>
-                                            <div className='flex gap-2'>
-                                                <span className='text-xs'>{formatDate(post.createdAt)}</span>
-                                                <span className='text-xs'>{formatPrivacy(post.privacy)}</span>
-                                            </div>
-                                        </div>
-                                    </article>
-                                    <DropdownOtherPost postId={post._id} />
-                                </div>
+            {posts.map((post) => (
+                <div
+                    key={post._id}
+                    className="grid gap-4 p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300"
+                >
+                    {/* Header: AVT + thông tin người dùng và Dropdown */}
+                    <div className="flex flex-col md:flex-row items-start gap-3">
+                        <AVTUser user={user} />
+                        <div className="flex flex-col w-full">
+                            <div className="flex justify-between items-center">
+                                <article className="flex-1">
+                                    <Link
+                                        to="#"
+                                        className="font-bold text-lg hover:link break-words block"
+                                    >
+                                        {user.lastName} {user.firstName}
+                                    </Link>
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className="text-xs">{formatDate(post.createdAt)}</span>
+                                        <span className="text-xs">{formatPrivacy(post.privacy)}</span>
+                                    </div>
+                                </article>
+                                <DropdownOtherPost postId={post._id} />
                             </div>
                         </div>
-                        {/* content */}
-                        <p className='break-words w-screen max-w-xl '>{post.content}</p>
-                        {/* image/video */}
-                        {post.img.length > 0 && (
-                            <div className="carousel rounded-box w-96 h-64 relative">
-                                {post.img.length > 1 && (
-                                    <button onClick={() => handlePrev(post)} className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">‹</button>
-                                )}
+                    </div>
+
+                    {/* Nội dung bài viết */}
+                    <p className="break-words">{post.content}</p>
+
+                    {/* Hình ảnh/Video */}
+                    {post.img.length > 0 && (
+                        <div
+                            className="relative rounded-box w-full max-w-md md:max-w-3xl 
+                     h-auto md:h-64 overflow-hidden"
+                        >
+                            {post.img.length > 1 && (
+                                <button
+                                    onClick={() => handlePrev(post)}
+                                    className="absolute left-0 top-1/2 transform -translate-y-1/2 
+                         bg-gray-800 text-white p-2 rounded-full z-10 
+                         hover:bg-gray-700 transition"
+                                >
+                                    ‹
+                                </button>
+                            )}
+                            <div className="carousel-item w-full flex items-center justify-center">
                                 {post.img.map((image, index) => (
-                                    <div className="carousel-item w-full items-center">
+                                    <div key={index} className="w-full">
                                         <FilePreview file={image} />
                                     </div>
                                 ))}
-                                {post.img.length > 1 && (
-                                    <button onClick={() => handleNext(post)} className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">›</button>
-                                )}
                             </div>
-                        )}
-                        <div className='flex justify-between'>
-                            <div className='flex gap-2'>
-                                <button onClick={() => handleLikeClick(post._id)} className={"flex items-end gap-1"}>
-                                    {post.likes.includes(userLogin._id)
-                                        ? <HandThumbUpIcon className="size-5 animate__heartBeat" color='blue' />
-                                        : <HandThumbUpIcon className="size-5 hover:text-blue-700 " />
-                                    }
-                                    <span>{post.likes.length}</span>
+                            {post.img.length > 1 && (
+                                <button
+                                    onClick={() => handleNext(post)}
+                                    className="absolute right-0 top-1/2 transform -translate-y-1/2 
+                         bg-gray-800 text-white p-2 rounded-full z-10 
+                         hover:bg-gray-700 transition"
+                                >
+                                    ›
                                 </button>
-                                <button onClick={() => handleDislikeClick(post._id)} className={"flex items-end gap-1 "}>
-                                    {post.dislikes.includes(userLogin._id)
-                                        ? <HandThumbDownIcon className="size-5 animate__heartBeat" color='red' />
-                                        : <HandThumbDownIcon className="size-5 hover:text-red-700" />
-                                    }
-                                    <span>{post.dislikes.length}</span>
-                                </button>
-                            </div>
-                            <Link to={`/post/${post._id}`} className={"flex items-end gap-1"}>
-                                <ChatBubbleLeftIcon className="size-5" />
-                                <span>{post.comments.length}</span>
-                            </Link>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Footer: Like, Dislike, Comment và Share */}
+                    <div className="flex flex-wrap justify-between items-center gap-2">
+                        <div className="flex gap-2">
                             <button
-                                onClick={() => handleCopyLink(post._id)}
-                                className={"flex items-end gap-1"}>
-                                <ShareIcon className="size-5" />
+                                onClick={() => handleLikeClick(post._id)}
+                                className="flex items-center gap-1"
+                            >
+                                {post.likes.includes(userLogin._id) ? (
+                                    <HandThumbUpIcon className="w-5 h-5 animate__heartBeat text-blue-500" />
+                                ) : (
+                                    <HandThumbUpIcon className="w-5 h-5 hover:text-blue-700" />
+                                )}
+                                <span className="text-sm">{post.likes.length}</span>
+                            </button>
+                            <button
+                                onClick={() => handleDislikeClick(post._id)}
+                                className="flex items-center gap-1"
+                            >
+                                {post.dislikes.includes(userLogin._id) ? (
+                                    <HandThumbDownIcon className="w-5 h-5 animate__heartBeat text-red-500" />
+                                ) : (
+                                    <HandThumbDownIcon className="w-5 h-5 hover:text-red-700" />
+                                )}
+                                <span className="text-sm">{post.dislikes.length}</span>
                             </button>
                         </div>
+                        <Link
+                            to={`/post/${post._id}`}
+                            className="flex items-center gap-1 text-sm"
+                        >
+                            <ChatBubbleLeftIcon className="w-5 h-5" />
+                            <span>{post.comments.length}</span>
+                        </Link>
+                        <button
+                            onClick={() => handleCopyLink(post._id)}
+                            className="flex items-center gap-1 text-sm"
+                        >
+                            <ShareIcon className="w-5 h-5" />
+                        </button>
                     </div>
-                ))
-            }
-
+                </div>
+            ))}
         </>
+
     )
 }

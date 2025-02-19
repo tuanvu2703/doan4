@@ -38,20 +38,20 @@ const LayoutMessenger = () => {
 
     return (
         <MessengerContext.Provider value={{ RightShow, handleHiddenRight, content, setContent, setInboxData, inboxData }}>
-            <div className="h-full w-screen flex flex-row text-black border-2 rounded-lg max-w-[1120px] mx-auto overflow-hidden">
+            <div className="h-full w-full flex flex-col md:flex-row text-black border-2 rounded-lg max-w-[1150px] mx-auto overflow-hidden">
                 {/* Sidebar Messenger */}
-                <div className="h-full">
+                <div className="h-full w-full md:w-auto">
                     <LeftMessenger />
                 </div>
 
                 {/* Main Content */}
-                <div className="w-full min-w-[408.362px] h-full">
+                <div className="w-full min-w-[300px] h-full">
                     <Outlet />
                 </div>
 
                 {/* Right Messenger (Hiển thị nếu RightShow = true) */}
                 {RightShow && (
-                    <div className="h-full">
+                    <div className="h-full w-full md:w-auto">
                         <RightMessenger />
                     </div>
                 )}

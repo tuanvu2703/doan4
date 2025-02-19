@@ -39,6 +39,8 @@ const FileViewer = ({ file }) => {
                     <img
                         onClick={() => openModal(file)}
                         src={file}
+                        className='rounded-sm border cursor-pointer'
+                        alt=""
                     />
                 );
             case 'video':
@@ -46,7 +48,7 @@ const FileViewer = ({ file }) => {
                     <video
                         controls
                         onClick={() => openModal(file)}
-                        className="rounded border cursor-pointer"
+                        className="rounded-sm border cursor-pointer"
                     >
                         <source src={file} type="video/mp4" />
                         Your browser does not support the video tag.
@@ -56,7 +58,7 @@ const FileViewer = ({ file }) => {
                 return (
                     <div
                         onClick={() => openModal(file)}
-                        className="rounded border bg-gray-100 flex justify-center items-center cursor-pointer p-4"
+                        className="rounded-sm border bg-gray-100 flex justify-center items-center cursor-pointer p-4"
                     >
                         <span>File</span>
                     </div>
@@ -75,11 +77,11 @@ const FileViewer = ({ file }) => {
 
     // Render all files
     return (
-        <>
+        <div>
             {files.map((f, index) => (
-               renderSingleFilePreview(f)
+                renderSingleFilePreview(f)
             ))}
-        </>
+        </div>
     );
 };
 

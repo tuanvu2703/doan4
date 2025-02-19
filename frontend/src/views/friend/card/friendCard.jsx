@@ -66,7 +66,7 @@ export default function FriendCard({ iduser, idrequest }) {
 
     return (
         <>
-            <div className="border border-gray-300 shadow-2xl max-w-52 rounded-lg m-2">
+            <div className="border border-gray-300 shadow-2xl max-w-52 w-screen rounded-lg m-2">
 
                 <Link onClick={() => handDetailUser(userdata?._id)}>
                     <img

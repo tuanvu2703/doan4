@@ -32,7 +32,7 @@ const LeftMessenger = () => {
         }
     };
     return (
-        <div className="h-full flex flex-col border-r-gray-300 border-r ">
+        <div className="h-full flex flex-col border-r-gray-300 border-r w-full md:w-auto">
             <div className=" min-w-80 h-full">
                 <div className="flex flex-col h-full">
                     <div className="w-full flex justify-center relative">

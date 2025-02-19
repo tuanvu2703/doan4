@@ -3,10 +3,10 @@ import PictureAndVideo from "./component/pictureAndVideo";
 
 const ToolInbox = () => {
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full border-2">
             <div
 
-                className={` border-2 flex justify-center items-center h-[56px] shadow-xl bg-white`}
+                className={` flex justify-center items-center h-[56px] shadow-xl bg-white`}
             >
                 <strong className="w-full text-center text-nowrap">Thông tin hội thoại</strong>
             </div>

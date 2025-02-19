@@ -17,6 +17,7 @@ export default function PostStatus({ user }) {
         >
           <span className="text-sm text-gray-600">Bạn muốn đăng gì?</span>
         </button>
+
         <ModalStatus user={user} />
       </div>
     </div>

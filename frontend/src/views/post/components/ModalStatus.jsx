@@ -129,8 +129,8 @@ export default function ModalStatus({ user }) {
     }
     // console.log(formData)
     return (
-        <dialog id="my_modal_1" className="modal max-w-screen-[1300px] w-screen absolute">
-            <form className="modal-box w-full max-w-2xl mx-auto"
+        <dialog id="my_modal_1" className="modal">
+            <form className="modal-box"
                 method='POST'
                 enctype="multipart/form-data"
                 onSubmit={handleSubmit}
@@ -145,7 +145,6 @@ export default function ModalStatus({ user }) {
                     </div>
                 )}
                 <div className="border-b border-gray-300 py-3 px-4 flex justify-center">
-
                     <strong className="text-black text-xl"
                         style={{
                             animation: 'colorWave 1s linear infinite',
@@ -162,7 +161,6 @@ export default function ModalStatus({ user }) {
                 {/* Content */}
                 <div className="p-4 space-y-4">
                     {/* Profile and Privacy */}
-
                     <div className="flex items-center space-x-3">
                         <div className="bg-gray-600 h-12 w-12 rounded-full flex items-center justify-center text-white">
                             <img
@@ -177,15 +175,12 @@ export default function ModalStatus({ user }) {
                                 type='button'
                                 className="flex items-center p-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-200"
                                 onClick={() => setShowDropdown(!showDropdown)} // Toggle dropdown on click
-
                                 aria-label="Edit privacy. Sharing with Public."
                             >
-
                                 {renderVisibilityIcon(visibility)} {/* Dynamically render icon */}
                                 <span className="ml-1 text-sm">{visibility}</span>
                                 <ArrowDropDownIcon fontSize="small" />
                             </button>
-
                             {/* Dropdown for selecting visibility */}
                             {showDropdown && (
                                 <div className="absolute bg-white border border-gray-300 rounded-md shadow-md mt-2 p-2 max-w-56 ">
@@ -193,7 +188,6 @@ export default function ModalStatus({ user }) {
                                         type='button'
                                         className="w-full text-left py-2 px-4 hover:bg-gray-100"
                                         onClick={() => handleVisibilityChange('Tất cả mọi người', "public")}
-
                                     >
                                         <PublicIcon className="mr-2 text-nowrap" /> Tất cả mọi người
                                     </button>
@@ -215,7 +209,6 @@ export default function ModalStatus({ user }) {
                             )}
                         </div>
                     </div>
-
                     {/* Textarea */}
                     <div>
                         <textarea
@@ -236,7 +229,6 @@ export default function ModalStatus({ user }) {
                         {filePreview && (
                             <div className="mt-4">
                                 <FileViewChane file={formData?.files} />
-                                {/* <img src={filePreview} alt="Preview" className="max-w-full h-32 rounded-lg" /> */}
                             </div>
                         )}
                         <div className="flex justify-end w-full gap-2">
@@ -248,7 +240,6 @@ export default function ModalStatus({ user }) {
                                     id="files"
                                     name='files'
                                     onChange={handleFileChange}
-
                                 />
                                 <label htmlFor="files" className="file-input-button cursor-pointer">
                                     <div className=' p-1 rounded-xl hover:bg-slate-300'>
@@ -256,11 +247,8 @@ export default function ModalStatus({ user }) {
                                     </div>
                                 </label>
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
                 <div className="modal-action">
                     {loading ? <p><Loading /></p> :
@@ -270,7 +258,6 @@ export default function ModalStatus({ user }) {
                             </form>
                             <button
                                 type="submit"
-
                                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-150"
                             >
                                 Đăng bài
@@ -280,7 +267,6 @@ export default function ModalStatus({ user }) {
                 </div>
             </form>
         </dialog>
-
         // <Dialog open={open} onClose={setOpen} className="relative z-10">
         //     <DialogBackdrop className="fixed inset-0 bg-gray-900 opacity-75 transition-opacity" />
         //     <div className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4">

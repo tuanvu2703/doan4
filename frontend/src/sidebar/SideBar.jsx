@@ -12,8 +12,8 @@ export default function SideBar() {
     const active = isActiveString('/friends');
 
     return (
-        <aside className={`mt-20 rounded-2xl fixed z-[1] top-0 left-0 h-full border-2 w-1/4 md:w-1/5 lg:w-1/6 xl:w-1/5 bg-white shadow-md transition-transform duration-300`}>
-            <ul className="">
+        <aside className={`mt-16 fixed z-[1] top-0 left-0 h-full border-2 w-1/4 md:w-1/5 lg:w-1/6 xl:w-1/5 bg-white shadow-md transition-transform duration-300`}>
+            <ul className="mt-2">
                 <Link
                     to="/"
                     className={`hover:bg-blue-100 rounded-2xl flex items-center gap-6 p-2 ${isActiveTab('/') ? 'text-blue-500' : 'text-gray-500'} `}
