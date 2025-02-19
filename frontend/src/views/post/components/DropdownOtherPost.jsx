@@ -26,14 +26,14 @@ export default function DropdownOtherPost({ postId }) {
                         onClick={handleBookmarkAdd}
                         className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
                         <BookmarkIcon className="size-5 text-amber-600" />
-                        Lưu bài viết
+                        <span className='text-amber-600'>Lưu bài viết</span>
                     </button>
                 </li>
 
                 <li>
                     <Link className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
                         <TrashIcon className="size-5  text-red-600" />
-                        Ẩn bài viêt
+                        <span className='text-red-600'>Ẩn bài viêt</span>
                     </Link>
                 </li>
             </ul>

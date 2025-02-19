@@ -66,11 +66,11 @@ export default function FriendCard({ iduser, idrequest }) {
         }
     };
     return (
-        <div className="border border-gray-300 shadow-2xl max-w-52 rounded-lg flex justify-between flex-col ">
+        <div className="border border-gray-300 shadow-2xl max-w-52 w-screen rounded-lg flex justify-between flex-col ">
 
             <Link onClick={() => handDetailUser(userdata?._id)}>
                 <img
-                    className={`${userdata?.avatar ? '' : ' p-3'} w-full aspect-square rounded-t-lg  bg-gray-400`}
+                    className={`${userdata?.avatar ? '' : ''} w-full aspect-square rounded-t-lg  bg-gray-400`}
                     src={
                         userdata?.avatar
                             ? userdata.avatar

@@ -6,6 +6,8 @@ import 'animate.css';
 import { Link } from 'react-router-dom';
 import FormReply from './FormReply';
 import CommentReply from './CommentReply';
+import { HeartIcon } from '@heroicons/react/24/outline';
+
 
 
 export default function Comment({ postId, user }) {
@@ -94,12 +96,12 @@ export default function Comment({ postId, user }) {
               </div>
               <p className="text-base mt-4">{e?.content}</p>
               <div className="flex items-center justify-between mt-4">
-                <div className='flex gap-1'>
+                <div className='flex gap-1 justify-center items-center'>
                   <span>{e?.likes?.length}</span>
                   <button onClick={() => handleLikeClick(e?._id)} className={"flex items-end gap-1"}>
                     {e?.likes?.includes(user._id)
-                      ? <div className='text-blue-700 animate__heartBeat'>Like</div>
-                      : <div className='text-gray-700 '>Like</div>
+                      ? <HeartIcon className='fill-red-600 text-red-600 size-5 animate__heartBeat' />
+                      : <HeartIcon className=' size-5 text-red-600 '>Like</HeartIcon>
                     }
                   </button>
 

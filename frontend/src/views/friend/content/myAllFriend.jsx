@@ -32,7 +32,7 @@ export default function MyAllFriend() {
 
 
     return (
-        <div className="w-full h-full px-5 flex flex-col overflow-x-hidden custom-scroll">
+        <div className="w-full h-full min-hsc px-5 flex flex-col">
             <strong className="text-xl ml-2 mb-2 w-full text-center pt-3">Danh sách bạn bè</strong>
             {loading ? (
                 <Loading />

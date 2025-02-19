@@ -25,7 +25,6 @@ function Home() {
                 <PostStatus user={user} />
                 <HomePost />
             </div>
-
         </div>
 
     );

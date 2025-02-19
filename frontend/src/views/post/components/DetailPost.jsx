@@ -142,75 +142,117 @@ export default function DetailPost() {
 
   // console.log(posts)
   return (
-    <div className='grid justify-center '>
-      <div className=' w-[600px]'>
-        <div key={posts._id}
-          className='flex items-start w-full p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3'>
-          <div className='grid gap-2 w-full'>
-            <div className='flex  justify-between'>
-              <div className='flex gap-3'>
+    <div className="grid justify-center p-4">
+      <div className="w-full max-w-[600px] mx-auto min-w-[500px]">
+        <div
+          key={posts._id}
+          className="flex flex-col md:flex-row items-start w-full p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3"
+        >
+          <div className="grid gap-2 w-full">
+            {/* Header: Thông tin tác giả và dropdown */}
+            <div className="flex flex-col md:flex-row justify-between">
+              <div className="flex gap-3">
                 <AVTUser user={user} />
-                <article className='text-wrap grid gap-5'>
-                  <div className='grid'>
-                    <Link className='font-bold text-lg hover:link ' to={`/user/${user._id}`}>{user.lastName} {user.firstName}</Link>
-                    <div className='flex gap-2'>
-                      <span className='text-xs'>{formatDate(posts.createdAt)}</span>
-                      <span className='text-xs'>{formatPrivacy(posts.privacy)}</span>
+                <article className="grid gap-5">
+                  <div className="grid">
+                    <Link
+                      className="font-bold text-lg hover:underline"
+                      to={`/user/${user._id}`}
+                    >
+                      {user.lastName} {user.firstName}
+                    </Link>
+                    <div className="flex gap-2">
+                      <span className="text-xs">{formatDate(posts.createdAt)}</span>
+                      <span className="text-xs">{formatPrivacy(posts.privacy)}</span>
                     </div>
                   </div>
                 </article>
               </div>
-              {userLogin._id === posts.author ? (
-                <DropdownPostPersonal postId={posts._id} />
-              ) : (
-                <DropdownOtherPost postId={posts._id} />
-              )}
+              <div>
+                {userLogin._id === posts.author ? (
+                  <DropdownPostPersonal postId={posts._id} />
+                ) : (
+                  <DropdownOtherPost postId={posts._id} />
+                )}
+              </div>
             </div>
-            <p>{posts.content}</p>
+
+            {/* Nội dung bài viết */}
+            <p className="mt-2">{posts.content}</p>
+
+            {/* Carousel hiển thị hình ảnh (nếu có) */}
             {posts?.img?.length > 0 && (
-              <div className="carousel rounded-box w-96 h-64 relative">
+              <div className="carousel rounded-box w-full sm:w-96 sm:h-64 relative mt-4">
                 {posts?.img?.length > 1 && (
-                  <button onClick={() => handlePrev(posts)} className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">‹</button>
+                  <button
+                    onClick={() => handlePrev(posts)}
+                    className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
+                  >
+                    ‹
+                  </button>
                 )}
                 <div className="carousel-item w-full items-center">
                   <FilePreview file={posts.img} />
                 </div>
                 {posts?.img?.length > 1 && (
-                  <button onClick={() => handleNext(posts)} className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">›</button>
+                  <button
+                    onClick={() => handleNext(posts)}
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full"
+                  >
+                    ›
+                  </button>
                 )}
               </div>
             )}
-            <div className='flex justify-between'>
-              <div className='flex gap-2'>
-                <button onClick={() => handleLikeClick(posts._id)} className={"flex items-end gap-1"}>
-                  {posts?.likes?.includes(userLogin._id)
-                    ? <HandThumbUpIcon className="size-5 animate__heartBeat" color='blue' />
-                    : <HandThumbUpIcon className="size-5 hover:text-blue-700 " />
-                  }
+
+            {/* Footer: Các nút tương tác */}
+            <div className="flex justify-between flex-wrap gap-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleLikeClick(posts._id)}
+                  className="flex items-center gap-1"
+                >
+                  {posts?.likes?.includes(userLogin._id) ? (
+                    <HandThumbUpIcon className="w-5 h-5 animate__heartBeat text-blue-500" />
+                  ) : (
+                    <HandThumbUpIcon className="w-5 h-5 hover:text-blue-700" />
+                  )}
                   <span>{posts?.likes?.length}</span>
                 </button>
-                <button onClick={() => handleDislikeClick(posts._id)} className={"flex items-end gap-1 "}>
-                  {posts?.dislikes?.includes(userLogin._id)
-                    ? <HandThumbDownIcon className="size-5 animate__heartBeat" color='red' />
-                    : <HandThumbDownIcon className="size-5 hover:text-red-700" />
-                  }
+                <button
+                  onClick={() => handleDislikeClick(posts._id)}
+                  className="flex items-center gap-1"
+                >
+                  {posts?.dislikes?.includes(userLogin._id) ? (
+                    <HandThumbDownIcon className="w-5 h-5 animate__heartBeat text-red-500" />
+                  ) : (
+                    <HandThumbDownIcon className="w-5 h-5 hover:text-red-700" />
+                  )}
                   <span>{posts?.dislikes?.length}</span>
                 </button>
               </div>
-              <button className='flex items-end gap-1'>
-                <ChatBubbleLeftIcon className="size-5" />
+
+              <button className="flex items-center gap-1">
+                <ChatBubbleLeftIcon className="w-5 h-5" />
                 <span>{posts?.comments?.length}</span>
               </button>
-              <button>
-                <ShareIcon className="size-5" />
+
+
+              <button className="flex items-end gap-1">
+                <ShareIcon className="w-5 h-5" />
               </button>
             </div>
           </div>
         </div>
-        <FormComment postId={posts._id} onCommentAdded={fetchComments} />
-        <Comment postId={posts._id} user={userLogin} />
+
+        {/* Form Comment và Comment */}
+        <div className="mt-4">
+          <FormComment postId={posts._id} onCommentAdded={fetchComments} />
+          <Comment postId={posts._id} user={userLogin} />
+        </div>
       </div>
     </div>
+
   )
 }
 

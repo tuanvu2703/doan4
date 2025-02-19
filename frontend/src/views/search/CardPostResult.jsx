@@ -6,6 +6,7 @@ import AVTUser from '../post/AVTUser';
 import { Link } from 'react-router-dom';
 import Loading from '../../components/Loading';
 import { debounce } from 'lodash';
+import FilePreview from '../../components/fileViewer';
 
 export default function CardPostResult({ query }) {
     const [currentIndexes, setCurrentIndexes] = useState({});
@@ -97,20 +98,16 @@ export default function CardPostResult({ query }) {
                                 </div>
                                 <p className='text-center'>{album.content}</p>
                             </div>
-                            {album?.img?.length > 0 && (
-                                <div className="carousel mx-auto mb-2 rounded-box w-full h-64 relative">
-                                    {album?.img?.length > 1 && (
-                                        <button onClick={() => handlePrev(album)} className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">‹</button>
+                            {albums?.img?.length > 0 && (
+                                <div className="carousel rounded-box w-96 h-64 relative">
+                                    {albums?.img?.length > 1 && (
+                                        <button onClick={() => handlePrev(albums)} className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">‹</button>
                                     )}
                                     <div className="carousel-item w-full items-center">
-                                        <img
-                                            src={album?.img[currentIndexes[album._id] || 0]}
-                                            className="w-full"
-                                            alt="Post visual"
-                                        />
+                                        <FilePreview file={albums.img} />
                                     </div>
-                                    {album?.img?.length > 1 && (
-                                        <button onClick={() => handleNext(album)} className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">›</button>
+                                    {albums?.img?.length > 1 && (
+                                        <button onClick={() => handleNext(albums)} className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">›</button>
                                     )}
                                 </div>
                             )}

@@ -11,6 +11,8 @@ import SocketLayout from "../service/webSocket/socketLayout";
 import imgUser from "../img/user.png"
 import { profileUserCurrent } from '../service/ProfilePersonal';
 import SideBar from "../sidebar/SideBar";
+import { ToastContainer } from 'react-toastify';
+
 
 export default function Layout() {
     const navigate = useNavigate();
@@ -169,6 +171,7 @@ export default function Layout() {
                     {/* Main Content */}
                     <main className="bg-background w-full md:w-4/5 lg:w-5/6 xl:w-5/6 ">
                         <Outlet />
+                        <ToastContainer position="bottom-left" autoClose={3000} />
                     </main>
                 </div>
             </UserProvider>

@@ -134,7 +134,7 @@ export default function Navbar() {
 
         //     <ToastContainer style={{ marginTop: '55px' }} limit={3} />
         // </>
-        <div className="navbar fixed bg-base-100 z-50 border-b-[1px] border-b-gray-500 bg-gradient-to-r from-[#22D1EE] to-[#E1F3F5]  p-0">
+        <div className="navbar fixed bg-base-100 z-50 border-b-[1px] border-b-gray-500 bg-gradient-to-r from-[#22D1EE] to-[#E1F3F5] to-50%  p-0">
             <div className="navbar-start">
                 <div className="dropdown">
                     <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden z-10">
