@@ -88,7 +88,11 @@ export default function ModalStatus({ user }) {
         }
     };
 
-
+    //handleFileRemove
+    const handleFileRemove = () => {
+        setFilePreview(null);
+        setFormData({ ...formData, files: null });
+    };
 
     //Submit 
     const handleSubmit = async (e) => {
@@ -228,7 +232,7 @@ export default function ModalStatus({ user }) {
                         {nodata && (<div className="text-red-500">Vui lòng nhập nội dung hoặc chọn ảnh</div>)}
                         {filePreview && (
                             <div className="mt-4">
-                                <FileViewChane file={formData?.files} />
+                                <FileViewChane file={formData?.files} onDelete={handleFileRemove} />
                             </div>
                         )}
                         <div className="flex justify-end w-full gap-2">

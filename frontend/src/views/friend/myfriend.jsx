@@ -13,7 +13,7 @@ export default function Myfriend() {
     return (
         <div className="flex">
             {/* Sidebar */}
-            <div className="fixed right-0 h-full bg-white shadow-md shadow-slate-500 w-64 md:w-1/5 lg:w-1/6 p-4 hidden md:flex flex-col">
+            <div className="fixed right-0 h-full bg-white shadow-md shadow-slate-500 w-80 md:w-1/5 lg:w-1/6 p-4 hidden md:flex flex-col">
                 <div className="w-full border-b border-gray-400 py-4 text-2xl">
                     <strong>Bạn bè</strong>
                 </div>
@@ -52,7 +52,7 @@ export default function Myfriend() {
 
                 {/* Sidebar mở bên phải */}
                 <div
-                    className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 
+                    className={`fixed top-0 right-0 h-full w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 
           ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
                 >
                     {/* Header của Sidebar */}

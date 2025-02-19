@@ -1,6 +1,6 @@
 import React from 'react';
-
-const FileViewChane = ({ file }) => {
+import { XCircleIcon } from '@heroicons/react/24/solid';
+const FileViewChane = ({ file, onDelete }) => {
     // Determine the file type based on its extension
     const getFileType = (fileName) => {
         const extension = fileName.split('.').pop().toLowerCase();
@@ -17,7 +17,7 @@ const FileViewChane = ({ file }) => {
 
     // Render preview based on file type
     return (
-        <>
+        <div className="relative max-w-[200px] border-2">
             {fileType === 'image' && (
                 <img
                     src={URL.createObjectURL(file)}
@@ -40,9 +40,15 @@ const FileViewChane = ({ file }) => {
                         File type not supported.
                     </div>
                 </div>
-
             )}
-        </>
+            <button
+                type="button"
+                className="absolute top-2 right-2  rounded-full p-1"
+                onClick={onDelete}
+            >
+                <XCircleIcon className='size-5 fill-red-500' />
+            </button>
+        </div>
     );
 };
 
