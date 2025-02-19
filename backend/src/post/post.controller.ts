@@ -9,7 +9,9 @@ import { OptionalAuthGuard } from '../user/guard/optional.guard';
 import { EventService } from 'src/event/event.service';
 import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { Types } from 'mongoose';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('post')
 @Controller('post')
 export class PostController {
 

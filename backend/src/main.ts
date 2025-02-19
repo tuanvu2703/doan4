@@ -23,10 +23,11 @@ async function bootstrap() {
   })
 
   const config = new DocumentBuilder()
-    .setTitle('NestJS Example')
-    .setDescription('NestJS Example API description')
+    .setTitle('Function API social network')
+    .setDescription(' NestJS Function Documentation')
     .setVersion('1.0')
-    .addTag('nestjs-example')
+    .addTag('THIS API IS FOR SOCIAL NETWORK')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

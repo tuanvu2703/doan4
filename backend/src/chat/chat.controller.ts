@@ -14,8 +14,9 @@ import { SendMessageDto } from './dto/sendMessage.dto';
 import { EventService } from '../event/event.service';
 import { authorize } from 'passport';
 import { addMembersToGroupDto } from './dto/addMemberGroup.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags('chat')
 @Controller('chat')
 export class ChatController {
   constructor(

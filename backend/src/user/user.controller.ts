@@ -16,9 +16,11 @@ import { UploadCoverImgDto } from './dto/uploadCoverImg.dto';
 import { OptionalAuthGuard } from './guard/optional.guard';
 import { Types } from 'mongoose';
 import { EventService } from 'src/event/event.service';
+import { APIS } from 'googleapis/build/src/apis';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 
-
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(
@@ -42,14 +44,14 @@ export class UserController {
   @Body('refreshToken') refreshToken: string) {
     return this.userService.refreshToken(userId, refreshToken);
   }
-
+  @ApiBearerAuth()
   @Get('current')
   @UseGuards(AuthGuardD)
   async getCurrentUser(@CurrentUser() user: any) {
     return user; 
   }
 
-
+  @ApiBearerAuth()
   @Put('update')
   @UseGuards(AuthGuardD)
   async updateUser(@CurrentUser() currentUser: User, @Body() updateData: UpdateUserDto) {
@@ -61,7 +63,7 @@ export class UserController {
       return this.userService.updateUser(currentUser._id.toString(), updateData);
   }
 
-
+  @ApiBearerAuth()
   @Put('change-password')
     @UseGuards(AuthGuardD) 
     async changePassword(

@@ -8,7 +8,11 @@ import { RolesGuard } from '../user/guard/role.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { EventService } from 'src/event/event.service';
 import { Types } from 'mongoose';
+import { ApiTags } from '@nestjs/swagger';
 
+
+
+@ApiTags('comments')
 @Controller('comments')
 @UseGuards(AuthGuardD)
 export class CommentController {
