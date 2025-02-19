@@ -20,6 +20,8 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
         username: process.env.KAFKA_USERNAME,
         password: process.env.KAFKA_PASSWORD,
       },
+      connectionTimeout: 10000, // Tăng timeout lên 10s
+      logLevel: logLevel.INFO,
     });
 
     this.producer = this.kafka.producer();
