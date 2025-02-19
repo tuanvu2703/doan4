@@ -21,7 +21,7 @@ export default function FriendProfile() {
     window.location.href = `/user/${id}`;
   };
   return (
-    <ul className="grid gap-3 sm:grid-cols-2 sm:gap-y-3 xl:col-span-2 p-3 overflow-hidden">
+    <ul className="grid gap-3 sm:grid-cols-2 sm:gap-y-3 xl:col-span-2 p-3 ">
       {loading ? (
         <Loading />
       ) : (
@@ -51,6 +51,5 @@ export default function FriendProfile() {
           ))
         ) : (<span>Chưa có bạn bè</span>))}
     </ul>
-
   )
 }

@@ -24,7 +24,7 @@ export default function DropdownMyfriend({ userdata }) {
             const rs = await friend.cancelFriend(id);
             if (rs.success) {
                 toast.success(rs?.message ? rs.message : 'Đã hủy kết bạn', NotificationCss.Success);
-                setFriendStatus("pending"); 
+                setFriendStatus("pending");
 
             } else {
                 toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
@@ -34,7 +34,7 @@ export default function DropdownMyfriend({ userdata }) {
         }
     };
     return (
-        <div className="dropdown">
+        <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="p-2 hover:bg-gray-300 rounded-full">
                 <ChevronDownIcon className="size-5 fill-black" />
             </div>
