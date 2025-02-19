@@ -6,14 +6,12 @@ import { GroupMessage } from './schema/groupMessage.schema';
 import { User } from '../user/schemas/user.schemas';
 import { CreateGroupDto } from './dto/createGroup.dto';
 import { SendMessageDto } from './dto/sendMessage.dto';
-import { content } from 'googleapis/build/src/apis/content';
+import * as crypto from 'crypto';
 import { Group } from './schema/group.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { RoomChat } from './schema/roomChat.schema';
 import { addMembersToGroupDto } from './dto/addMemberGroup.dto';
-import { Exception } from 'handlebars';
-import { Type } from 'class-transformer';
-import { GroupWithLastMessage } from './interFace/lastmessage.interface';
+import { buffer } from 'stream/consumers';
+
 
 @Injectable()
 export class ChatService {
@@ -22,9 +20,45 @@ export class ChatService {
         @InjectModel(GroupMessage.name) private readonly GroupMessageModel: Model<GroupMessage>,
         @InjectModel(Group.name) private readonly GroupModel: Model<Group>,
         @InjectModel(User.name) private readonly UserModel: Model<User>,
-        @InjectModel(RoomChat.name) private readonly RoomChatModel: Model<RoomChat>,
         private readonly cloudinaryService : CloudinaryService,
     ){}
+
+
+    private encryptMessage(text: string): string {
+      const IV_LENGTH = parseInt(process.env.IV_LENGTH);
+      const iv = crypto.randomBytes(IV_LENGTH); 
+      const cipher = crypto.createCipheriv(
+        process.env.ENCRYPTION_ALGORITHM, 
+        Buffer.from(process.env.ENCRYPTION_KEY, 'utf-8'), 
+        iv
+      );
+      let encrypted = cipher.update(text, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+    
+      return iv.toString('hex') + ':' + encrypted; 
+    }
+    
+
+    private decryptMessage(text: string): string {
+      const [iv, encrypted] = text.split(':');
+    
+      if (!/^[0-9a-fA-F]{32}$/.test(iv)) {
+        throw new Error('Invalid IV format');
+      }
+    
+      const decipher = crypto.createDecipheriv(
+        process.env.ENCRYPTION_ALGORITHM, 
+        Buffer.from(process.env.ENCRYPTION_KEY, 'utf-8'), 
+        Buffer.from(iv, 'hex') // Chuyển IV từ chuỗi hex thành Buffer
+      );
+    
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+      
+      return decrypted;
+    }
+    
+    
 
 
     async createGroup(createGroupDto: CreateGroupDto, userId: Types.ObjectId){
@@ -51,12 +85,13 @@ export class ChatService {
     ): Promise<GroupMessage> {
       const { content, mediaURL } = sendMessageDto;
     
+      const encryptedContent = this.encryptMessage(content);
 
+      const swagerGroupId = new Types.ObjectId(groupId);
       const groupMessage = new this.GroupMessageModel({
-        group: groupId,
+        group: swagerGroupId,
         sender: userId,
-
-        content,
+        content : encryptedContent,
         reading: [],
       });
     
@@ -68,9 +103,7 @@ export class ChatService {
           
           groupMessage.mediaURL = uploadedMedia;
           
-         
         } catch (error) {
-          console.error('Error uploading images to Cloudinary:', error);
           throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
       }
   }
@@ -78,7 +111,7 @@ export class ChatService {
     }
     
 
-    async getGroupMessages(groupId: Types.ObjectId): Promise<{ group: any; messages: GroupMessage[] }> {
+    async getGroupMessages(groupId: Types.ObjectId, userId: Types.ObjectId ): Promise<{ group: any; messages: GroupMessage[] }> {
      
       const group = await this.GroupModel.findById(groupId)
         .populate({ 
@@ -94,7 +127,13 @@ export class ChatService {
       if (!group) {
         throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
       }
+      //
+      if(!group.participants.some((participant) => participant._id.toString() === userId.toString())) {
+        throw new HttpException('You are not a member of this group', HttpStatus.UNAUTHORIZED);
 
+      }
+
+      //ok chưa đổi groupid thành objectId
       const messages = await this.GroupMessageModel.find({ group: groupId })
         .populate({ 
           path: 'sender', 
@@ -105,7 +144,9 @@ export class ChatService {
       if (!messages.length) { 
         throw new HttpException('Group has no messages', HttpStatus.NOT_FOUND);
       }
-
+      messages.forEach((message) => {
+        message.content = this.decryptMessage(message.content);
+      });
       return { group, messages };
     }
 
@@ -126,132 +167,164 @@ export class ChatService {
   
         return group.participants;
       } catch (error) {
-        console.error('Error fetching group members:', error);
+
         throw new HttpException('Failed to fetch group members', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
 
     
     async getMylistChat(
-      userId: string | Types.ObjectId,
+      userId: Types.ObjectId,
     ): Promise<{ Group: any[]; Participants: any[] }> {
-      const userObjectId = typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
+      try {
+
     
-      // Lấy danh sách userId mà user đã nhắn tin
-      const distinctUserIds = await this.MessageModel.distinct('sender', {
-        $or: [{ sender: userObjectId }, { receiver: userObjectId }],
-      }).then((ids) => ids.map((id) => id.toString()));
-    
-      // Hàm chuẩn hóa ObjectId
-      const normalizeIds = (ids: (string | Types.ObjectId)[]) =>
-        ids.map((id) => (typeof id === 'string' && Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id));
-    
-      const participants = await this.UserModel.find({
-        _id: { $in: normalizeIds(distinctUserIds), $ne: userObjectId },
-      }).select('firstName lastName avatar');
-    
-      // Lấy nhóm mà user tham gia
-      const groups = await this.GroupModel.find({
-        participants: { $in: [userObjectId] },
-      })
-        .select('name avatarGroup')
-        .lean();
-    
-      // Lấy tin nhắn mới nhất giữa user và mỗi participant
-      const latestMessages = await this.MessageModel.aggregate([
-        {
-          $match: {
-            $or: [
-              { sender: userObjectId },
-              { receiver: userObjectId },
-            ],
+        // Lấy danh sách userId mà user đã nhắn tin
+        const distinctUserIds = await this.MessageModel.aggregate([
+          {
+            $match: { $or: [{ sender: userId }, { receiver: userId }] },
           },
-        },
-        {
-          $sort: { createdAt: -1 },
-        },
-        {
-          $group: {
-            _id: {
-              $cond: [
-                { $eq: ['$sender', userObjectId] },
-                '$receiver',
-                '$sender',
-              ],
+          {
+            $group: {
+              _id: null,
+              userIds: {
+                $addToSet: {
+                  $cond: [{ $eq: ['$sender', userId] }, '$receiver', '$sender'],
+                },
+              },
             },
-            messageId: { $first: '$_id' },
-            content: { $first: '$content' },
-            mediaURL: { $first: '$mediaURL' },
-            createdAt: { $first: '$createdAt' },
-            sender: { $first: '$sender' },
-            receiver: { $first: '$receiver' },
           },
-        },
-      ]);
+        ]).then((result) => (result.length ? result[0].userIds : []).map(String));
+        const normalizeIds = (ids: (string | Types.ObjectId)[]) =>
+          ids.map((id) =>
+            typeof id === 'string' && Types.ObjectId.isValid(id)
+              ? new Types.ObjectId(id)
+              : id,
+          );
     
-      // Lấy tin nhắn mới nhất trong từng group
-      const latestGroupMessages = await this.GroupMessageModel.aggregate([
-        {
-          $match: {
-            group: { $in: groups.map((g) => g._id) },
-          },
-        },
-        {
-          $sort: { createdAt: -1 },
-        },
-        {
-          $group: {
-            _id: '$group',
-            messageId: { $first: '$_id' },
-            content: { $first: '$content' },
-            mediaURL: { $first: '$mediaURL' },
-            createdAt: { $first: '$createdAt' },
-            sender: { $first: '$sender' },
-          },
-        },
-      ]);
+        const participants = await this.UserModel.find({
+          _id: { $in: normalizeIds(distinctUserIds), $ne: userId },
+        }).select('firstName lastName avatar');
+
+        const groups = await this.GroupModel.find({
+          participants: { $in: [userId] },
+        })
+          .select('name avatarGroup')
+          .lean();
     
-      // Gắn tin nhắn mới nhất vào danh sách participants
-      const participantData = participants.map((participant) => {
-        const latestMessage = latestMessages.find(
-          (msg) => msg._id.toString() === participant._id.toString(),
+        const latestMessages = await this.MessageModel.aggregate([
+          {
+            $match: { $or: [{ sender: userId }, { receiver: userId }] },
+          },
+          {
+            $sort: { createdAt: -1 },
+          },
+          {
+            $set: {
+              chatPartner: {
+                $cond: [{ $eq: ['$sender', userId] }, '$receiver', '$sender'],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: '$chatPartner', 
+              messageId: { $first: '$_id' },
+              content: { $first: '$content' },
+              mediaURL: { $first: '$mediaURL' },
+              createdAt: { $first: '$createdAt' },
+              sender: { $first: '$sender' },
+              receiver: { $first: '$receiver' },
+            },
+          },
+        ]);
+        await this.MessageModel.populate(latestMessages, [
+          { path: 'sender', select: 'firstName lastName avatar' },
+          { path: 'receiver', select: 'firstName lastName avatar' },
+        ]);
+    
+        latestMessages.forEach((msg) => {
+          if (msg.content) {
+            msg.content = this.decryptMessage(msg.content);
+          }
+        });
+
+        const latestGroupMessages = await this.GroupMessageModel.aggregate([
+          {
+            $match: {
+              group: { $in: groups.map((g) => g._id) },
+            },
+          },
+          {
+            $sort: { createdAt: -1 },
+          },
+          {
+            $group: {
+              _id: '$group',
+              messageId: { $first: '$_id' },
+              content: { $first: '$content' },
+              mediaURL: { $first: '$mediaURL' },
+              createdAt: { $first: '$createdAt' },
+              sender: { $first: '$sender' },
+            },
+          },
+        ]);
+    
+        await this.GroupMessageModel.populate(latestGroupMessages, {
+          path: 'sender',
+          select: 'firstName lastName avatar',
+        });
+    
+        latestGroupMessages.forEach((msg) => {
+          if (msg.content) {
+            msg.content = this.decryptMessage(msg.content);
+          }
+        });
+    
+        const participantData = participants.map((participant) => {
+          const latestMessage = latestMessages.find(
+            (msg) => msg._id.toString() === participant._id.toString(),
+          );
+          return {
+            ...participant.toObject(),
+            latestMessage: latestMessage || null,
+          };
+        });
+    
+        const groupData = groups.map((group) => {
+          const latestMessage = latestGroupMessages.find(
+            (msg) => msg._id.toString() === group._id.toString(),
+          );
+          return {
+            ...group,
+            latestMessage: latestMessage || null,
+          };
+        });
+    
+        const sortedParticipants = participantData.sort(
+          (a, b) =>
+            new Date(b.latestMessage?.createdAt || 0).getTime() -
+            new Date(a.latestMessage?.createdAt || 0).getTime(),
         );
-        return {
-          ...participant.toObject(),
-          latestMessage: latestMessage || null,
-        };
-      });
     
-      // Gắn tin nhắn mới nhất vào danh sách groups
-      const groupData = groups.map((group) => {
-        const latestMessage = latestGroupMessages.find(
-          (msg) => msg._id.toString() === group._id.toString(),
+        const sortedGroups = groupData.sort(
+          (a, b) =>
+            new Date(b.latestMessage?.createdAt || 0).getTime() -
+            new Date(a.latestMessage?.createdAt || 0).getTime(),
         );
+    
         return {
-          ...group,
-          latestMessage: latestMessage || null,
+          Group: sortedGroups,
+          Participants: sortedParticipants,
         };
-      });
-    
-      // Sắp xếp theo thời gian nhận tin nhắn mới nhất
-      const sortedParticipants = participantData.sort(
-        (a, b) => new Date(b.latestMessage?.createdAt || 0).getTime() - new Date(a.latestMessage?.createdAt || 0).getTime(),
-      );
-    
-      const sortedGroups = groupData.sort(
-        (a, b) => new Date(b.latestMessage?.createdAt || 0).getTime() - new Date(a.latestMessage?.createdAt || 0).getTime(),
-      );
-    
-      return {
-        Group: sortedGroups,
-        Participants: sortedParticipants,
-      };
+      } catch (error) {
+
+        throw new Error('Failed to retrieve chat list');
+      }
     }
     
     
-    
-    
-
+  
     async removeMemberInGroup(groupId: Types.ObjectId, Owner: Types.ObjectId, member : Types.ObjectId): Promise<Group> {
       const group = await this.GroupModel.findById(groupId);
       if (!group) {
@@ -280,11 +353,11 @@ export class ChatService {
       if (!user) {
         throw new HttpException('Receiver not found', HttpStatus.NOT_FOUND);
       }
-
+      const encryptedContent = this.encryptMessage(content);
       const Message = new this.MessageModel({
         sender: senderId,
         receiver: receiverId,
-        content,
+        content:encryptedContent,
       });
     
       // Upload files if provided
@@ -293,15 +366,15 @@ export class ChatService {
           const uploadedMedia = await Promise.all(files.map(file => this.cloudinaryService.uploadFile(file)));
           Message.mediaURL = uploadedMedia;  
         } catch (error) {
-          console.error('Error uploading images to Cloudinary:', error);
+
           throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
         }
       }
       if (Types.ObjectId.isValid(receiverId)) {
         const receiverObjectId = new Types.ObjectId(receiverId); 
-        console.log('Converted receiverId to ObjectId:', receiverObjectId);
+
       } else {
-        console.log('receiverId is not a valid ObjectId string');
+
       }
     
       // Save and return the message
@@ -321,20 +394,26 @@ export class ChatService {
       if (!messages.length) {
         throw new HttpException('No messages found', HttpStatus.NOT_FOUND);
       }
+    
       const processedMessages = messages.map((message) => {
-        if (!message.isLive) {
-          return {
-            _id: message._id,
-            sender: message.sender,
-            receiver: message.receiver,
-            content: 'The message has been revoked', 
-          };
+        const messageObject = message.toObject(); // Chuyển document MongoDB thành object thuần
+    
+        if (!messageObject.isLive) {
+          messageObject.content = 'The message has been revoked';
+        } else {
+          try {
+            messageObject.content = this.decryptMessage(messageObject.content);
+          } catch (error) {
+            messageObject.content = '[Decryption Failed]';
+          }
         }
-        return message;
+    
+        return messageObject;
       });
     
       return processedMessages;
     }
+    
     
 
     async revokeAMessage(messageId: Types.ObjectId, userId: Types.ObjectId): Promise<Message | GroupMessage> {
@@ -375,9 +454,7 @@ export class ChatService {
       return message;
     }
     
-    
-
-
+  
     async addMembersToGroup(
       addMembersToGroupDto: addMembersToGroupDto,
       groupId: Types.ObjectId,

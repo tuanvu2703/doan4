@@ -8,12 +8,12 @@ declare const module: any
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // app.useGlobalPipes(
-  //   new ValidationPipe({
-  //     whitelist: true,
-  //     forbidNonWhitelisted: true,
-  //   }),
-  // );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   app.enableCors({
     origin: ['http://localhost:3000','https://zafacook.netlify.app'],

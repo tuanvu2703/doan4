@@ -1,7 +1,7 @@
 
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, Type } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CommentDto } from './dto/comment.dto';
 import { Comment } from './schema/comment.schema';
 import { promises } from 'dns';
@@ -22,18 +22,22 @@ export class CommentService {
     private jwtService: JwtService,
   ) { }
 
+
+
+
   //tạo cmt lần đầu
   async create(
-    userId: string,
-    postId: string,
+    userId: Types.ObjectId,
+    postId: Types.ObjectId,
     commentDto: CommentDto,
     files?: Express.Multer.File[],
-  ): Promise<{ comment: Comment; authorId: string }> {
+  ): Promise<{ comment: Comment; authorId:string }> {
+    const swageUserId = new Types.ObjectId(userId);
     const newCmt = new this.commentModel({
       content: commentDto.content,
       author: userId,
       post: postId,
-      likes: [],
+
     });
   
     if (files && files.length > 0) {
@@ -57,6 +61,7 @@ export class CommentService {
     }
   
     const authorId = post.author.toString();
+    const swageAuthor = new Types.ObjectId(authorId);
   
     await this.postModel.findByIdAndUpdate(
       postId,
@@ -113,7 +118,7 @@ export class CommentService {
     return deletedComment;
   }
 
-  async update(id: string, userId: string, commentDto: CommentDto, files?: Express.Multer.File[]): Promise<Comment> {
+  async update(id: Types.ObjectId, userId: string, commentDto: CommentDto, files?: Express.Multer.File[]): Promise<Comment> {
     const comment = await this.commentModel.findById(id);
 
     if (!comment) {
@@ -139,7 +144,7 @@ export class CommentService {
     return await comment.save();
   }
 
-  async reply(parentCommentId: string, userId: string, replyDto: CommentDto, files?: Express.Multer.File[]): Promise<Comment> {
+  async reply(parentCommentId: Types.ObjectId, userId: Types.ObjectId, replyDto: CommentDto, files?: Express.Multer.File[]): Promise<Comment> {
     const parentComment = await this.commentModel.findById(parentCommentId);
 
     if (!parentComment) {

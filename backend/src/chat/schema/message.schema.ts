@@ -2,7 +2,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from 'src/user/schemas/user.schemas';
-import { RoomChat } from './roomChat.schema';
+
 
 @Schema({
     timestamps: true,

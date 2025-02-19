@@ -1,5 +1,6 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
+import { User } from 'src/user/schemas/user.schemas';
 
 @Schema({
   timestamps: true, 
@@ -12,10 +13,10 @@ export class Post extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   author: Types.ObjectId;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }],  })
   likes: string[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] }) 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }],}) 
   dislikes: string[];
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Comment' }] }) 
@@ -27,7 +28,7 @@ export class Post extends Document {
   @Prop({ type: Number, default: 0 })
   commentsCount: number;
 
-  @Prop({ type: [String], default: [] }) 
+  @Prop({ type: [String], }) 
   img: string[];
 
   @Prop({ default: true }) 
@@ -37,8 +38,9 @@ export class Post extends Document {
   privacy: string; // ừ thì cái này dóng quyền riêng từ bên fở pò á
 
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
-  allowedUsers: Types.ObjectId[]; //cái này là chọn 1 vài cháu có thể sem bài diếc
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })  
+  allowedUsers: Types.ObjectId[];
+
 
 }
 

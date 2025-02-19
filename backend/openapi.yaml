@@ -1,0 +1,74 @@
+openapi: 3.0.1
+info:
+  title: Social Network API
+  description: API cho mạng xã hội
+  version: 1.0.0
+servers:
+  - url: http://localhost:3003
+
+paths:
+  /user/register:
+    post:
+      summary: Đăng ký người dùng mới
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                numberPhone:
+                  type: string
+                  example: "0836887911"
+                firstName:
+                  type: string
+                  example: "uchiha"
+                lastName:
+                  type: string
+                  example: "Nemo"
+                address:
+                  type: string
+                  example: "242 đường nemo, châu đốc-AnGiang"
+                gender:
+                  type: boolean
+                  enum: [true, false]
+                  example: "true"
+                birthday:
+                  type: string
+                  format: date
+                  example: "16/06/2003"
+                password:
+                  type: string
+                  example: "0836887911tien"
+      responses:
+        '200':
+          description: Người dùng đã được đăng ký thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User registered successfully"
+        '400':
+          description: Lỗi yêu cầu (ví dụ, thông tin không hợp lệ)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data"
+        '500':
+          description: Lỗi server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"

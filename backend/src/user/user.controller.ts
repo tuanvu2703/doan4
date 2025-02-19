@@ -50,7 +50,6 @@ export class UserController {
   }
 
 
-
   @Put('update')
   @UseGuards(AuthGuardD)
   async updateUser(@CurrentUser() currentUser: User, @Body() updateData: UpdateUserDto) {
@@ -191,7 +190,9 @@ export class UserController {
       avatar: currentUser.avatar,
     }
     try {
-      const request = await this.userService.FriendsRequest(currentUser._id.toString(), userId);
+      const swageSenderID = new Types.ObjectId(currentUser._id.toString())
+      const swageReceiverId = new Types.ObjectId(userId);
+      const request = await this.userService.FriendsRequest(swageSenderID, swageReceiverId);
       this.eventService.notificationToUser(userId, 'new friend request from', author);
       return request;
     } catch (error) {

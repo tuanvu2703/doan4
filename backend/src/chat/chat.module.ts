@@ -10,7 +10,7 @@ import { GroupMessage, GroupMessageSchema } from './schema/groupMessage.schema';
 import { EventModule } from '../event/event.module';
 import { GroupSchema } from './schema/group.schema';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
-import { RoomChatSchema } from './schema/roomChat.schema';
+
 
 @Module({
   imports: [
@@ -20,7 +20,6 @@ import { RoomChatSchema } from './schema/roomChat.schema';
     MongooseModule.forFeature([{ name: 'Message', schema: MessageSchema}]),
     MongooseModule.forFeature([{ name: 'GroupMessage', schema: GroupMessageSchema }]),
     MongooseModule.forFeature([{ name: 'Group', schema: GroupSchema }]),
-    MongooseModule.forFeature([{ name: 'RoomChat', schema: RoomChatSchema }]),
 
   ],
   controllers: [ChatController],
