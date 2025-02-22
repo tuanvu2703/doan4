@@ -178,37 +178,8 @@ export default function AllPostOther({ user }) {
 
                     {/* Hình ảnh/Video */}
                     {post.img.length > 0 && (
-                        <div
-                            className="relative rounded-box w-full max-w-md md:max-w-3xl 
-                     h-auto md:h-64 overflow-hidden"
-                        >
-                            {post.img.length > 1 && (
-                                <button
-                                    onClick={() => handlePrev(post)}
-                                    className="absolute left-0 top-1/2 transform -translate-y-1/2 
-                         bg-gray-800 text-white p-2 rounded-full z-10 
-                         hover:bg-gray-700 transition"
-                                >
-                                    ‹
-                                </button>
-                            )}
-                            <div className="carousel-item w-full flex items-center justify-center">
-                                {post.img.map((image, index) => (
-                                    <div key={index} className="w-full">
-                                        <FilePreview file={image} />
-                                    </div>
-                                ))}
-                            </div>
-                            {post.img.length > 1 && (
-                                <button
-                                    onClick={() => handleNext(post)}
-                                    className="absolute right-0 top-1/2 transform -translate-y-1/2 
-                         bg-gray-800 text-white p-2 rounded-full z-10 
-                         hover:bg-gray-700 transition"
-                                >
-                                    ›
-                                </button>
-                            )}
+                        <div className='flex justify-center'>
+                            <FilePreview file={post.img} />
                         </div>
                     )}
 

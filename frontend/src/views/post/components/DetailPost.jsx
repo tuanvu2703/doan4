@@ -143,7 +143,7 @@ export default function DetailPost() {
   // console.log(posts)
   return (
     <div className="grid justify-center p-4">
-      <div className="w-full max-w-[600px] mx-auto min-w-[500px]">
+      <div className="w-full max-w-[600px] mx-auto min-w-[400px]">
         <div
           key={posts._id}
           className="flex flex-col md:flex-row items-start w-full p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3"

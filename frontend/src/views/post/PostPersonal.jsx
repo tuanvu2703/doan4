@@ -157,7 +157,9 @@ export default function PostPersonal({ user }) {
                             <p className='break-words w-full'>{post.content}</p>
                             {/* image/video */}
                             {post.img.length > 0 && (
-                                <FilePreview file={post.img} />
+                                <div className='flex justify-center'>
+                                    <FilePreview file={post.img} />
+                                </div>
                             )}
                             {/* like, comment, share */}
                             <div className='flex justify-between flex-wrap gap-3'>

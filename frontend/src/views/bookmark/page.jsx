@@ -148,7 +148,6 @@ export default function Bookmark() {
                     </div>
                 )}
             </div>
-            <ToastContainer position="top-right" autoClose={3000} />
         </div>
 
 

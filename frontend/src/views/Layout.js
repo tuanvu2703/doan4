@@ -163,7 +163,7 @@ export default function Layout() {
             <UserProvider>
                 <Navbar />
                 <div className="navbar"></div>
-                <div className="container mx-auto flex flex-1 gap-4">
+                <div className="container mx-auto flex flex-1 gap-6">
                     {/* Sidebar */}
                     <div className="hidden md:block md:w-1/5 lg:w-1/6 xl:w-1/6">
                         <SideBar />

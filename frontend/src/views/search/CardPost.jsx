@@ -2,6 +2,8 @@ import React from 'react'
 import { useState, useEffect } from "react";
 import { getSearchResult } from "../../service/SearchService";
 import { Link, useParams } from "react-router-dom";
+import FileViewer from "../../components/fileViewer";
+
 export default function CardPost({ post }) {
     //carousel
     const [currentIndexes, setCurrentIndexes] = useState({});
@@ -55,13 +57,28 @@ export default function CardPost({ post }) {
                                         alt="Post visual"
                                     />
                                 </div>
-                                {post?.img?.length > 1 && (
-                                    <button
-                                        onClick={() => handleNext(post)}
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10"
-                                    >
-                                        ›
-                                    </button>
+                                {post.img.length > 0 && (
+                                    <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto">
+                                        {post.img.length > 1 && (
+                                            <button
+                                                onClick={() => handlePrev(post)}
+                                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10"
+                                            >
+                                                ‹
+                                            </button>
+                                        )}
+                                        <div className="carousel-item w-full flex justify-center">
+                                            <FileViewer file={post.img[0]} />
+                                        </div>
+                                        {post.img.length > 1 && (
+                                            <button
+                                                onClick={() => handleNext(post)}
+                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10"
+                                            >
+                                                ›
+                                            </button>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>

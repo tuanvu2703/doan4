@@ -175,7 +175,7 @@ export default function Navbar() {
                             <img src={logoweb} alt="Logo" className="h-12 aspect-square rounded-full shadow-md" />
                         </Link>
                     </button>
-                    <div className={` grid ${windowSize.width < 550 ? 'hidden' : ''} `}>
+                    <div className={` grid xs:hidden`}>
                         <Link to="/">
                             <h1 className='font-bold text-xl'>NEMO</h1>
                             <h2 className=' text-lg'>ANTISOCIAL</h2>
