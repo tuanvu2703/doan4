@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
     IsBoolean,
     IsEmail,
@@ -8,14 +9,14 @@ import {
   } from 'class-validator';
   
   export class UploadCoverImgDto {
-
+      @ApiProperty({
+        type: 'string',
+        format: 'binary', // Định dạng file upload trong Swagger
+      })
     @IsString()
     @IsNotEmpty({ message: 'please upload 1 file img ' })
     readonly coverImage : string;
   
-    @IsString()
-    @IsNotEmpty({ message: 'i do not know who are you, please login or provide your token' })
-    readonly userid: string;
 
   }
   

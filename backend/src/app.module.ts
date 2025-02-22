@@ -19,6 +19,8 @@ import { EventModule } from './event/event.module';
 import { EventService } from './event/event.service';
 import { ConsumerModule } from './kafka/consumer/consumer.module';
 import { ProducerModule } from './kafka/producer/producer.module';
+import { ScylladbModule } from './scylladb/scylladb.module';
+import { NotificationModule } from './kafka/notification/notification.module';
 
 
 
@@ -30,6 +32,9 @@ import { ProducerModule } from './kafka/producer/producer.module';
       isGlobal: true,
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),
+
+
+
     UserModule,
     PostModule,
     CommentModule,
@@ -41,6 +46,8 @@ import { ProducerModule } from './kafka/producer/producer.module';
     EventModule,
     ConsumerModule,
     ProducerModule,
+    ScylladbModule,
+    NotificationModule,
   ],
   controllers: [AppController, OtpController, MailController],
   providers: [AppService, MailService, OtpService],

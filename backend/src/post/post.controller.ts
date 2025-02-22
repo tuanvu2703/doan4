@@ -9,7 +9,7 @@ import { OptionalAuthGuard } from '../user/guard/optional.guard';
 import { EventService } from 'src/event/event.service';
 import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { Types } from 'mongoose';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('post')
 @Controller('post')
@@ -23,6 +23,9 @@ export class PostController {
 
     @Post('createPost')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
+    @ApiConsumes('multipart/form-data') 
+    @ApiOperation({ summary: 'Upload your image' })
     @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
     async createPost(
         @CurrentUser() currentUser: User,
@@ -46,6 +49,9 @@ export class PostController {
 
     @Put('updatePost/:postid')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
+    @ApiConsumes('multipart/form-data') 
+    @ApiOperation({ summary: 'Upload your image' })
     @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
     async updatePost(
         @CurrentUser() currentUser: User,
@@ -62,6 +68,7 @@ export class PostController {
 
     @Delete('deletePost/:postid')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async deletePost(
         @CurrentUser() currentUser: User,
         @Param('postid') postid: string,
@@ -75,6 +82,7 @@ export class PostController {
 
     @Put(':id/like')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async likePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
@@ -102,6 +110,7 @@ export class PostController {
     }
 
     @Put(':id/unlike')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async unlikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
@@ -113,6 +122,7 @@ export class PostController {
 
     @Put(':id/dislike')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async dislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
@@ -123,6 +133,7 @@ export class PostController {
 
     @Put(':id/undislike')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async undislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
@@ -134,6 +145,7 @@ export class PostController {
    
     @Get('crpost')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async getCurrentPost(
         @CurrentUser() currentUser: User,
     ) {
@@ -141,6 +153,7 @@ export class PostController {
     }
  
     @Get(':postId/privacy')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async findPostPrivacy(
         @CurrentUser() currentUser: User,
@@ -150,6 +163,7 @@ export class PostController {
     }
 
     @Put('settingprivacy/:postId')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async settingPrivacy(
         @CurrentUser() currentUser: User,
@@ -165,6 +179,7 @@ export class PostController {
     
 
     @Get('getHomeFeed')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async getHomeFeed(@CurrentUser() currentUser: User) {
       const currentUserId = currentUser ? currentUser._id.toString() : undefined;
@@ -174,6 +189,7 @@ export class PostController {
 
     @Get('friend/:userId')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async getPostsByUser(
         @Param('userId') userId: string,
         @CurrentUser() currentUser: User
@@ -187,6 +203,7 @@ export class PostController {
     }
 
     @Get('getPostByContent/:content')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async getPostByContent(
         @Param('content') content: string,

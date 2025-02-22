@@ -324,7 +324,7 @@ export class ChatService {
     }
     
     
-  
+    //bug
     async removeMemberInGroup(groupId: Types.ObjectId, Owner: Types.ObjectId, member : Types.ObjectId): Promise<Group> {
       const group = await this.GroupModel.findById(groupId);
       if (!group) {
