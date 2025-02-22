@@ -12,6 +12,7 @@ const uri = Apiuri.Apiuri()
 export default function Register() {
     const [formData, setFormData] = useState({
         numberPhone: '',
+        email: '',
         firstName: '',
         lastName: '',
         address: '',
@@ -26,6 +27,15 @@ export default function Register() {
 
     const validateForm = () => {
         const validationErrors = {};
+        const today = new Date();
+        const birthDate = new Date(formData.birthday);
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+
+        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
         if (!formData.password) {
             validationErrors.password = 'Bắt buộc nhập mật khẩu';
         } else if (formData.password.length < 8) {
@@ -35,9 +45,23 @@ export default function Register() {
         if (formData.password !== formData.confirmPassword) {
             validationErrors.confirmPassword = 'Mật khẩu không khớp nhau';
         }
+
+        if (age < 16) {
+            validationErrors.birthday = 'Bạn phải trên 16 tuổi';
+        }
+
+        const phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(formData.numberPhone)) {
+            validationErrors.numberPhone = 'Số điện thoại không hợp lệ';
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            validationErrors.email = 'Email không hợp lệ';
+        }
+
         return validationErrors;
     };
-
     const handleRemoveError = (field) => {
         setErrors((prevErrors) => {
             const updatedErrors = { ...prevErrors };
@@ -114,17 +138,18 @@ export default function Register() {
                         name="lastName"
                         className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Họ"
-                        maxLength={50}
+                        maxLength={10}
                         value={formData.lastName}
                         onChange={handleChange}
                         required
+
                     />
                     <input
                         type="text"
                         name="firstName"
                         className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Tên"
-                        maxLength={50}
+                        maxLength={20}
                         value={formData.firstName}
                         onChange={handleChange}
                         required
@@ -132,14 +157,27 @@ export default function Register() {
                 </div>
                 <div className="grid mb-4">
                     <input
+                        type="email"
+                        name="email"
+                        className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+                        placeholder="Email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                    />
+                    {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+
+                    <input
                         type="text"
                         name="numberPhone"
                         className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
                         placeholder="Số điện thoại"
                         value={formData.numberPhone}
                         onChange={handleChange}
+                        maxLength={10}
                         required
                     />
+                    {errors.numberPhone && <p className="text-red-500 text-sm">{errors.numberPhone}</p>}
                     <input
 
                         type="date"
@@ -149,7 +187,7 @@ export default function Register() {
                         onChange={handleChange}
                         required
                     />
-
+                    {errors.birthday && <p className="text-red-500 text-sm">{errors.birthday}</p>}
                     <input
                         type="text"
                         name="address"

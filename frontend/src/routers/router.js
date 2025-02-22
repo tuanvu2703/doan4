@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from '../views/home/home.jsx';
 import Myfriend from "../views/friend/myfriend.jsx";
 import Layout from "../views/Layout.js";
@@ -16,11 +16,11 @@ import OtherProfiles from "../views/profile/OtherProfiles/index.jsx";
 import AboutOtherProfile from "../views/profile/OtherProfiles/AboutOtherProfile.jsx";
 import OtherPosts from "../views/profile/OtherProfiles/OtherPosts.jsx";
 import Bookmark from "../views/bookmark/page.jsx";
-import MyFriendCard from "../views/friend/card/myFriendCard.jsx";
+
 import MyAllFriend from "../views/friend/content/myAllFriend.jsx";
 import MessengerInbox from "../views/messenger/components/content/messInbox.jsx";
 import FriendOtherProfile from "../views/profile/OtherProfiles/FriendOtherProfile.jsx";
-import authToken from "../components/authToken.jsx";
+
 import MessengerGroup from "../views/messenger/components/content/messGroup.jsx";
 import Test from "./test.jsx";
 import DetailPost from "../views/post/components/DetailPost.jsx";
@@ -30,6 +30,14 @@ import ForgotPass from "../auth/ForgotPass.jsx";
 import PostSearch from "../views/search/postSearch.jsx";
 import PeopleSearch from "../views/search/peopleSearch.jsx";
 import Fixconnectsocket from "./fixconnectsocket.jsx";
+
+import LayoutAdmin from "../admin/LayoutAdmin.js";
+import Dashboard from "../admin/page/dashboard.jsx";
+import UserManagement from "../admin/page/user-management.jsx";
+import PostManagement from "../admin/page/post-management.jsx";
+import CommentManagement from "../admin/page/comment-management.jsx";
+import ReportPostManagement from "../admin/page/reportpost-management.jsx";
+
 
 function routers() {
     return (
@@ -76,6 +84,13 @@ function routers() {
                 <Route path="/test" element={<Test />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgotpass" element={<ForgotPass />} />
+                <Route path="/admin" element={<LayoutAdmin />} >
+                    <Route index element={< Dashboard />} />
+                    <Route path="user" element={<UserManagement />} />
+                    <Route path="post" element={<PostManagement />} />
+                    <Route path="comment" element={<CommentManagement />} />
+                    <Route path="report/post" element={<ReportPostManagement />} />
+                </Route>
             </Routes>
         </BrowserRouter>
     );
