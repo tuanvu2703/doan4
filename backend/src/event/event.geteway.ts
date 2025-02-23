@@ -17,7 +17,7 @@ import { Types } from 'mongoose';
 
   cors: {
     origin: (origin, callback) => {
-      const allowedOrigins = ["http://localhost:3000", "https://zafacook.netlify.app"];
+      const allowedOrigins = ["http://localhost:3000",];
 
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -72,31 +72,28 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   handleDisconnect(client: Socket) {
-
-  
     // Tìm userId mà client thuộc về
     const userId = Array.from(this.activeUsers.entries()).find(([_, clientIds]) =>
-      clientIds.has(client.id)
+        clientIds.has(client.id)
     )?.[0];
-  
+
     if (userId) {
-      const userSockets = this.activeUsers.get(userId);
-  
-      if (userSockets) {
-        // Xóa clientId khỏi Set
-        userSockets.delete(client.id);
-  
-        // Nếu Set rỗng, xóa userId khỏi Map
-        if (userSockets.size === 0) {
-          this.activeUsers.delete(userId);
+        const userSockets = this.activeUsers.get(userId);
+
+        if (userSockets) {
+            // Xóa clientId khỏi Set
+            userSockets.delete(client.id);
+
+            // Nếu Set rỗng, xóa userId khỏi Map
+            if (userSockets.size === 0) {
+                this.activeUsers.delete(userId);
+            }
         }
-      }
-  
 
+        console.log(`❌ User ${userId} disconnected: ${client.id}`);
     }
-  
+}
 
-  }
   
   
   

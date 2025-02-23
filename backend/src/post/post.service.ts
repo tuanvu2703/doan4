@@ -238,7 +238,7 @@ export class PostService {
     
     
 
-    async findPostCurrentUser(userId: string) {
+    async findPostCurrentUser(userId: Types.ObjectId):Promise<Post[]> {
         try {
             const userPosts = await this.PostModel.find({ author: userId })
                 .populate('author', 'username firstName lastName avatar')
@@ -313,18 +313,18 @@ export class PostService {
         }
     }
 
-    async getPostsByUser(userId: string, currentUserId?: string): Promise<Post[]> {
+    async getPostsByUser(userId: Types.ObjectId, currentUserId?: Types.ObjectId): Promise<Post[]> {
         try {
             // Chuyển đổi `currentUserId` sang ObjectId nếu có
-            const currentUserObjectId = currentUserId ? new Types.ObjectId(currentUserId) : null;
+            
     
             // Lấy tất cả bài viết của `userId`
             const posts = await this.PostModel.find({ author: userId });
-    
+            console.log(posts);
             // Lọc bài viết theo quyền riêng tư
             const filteredPosts = await Promise.all(
                 posts.map(async (post) => {
-                    const postAuthorObjectId = new Types.ObjectId(post.author); // Chuyển sang ObjectId nếu cần
+                    // const postAuthorObjectId = new Types.ObjectId(post.author); // Chuyển sang ObjectId nếu cần
     
                     // Chế độ công khai
                     if (post.privacy === 'public') {
@@ -333,7 +333,7 @@ export class PostService {
     
                     // Chế độ riêng tư
                     if (post.privacy === 'private') {
-                        if (postAuthorObjectId.equals(currentUserObjectId)) {
+                        if (userId.equals(currentUserId)) {
                             return post; // Chỉ tác giả mới xem được
                         }
                         return null;
@@ -342,15 +342,15 @@ export class PostService {
                     // Chế độ bạn bè
                     if (post.privacy === 'friends') {
                         // Tác giả có thể xem bài viết của chính họ
-                        if (postAuthorObjectId.equals(currentUserObjectId)) {
+                        if (userId.equals(currentUserId)) {
                             return post;
                         }
     
                         // Kiểm tra nếu người dùng hiện tại và tác giả là bạn bè
                         const isFriend = await this.FriendModel.exists({
                             $or: [
-                                { sender: currentUserObjectId?.toString(), receiver: postAuthorObjectId.toString() },
-                                { sender: postAuthorObjectId.toString(), receiver: currentUserObjectId?.toString() },
+                                { sender: userId, receiver: currentUserId},
+                                { sender: currentUserId, receiver: userId },
                             ],
                         });
     
@@ -364,7 +364,7 @@ export class PostService {
                     if (post.privacy === 'specific') {
                         if (
                             post.allowedUsers.some((id) =>
-                                id.toString() === currentUserObjectId?.toString()
+                                id.toString() === currentUserId?.toString()
                             )
                         ) {
                             return post; // Người dùng được phép xem
@@ -397,10 +397,11 @@ export class PostService {
     }
     
 
-    async getHomeFeed(userId: Types.ObjectId): Promise<PostF[]> {
+    async getHomeFeed(userId: Types.ObjectId): Promise<Post[]> {
         try {
             // Tìm người dùng và kiểm tra xem người dùng có tồn tại không
             const user = await this.UserModel.findById(userId);
+            console.log('user successfully');
             if (!user) {
                 throw new NotFoundException('User not found');
             } //ok
@@ -411,8 +412,9 @@ export class PostService {
                     { sender: userId.toString() }, 
                     { receiver: userId.toString() }, 
                 ],
+                
             }).exec(); //bug ở đây 
-            console.log("friends",friends);
+            
     
             const friendIds = friends.map(friend => {
                 return friend.sender.toString() === userId.toString() ? friend.receiver : friend.sender;
@@ -430,9 +432,10 @@ export class PostService {
                 $and: [
                     { privacy: { $ne: 'private' } }, // Loại trừ bài viết private
                     { $or: conditions },
+                    
                 ],
             })
-                .populate('author', 'firstName lastName avatar birthday')
+                .populate('author', 'firstName lastName avatar ')
                 .populate('likes', '_id')
                 .populate('comments', '_id')
                 .lean() 

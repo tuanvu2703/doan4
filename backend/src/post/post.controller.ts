@@ -9,7 +9,9 @@ import { OptionalAuthGuard } from '../user/guard/optional.guard';
 import { EventService } from 'src/event/event.service';
 import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { Types } from 'mongoose';
-import { ApiTags } from '@nestjs/swagger';
+import { ProducerService } from 'src/kafka/producer/kafka.Producer.service';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { timeStamp } from 'console';
 
 @ApiTags('post')
 @Controller('post')
@@ -18,19 +20,23 @@ export class PostController {
     constructor(
         private postService: PostService,
         private eventService: EventService,
+        private producerService: ProducerService,
     ) { }
 
 
 
     @Post('createPost')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
+    @ApiConsumes('multipart/form-data') 
+    @ApiOperation({ summary: 'Upload your image' })
     @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
     async createPost(
         @CurrentUser() currentUser: User,
         @Body() createPostDto: CreatePostDto,
         @UploadedFiles() files: { files: Express.Multer.File[] }
     ) {
-
+        // nội dung cần làm: thông báo đến bạn bè của người dùng về bài viết mới(1 số người thôiz)
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
@@ -47,6 +53,9 @@ export class PostController {
 
     @Put('updatePost/:postid')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
+    @ApiConsumes('multipart/form-data') 
+    @ApiOperation({ summary: 'Upload your image' })
     @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
     async updatePost(
         @CurrentUser() currentUser: User,
@@ -63,6 +72,7 @@ export class PostController {
 
     @Delete('deletePost/:postid')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async deletePost(
         @CurrentUser() currentUser: User,
         @Param('postid') postid: string,
@@ -76,24 +86,28 @@ export class PostController {
 
     @Put(':id/like')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async likePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-
-        const notification = {
-            title: 'new like in post',
-            body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
-            avatart: currentUser.avatar,
-            data: {
-                postId: id,
-                userId: currentUser._id.toString(),
-                type: 'like',
-            },
-        }
+        
+        
         try {
-            const { authorId, post } = await this.postService.likePost(id, currentUser._id.toString());
-            this.eventService.notificationToUser(authorId, 'new like in post', notification);
+            const {authorId, post} = await this.postService.likePost(id, currentUser._id.toString());
+            const notification = {
+                body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
+                avatart : currentUser.avatar,
+                data: {
+                    owner: authorId,
+                    postId: id,
+                    userId: currentUser._id.toString(),
+                    type: 'like',
+                    timeStamp: new Date().toISOString(),
+                },
+            }
+            // this.eventService.notificationToUser(authorId, 'new like in post', notification );
+            await this.producerService.sendMessage('mypost', notification);
             return post;
         } catch (error) {
             throw new HttpException('An error occurred while liking post', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -103,6 +117,7 @@ export class PostController {
     }
 
     @Put(':id/unlike')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async unlikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
@@ -114,6 +129,7 @@ export class PostController {
 
     @Put(':id/dislike')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async dislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
@@ -124,6 +140,7 @@ export class PostController {
 
     @Put(':id/undislike')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async undislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
@@ -135,13 +152,16 @@ export class PostController {
 
     @Get('crpost')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async getCurrentPost(
         @CurrentUser() currentUser: User,
     ) {
-        return this.postService.findPostCurrentUser(currentUser._id.toString())
+        const swageUserId = new Types.ObjectId(currentUser._id.toString());
+        return this.postService.findPostCurrentUser(swageUserId)
     }
 
     @Get(':postId/privacy')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async findPostPrivacy(
         @CurrentUser() currentUser: User,
@@ -151,6 +171,7 @@ export class PostController {
     }
 
     @Put('settingprivacy/:postId')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async settingPrivacy(
         @CurrentUser() currentUser: User,
@@ -172,6 +193,7 @@ export class PostController {
     }
 
     @Get('getHomeFeed')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async getHomeFeed(@CurrentUser() currentUser: User) {
         const currentUserId = currentUser ? currentUser._id.toString() : undefined;
@@ -181,12 +203,15 @@ export class PostController {
 
     @Get('friend/:userId')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
     async getPostsByUser(
         @Param('userId') userId: string,
         @CurrentUser() currentUser: User
     ) {
         try {
-            const posts = await this.postService.getPostsByUser(userId, currentUser._id.toString() || null);
+            const swageUserId = new Types.ObjectId(userId);
+            const swageCurrentUser = new Types.ObjectId(currentUser._id.toString());
+            const posts = await this.postService.getPostsByUser(swageUserId, swageCurrentUser);
             return posts;
         } catch (error) {
             throw new HttpException('An error occurred while fetching posts  ????', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -194,6 +219,7 @@ export class PostController {
     }
 
     @Get('getPostByContent/:content')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async getPostByContent(
         @Param('content') content: string,

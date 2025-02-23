@@ -9,7 +9,9 @@ import { Message, MessageSchema } from './schema/message.schema';
 import { GroupMessage, GroupMessageSchema } from './schema/groupMessage.schema';
 import { EventModule } from '../event/event.module';
 import { GroupSchema } from './schema/group.schema';
-import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { ConsumerModule } from '../kafka/consumer/consumer.module';
+import { ProducerModule } from '../kafka/producer/producer.module';
 
 
 @Module({
@@ -17,6 +19,8 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
     UserModule,
     EventModule,
     CloudinaryModule,
+    ConsumerModule,
+    ProducerModule,
     MongooseModule.forFeature([{ name: 'Message', schema: MessageSchema}]),
     MongooseModule.forFeature([{ name: 'GroupMessage', schema: GroupMessageSchema }]),
     MongooseModule.forFeature([{ name: 'Group', schema: GroupSchema }]),

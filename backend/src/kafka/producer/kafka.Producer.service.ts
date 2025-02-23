@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Producer, logLevel } from 'kafkajs';
-
+import { randomUUID } from 'crypto';
 @Injectable()
 export class ProducerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
@@ -29,18 +29,22 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     try {
-      console.log('🔄 Connecting Kafka Producer...');
-      await this.producer.connect();
-      console.log('✅ Kafka Producer connected!');
+        console.log('🔄 Connecting Kafka Producer...');
+        await this.producer.connect();
+        console.log('✅ Kafka Producer connected!');
     } catch (error) {
-      console.error('❌ Kafka Producer connection failed:', error);
+        console.error('❌ Kafka Producer connection failed:', error);
+        setTimeout(() => this.onModuleInit(), 5000); // Retry sau 5 giây
     }
-  }
+}
+
 
   async onModuleDestroy() {
     await this.producer.disconnect();
   }
-
+  //người gửi 
+  // gửi tới đâu 
+  // nội dung là gì
   async sendMessage(topic: string, message: any) {
     try {
       await this.producer.send({

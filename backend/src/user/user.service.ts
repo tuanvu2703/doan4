@@ -129,13 +129,16 @@ export class UserService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+
+    if(!user.isActive) {
+      throw new HttpException('User is not active', HttpStatus.UNAUTHORIZED);
+    }
     // Kiểm tra mật khẩu
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
-
     return this.generateToken(user._id);
   }
 
@@ -665,6 +668,15 @@ export class UserService {
     
       throw new HttpException('Could not retrieve users', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async activeUser(userid: Types.ObjectId): Promise<User> {
+    const user = await this.UserModel.findById(userid);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    user.isActive = false;
+    return await user.save();
   }
 
 }

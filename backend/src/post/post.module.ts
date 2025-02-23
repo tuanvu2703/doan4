@@ -8,6 +8,7 @@ import { UserSchema } from '../user/schemas/user.schemas';
 import { UserModule } from '../user/user.module';
 import { EventService } from 'src/event/event.service';
 import { EventModule } from 'src/event/event.module';
+import { ProducerModule } from '../kafka/producer/producer.module';
 
 
 @Global()
@@ -17,6 +18,7 @@ import { EventModule } from 'src/event/event.module';
     CloudinaryModule,
     UserModule,
     EventModule,
+    ProducerModule,
   ],
   controllers: [PostController],
   providers: [PostService, EventService],

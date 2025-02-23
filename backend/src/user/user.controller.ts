@@ -17,7 +17,7 @@ import { OptionalAuthGuard } from './guard/optional.guard';
 import { Types } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { APIS } from 'googleapis/build/src/apis';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 
 @ApiTags('User')
@@ -66,6 +66,7 @@ export class UserController {
   @ApiBearerAuth()
   @Put('change-password')
     @UseGuards(AuthGuardD) 
+    @ApiBearerAuth() 
     async changePassword(
         @CurrentUser() currentUser: User, 
         @Body() changePasswordDto: ChangePasswordDto
@@ -75,6 +76,7 @@ export class UserController {
 
 
     @Get('getAllUser')
+    @ApiBearerAuth() 
     @UseGuards(AuthGuardD) 
     async getAllUser(
       @CurrentUser() currentUser : User,
@@ -113,6 +115,7 @@ export class UserController {
     }
 
     @Post('reset-password')
+
     async resetPassword(
       @Body('email') email: string,
       @Body('otp') otp: string, 
@@ -132,6 +135,7 @@ export class UserController {
 
 
     @Get('getDetailUser/:userId')
+    @ApiBearerAuth() 
     async getDetailUser(
       @Param('userId')
       userId: string,
@@ -143,6 +147,9 @@ export class UserController {
   @Post('upload-avatar')
   @UseGuards(AuthGuardD)
   @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 1 }]))
+  @ApiBearerAuth() 
+  @ApiConsumes('multipart/form-data') 
+  @ApiOperation({ summary: 'Upload user avatar' })
   async uploadAvatar(
   @CurrentUser() currentUser: User,
   @Body() uploadAvatarDto : UploadAvatarDto,
@@ -155,6 +162,9 @@ export class UserController {
   @Post('uploadcoveravatar')
   @UseGuards(AuthGuardD)
   @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 1 }]))
+  @ApiBearerAuth() 
+  @ApiConsumes('multipart/form-data') 
+  @ApiOperation({ summary: 'Upload user avatar' })
   async uploadCoverAvatar(
   @CurrentUser() currentUser: User,
   @Body() uploadCoverImgDto : UploadCoverImgDto,
@@ -163,22 +173,25 @@ export class UserController {
     return this.userService.uploadCoverImage(uploadCoverImgDto, currentUser._id.toString(),  files.files);
   }
 
+  @ApiBearerAuth() 
   @Post(':postId/bookmark')
   @UseGuards(AuthGuardD)
   async savePost(@CurrentUser() currentUser: User, @Param('postId') postId: string) {
     return this.userService.savePost(currentUser._id.toString(), postId);
   }
+  @ApiBearerAuth() 
   @Delete(':postId/bookmark')
   @UseGuards(AuthGuardD)
   async removeSavedPost(@CurrentUser() currentUser: User, @Param('postId') postId: string) {
     return this.userService.removeSavedPost(currentUser._id.toString(), postId);
   }
+  @ApiBearerAuth() 
   @Get(':userId/bookmark')
   @UseGuards(AuthGuardD)
   async getSavedPosts(@CurrentUser() currentUser: User) {
     return this.userService.getSavedPosts(currentUser._id.toString());
   }
-
+  @ApiBearerAuth() 
   @Post('friendrequest/:userId')
   @UseGuards(AuthGuardD)
   async friendRequest(
@@ -202,7 +215,7 @@ export class UserController {
       throw error;
     }
   }
-
+  @ApiBearerAuth() 
   @Post('acceptfriend/:friendRequestId')
   @UseGuards(AuthGuardD)
   async acceptFriend(
@@ -225,7 +238,7 @@ export class UserController {
     }
 
   }
-
+  @ApiBearerAuth() 
   @Post('rejectFriendRequest/:friendRequestId')
   @UseGuards(AuthGuardD)
   async rejectFriendRequest(
@@ -235,6 +248,7 @@ export class UserController {
     return this.userService.rejectFriendRequest(currentUser._id.toString(), friendRequestId);
   }
   
+  @ApiBearerAuth() 
   @Get('getMyFriendRequest')
   @UseGuards(AuthGuardD)
   async getMyFriendRequest(
@@ -242,7 +256,7 @@ export class UserController {
   ){
     return this.userService.getMyFriendRequest(currentUser._id.toString());
   }
-
+  @ApiBearerAuth() 
     @Delete('unfriend/:friendId')
     @UseGuards(AuthGuardD)
     async unfriend(
@@ -253,6 +267,7 @@ export class UserController {
       return this.userService.unFriend(currentUser._id.toString(), friendId);
     }
 
+    @ApiBearerAuth() 
     @Get('getMyFriend')
     @UseGuards(AuthGuardD)
     async getMyFriend(
@@ -262,6 +277,7 @@ export class UserController {
       return this.userService.getMyFriend(currentUser._id.toString());
     } //check
 
+    @ApiBearerAuth() 
     @Get('request')
     @UseGuards(AuthGuardD)
     async getAllMysenderFriendRequest(
@@ -271,6 +287,7 @@ export class UserController {
     }
 
     @Delete('removeFriendRequest/:friendRequestId')
+    @ApiBearerAuth()
     @UseGuards(AuthGuardD)
     async removeFriendRequest(
       @CurrentUser() currentUser: User,
@@ -279,6 +296,7 @@ export class UserController {
       return this.userService.removeFriendRequest(currentUser._id.toString(), friendRequestId);
     }
 
+    @ApiBearerAuth() 
     @Get('getlistfriendanother/:userId')
     @UseGuards(AuthGuardD)
     async getListFriendAnother(
@@ -295,7 +313,7 @@ export class UserController {
       const userIdOBJ = new Types.ObjectId(userId);
       return this.userService.getListFriendAnother(userId);
     } 
-
+    @ApiBearerAuth() 
     @Get('getUserByName/:name')
     @UseGuards(AuthGuardD)
     async getUserByName(
@@ -311,6 +329,9 @@ export class UserController {
         throw error;
       }
     }
+
+
+    
 
 
 }

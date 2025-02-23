@@ -1,21 +1,11 @@
-import {
-    IsBoolean,
-    IsEmail,
-    IsNotEmpty,
-    IsNumber,
-    IsOptional,
-    IsString,
-  } from 'class-validator';
-  
-  export class UploadAvatarDto {
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-    @IsString()
-    @IsNotEmpty({ message: 'please upload 1 file img ' })
-    readonly avatar : string;
-  
-    @IsString()
-    @IsNotEmpty({ message: 'i do not know who are you, please login or provide your token' })
-    readonly userid: string;
+export class UploadAvatarDto {
+  @ApiProperty({
+    type: 'string',
+    format: 'binary', // Định dạng file upload trong Swagger
+  })
+  avatar: any; // Không cần validation vì file sẽ do Multer xử lý
 
-  }
-  
+}

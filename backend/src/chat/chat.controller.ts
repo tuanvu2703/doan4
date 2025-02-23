@@ -14,18 +14,23 @@ import { SendMessageDto } from './dto/sendMessage.dto';
 import { EventService } from '../event/event.service';
 import { authorize } from 'passport';
 import { addMembersToGroupDto } from './dto/addMemberGroup.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ProducerService } from 'src/kafka/producer/kafka.Producer.service';
 
 @ApiTags('chat')
 @Controller('chat')
 export class ChatController {
   constructor(
     private readonly chatService: ChatService,
-    private readonly eventService: EventService
+    private readonly eventService: EventService,
+    private readonly producerSerivce: ProducerService,
   ) { }
 
   @Post('creategroup')
   @UseGuards(AuthGuardD)
+    @ApiBearerAuth() 
+    @ApiConsumes('multipart/form-data') 
+    @ApiOperation({ summary: 'Upload your image' })
   async createGroupChat(
     @CurrentUser() currentUser: User,
     @Body() createGroupDto: CreateGroupDto,
@@ -39,6 +44,9 @@ export class ChatController {
 
   @Post('sendmessagetoGroup/:groupId')
   @UseGuards(AuthGuardD)
+  @ApiBearerAuth() 
+  @ApiConsumes('multipart/form-data') 
+  @ApiOperation({ summary: 'Upload your image' })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
   async sendMessageToGroup(
     @CurrentUser() currentUser: User,
@@ -74,7 +82,7 @@ export class ChatController {
     }
   
     groupParticipants.forEach((participant) => {
-
+      
       this.eventService.notificationToUser(participant._id.toString(), 'newmessagetogroup', messageSee);
 
     });
@@ -85,6 +93,7 @@ export class ChatController {
 
   @Get('getmessagegroup/:groupId')
   @UseGuards(AuthGuardD)
+  @ApiBearerAuth() 
   async getMessageGroup(
     @Param('groupId') groupId: string, //dữ liệu đầu vào là string
     @CurrentUser() currentUSer: User,
@@ -100,6 +109,7 @@ export class ChatController {
   }
 
   @Get('MembersGroup/:idgr')
+  @ApiBearerAuth() 
   @UseGuards(AuthGuardD)
   async getMembersGroup(
     @CurrentUser() currentUser: User,
@@ -110,6 +120,7 @@ export class ChatController {
   }
 
   @Get('getMylistChat')
+  @ApiBearerAuth() 
   @UseGuards(AuthGuardD)
   async getListMessage(
     @CurrentUser() currentUser: User,
@@ -119,6 +130,7 @@ export class ChatController {
   }
 
   @Put('removeMemBerInGroup/:groupId')
+  @ApiBearerAuth() 
   @UseGuards(AuthGuardD)
   async removeMemberInGroup(
     @CurrentUser() currentUser: User,
@@ -132,7 +144,7 @@ export class ChatController {
   @Post('sendmessageToUser/:userId')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
   @UseGuards(AuthGuardD)
-
+  @ApiBearerAuth() 
   async sendMessageToUser(
     @CurrentUser() currentUser: User,
     @Param('userId') userId: Types.ObjectId,
@@ -193,6 +205,7 @@ export class ChatController {
 
   @Get('getmessagestouser/:userId')
   @UseGuards(AuthGuardD)
+  @ApiBearerAuth() 
   async getMessageUser(
     @CurrentUser() currentUser: User,
     @Param('userId') userId: Types.ObjectId,
@@ -204,6 +217,7 @@ export class ChatController {
 
   @Put('revokedMesage/:messageId')
   @UseGuards(AuthGuardD)
+  @ApiBearerAuth() 
   async revokeAMessage(
     @CurrentUser() currentUser: User,
     @Param('messageId') messageId: Types.ObjectId,
@@ -215,6 +229,7 @@ export class ChatController {
 
   @Put('addMembersTogroup/:groupId')
   @UseGuards(AuthGuardD)
+  @ApiBearerAuth() 
   async addMembersToGroup(
     @CurrentUser() currentUser: User,
     @Param('groupId') groupId: Types.ObjectId,
@@ -239,6 +254,7 @@ export class ChatController {
   
   @Delete('deleteGroup/:groupId')
   @UseGuards(AuthGuardD)
+  @ApiBearerAuth() 
   async deleteGroup(
     @CurrentUser() currentUser: User,
     @Param('groupId') groupId: Types.ObjectId,

@@ -37,8 +37,6 @@ export class User extends Document {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Post' }] })
   bookmarks: Types.ObjectId[];
 
-
-
   @Prop()
   avatar: string;
 
