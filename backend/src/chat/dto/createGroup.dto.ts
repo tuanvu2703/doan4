@@ -1,10 +1,9 @@
-import { IsEnum, IsOptional, IsString, IsArray, IsNotEmpty, IsObject } from "class-validator"
+import { IsEnum, IsOptional, IsString, IsArray, IsNotEmpty, IsObject, ArrayMinSize } from "class-validator"
 import { Types } from "mongoose";
 
 
 
 export class CreateGroupDto{
-
 
     @IsNotEmpty()
     @IsString()
@@ -14,12 +13,7 @@ export class CreateGroupDto{
     @IsString()
     readonly avatarGroup: string;
 
-    @IsNotEmpty()
-    @IsString()
-    readonly owner: Types.ObjectId;
-
-    @IsOptional()
     @IsArray()
-    @IsObject()
+    @ArrayMinSize(1)
     readonly participants: Types.ObjectId[];
 }

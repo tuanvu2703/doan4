@@ -39,7 +39,7 @@ export class RegisterDto {
 
   @IsBoolean()
   @IsNotEmpty()
-  readonly gender: string;
+  readonly gender: boolean;
 
   @IsString()
   @IsNotEmpty()

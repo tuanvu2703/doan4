@@ -12,7 +12,7 @@ export class LoginDto {
   @IsString()
   @IsOptional()
   @MaxLength(50, { message: 'you email need 50 character' })
-  @IsEmail({}, { message: 'Invalid email format' }) // Kiểm tra định dạng email
+  @IsEmail({}, { message: 'Invalid email format' }) 
   readonly email?: string;
 
   @IsString()

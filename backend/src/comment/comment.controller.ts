@@ -7,7 +7,12 @@ import { User } from '../user/schemas/user.schemas'
 import { RolesGuard } from '../user/guard/role.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { EventService } from 'src/event/event.service';
+import { Types } from 'mongoose';
+import { ApiTags } from '@nestjs/swagger';
 
+
+
+@ApiTags('comments')
 @Controller('comments')
 @UseGuards(AuthGuardD)
 export class CommentController {
@@ -31,8 +36,9 @@ export class CommentController {
     if (!currentUser) {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
-
-   const { comment, authorId } = await this.commentService.create(currentUser._id.toString(), postId, commetDto, files?.files);
+    const swagePostId = new Types.ObjectId(postId);
+    const swageAuthor = new Types.ObjectId(currentUser._id.toString());
+   const { comment, authorId } = await this.commentService.create(swageAuthor, swagePostId, commetDto, files?.files);
    const notification = {
     title: 'new comment in post',
     body: `new comment from ${currentUser.firstName} ${currentUser.lastName}`,
@@ -89,8 +95,8 @@ export class CommentController {
     if (!currentUser) {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
-
-    return await this.commentService.update(id, currentUser._id.toString(), updateCommentDto, files.files);
+    const swageId = new Types.ObjectId(id);
+    return await this.commentService.update(swageId, currentUser._id.toString(), updateCommentDto, files.files);
   }
   @Put(':id/like')
   @UseGuards(AuthGuardD)
@@ -135,8 +141,9 @@ export class CommentController {
     if (!currentUser) {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
-
-    return await this.commentService.reply(id, currentUser._id.toString(), replyDto, files?.files);
+    const swageId = new Types.ObjectId(id);
+    const swageAuthor = new Types.ObjectId(currentUser._id.toString());
+    return await this.commentService.reply(swageId, swageAuthor, replyDto, files?.files);
   }
 }
 

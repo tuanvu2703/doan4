@@ -14,8 +14,9 @@ import { SendMessageDto } from './dto/sendMessage.dto';
 import { EventService } from '../event/event.service';
 import { authorize } from 'passport';
 import { addMembersToGroupDto } from './dto/addMemberGroup.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags('chat')
 @Controller('chat')
 export class ChatController {
   constructor(
@@ -83,12 +84,18 @@ export class ChatController {
 
 
   @Get('getmessagegroup/:groupId')
+  @UseGuards(AuthGuardD)
   async getMessageGroup(
-    @Param('groupId') groupId: Types.ObjectId,
+    @Param('groupId') groupId: string, //dữ liệu đầu vào là string
+    @CurrentUser() currentUSer: User,
 
   ) {
-
-    const messages = await this.chatService.getGroupMessages(groupId);
+    if(!CurrentUser){
+      throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+    }
+    const swagerGroupId = new Types.ObjectId(groupId.toString()); // đổi obj
+    const swageUserId = new Types.ObjectId(currentUSer._id.toString());
+    const messages = await this.chatService.getGroupMessages(swagerGroupId,swageUserId);
     return messages;
   }
 
@@ -134,12 +141,12 @@ export class ChatController {
   ) {
 
     try {
-      const checkTypeReceiver = userId;
-      if (Types.ObjectId.isValid(userId)) {
+      // const checkTypeReceiver = userId;
+      // if (Types.ObjectId.isValid(userId)) {
 
-      } else {
+      // } else {
 
-      }
+      // }
 
       const currentUserOBJ = new Types.ObjectId(currentUser._id.toString());
       const UserOBJ = new Types.ObjectId(userId.toString());

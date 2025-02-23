@@ -1,7 +1,6 @@
 import { IsEnum, IsOptional, IsString, IsArray, ValidateIf } from "class-validator"
 import { Types } from "mongoose";
-
-
+import { Transform } from "class-transformer"
 
 export class CreatePostDto{
 
@@ -20,7 +19,7 @@ export class CreatePostDto{
     readonly privacy: string;
   
     @IsOptional()
-    @IsArray()
-    readonly allowedUsers?: Types.ObjectId[];
+    @IsString()
+    allowedUsers?: string[];
     
 }
