@@ -1,5 +1,5 @@
 import React from 'react'
-import { Squares2X2Icon, CubeIcon, IdentificationIcon, TagIcon, ChatBubbleLeftRightIcon, FlagIcon } from '@heroicons/react/24/solid'
+import { Squares2X2Icon, CubeIcon, IdentificationIcon, FlagIcon } from '@heroicons/react/24/solid'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 
 
@@ -83,12 +83,7 @@ export default function SideBarAdmin() {
                             <span>Post Management</span>
                         </Link>
                     </div>
-                    <div className={`py-3 px-7 my-2 hover:bg-[#222831] rounded-md ${isActiveTab('/admin/comment') ? 'text-yellow-600' : ''}`}>
-                        <Link className='flex items-center gap-4' to={'/admin/comment'}>
-                            <ChatBubbleLeftRightIcon className='size-7 fill-current ' />
-                            <span>Comment Management</span>
-                        </Link>
-                    </div>
+                    
                     <div className={`py-3 px-7 my-2 hover:bg-[#222831] rounded-md ${isActiveTab('/admin/report/post') ? 'text-red-600' : ''}`}>
                         <Link className='flex items-center gap-4' to={'/admin/report/post'}>
                             <FlagIcon className='size-7 fill-current ' />

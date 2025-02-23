@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUser } from '../service/UserContext';
 
-const FileViewer = ({ file }) => {
+const FileViewer = ({ file, mh }) => {
     const { setShowZom } = useUser();
     const openModal = (file) => {
         setShowZom({ file: file, show: true });
@@ -39,7 +39,7 @@ const FileViewer = ({ file }) => {
                     <img
                         onClick={() => openModal(file)}
                         src={file}
-                        style={{ maxWidth: '100%', maxHeight: '400px' }}
+                        style={{ maxWidth: '100%', maxHeight: mh }}
                         className='rounded-sm border cursor-pointer'
                         alt=""
                     />
@@ -48,10 +48,14 @@ const FileViewer = ({ file }) => {
                 return (
                     <video
                         controls
+                        style={{ maxWidth: '100%', maxHeight: mh }}
                         onClick={() => openModal(file)}
                         className="rounded-sm border cursor-pointer"
                     >
-                        <source src={file} type="video/mp4" />
+                        <source
+
+                            src={file}
+                            type="video/mp4" />
                         Your browser does not support the video tag.
                     </video>
                 );
@@ -78,11 +82,11 @@ const FileViewer = ({ file }) => {
 
     // Render all files
     return (
-        <div>
+        <>
             {files.map((f, index) => (
                 renderSingleFilePreview(f)
             ))}
-        </div>
+        </>
     );
 };
 

@@ -16,6 +16,21 @@ const getAllUser = async () => {
         return { success: false, data: response.response.data.message };
     }
 };
-export {
-    getAllUser
+
+//getHomeFeed
+async function getAllPost() {
+    try {
+        const request = await axios.get(`${url}/post/getAllPost`,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+        return request
+    } catch (error) {
+
+    }
 }
+export {getAllUser, getAllPost}

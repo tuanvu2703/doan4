@@ -74,7 +74,7 @@ export default function TableUser({ query }) {
                         </td>
                         <td>{user.email}</td>
                         <th>
-                            <button className="btn btn-ghost btn-xs">Ban</button>
+                            <button className="btn btn-error btn-xs">Unactive</button>
                         </th>
                     </tr>
                 ))

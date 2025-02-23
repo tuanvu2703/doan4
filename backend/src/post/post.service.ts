@@ -387,7 +387,14 @@ export class PostService {
         }
     }
     
-    
+    async getALlPost(): Promise<Post[]> {
+        try {
+            const posts = await this.PostModel.find();
+            return posts;
+        } catch (error) {
+            throw new HttpException('Could not retrieve posts', HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
     
 
     async getHomeFeed(userId: Types.ObjectId): Promise<PostF[]> {

@@ -35,7 +35,6 @@ import LayoutAdmin from "../admin/LayoutAdmin.js";
 import Dashboard from "../admin/page/dashboard.jsx";
 import UserManagement from "../admin/page/user-management.jsx";
 import PostManagement from "../admin/page/post-management.jsx";
-import CommentManagement from "../admin/page/comment-management.jsx";
 import ReportPostManagement from "../admin/page/reportpost-management.jsx";
 
 
@@ -88,7 +87,7 @@ function routers() {
                     <Route index element={< Dashboard />} />
                     <Route path="user" element={<UserManagement />} />
                     <Route path="post" element={<PostManagement />} />
-                    <Route path="comment" element={<CommentManagement />} />
+
                     <Route path="report/post" element={<ReportPostManagement />} />
                 </Route>
             </Routes>
