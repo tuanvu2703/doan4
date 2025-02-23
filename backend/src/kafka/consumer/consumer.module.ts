@@ -6,7 +6,7 @@ import { NotificationModule } from '../notification/notification.module';
 
 @Module({
     imports: [EventModule, NotificationModule],
-  providers: [ConsumerService, NotificationService],
+  providers: [ConsumerService],
   exports: [ConsumerService],
 })
 export class ConsumerModule {}

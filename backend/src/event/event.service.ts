@@ -13,7 +13,7 @@ import { EventGeteWay } from './event.geteway';
     disconnectClientId(clientId: string) {
         this.socket.server.sockets[clientId].disconnect(true);
     }
-
+    
     async disconnectUserId(userId: string) {
         const sockets = await this.socket.server.in(`user:${userId}`).fetchSockets();
         sockets.forEach(socket => socket.disconnect(true));

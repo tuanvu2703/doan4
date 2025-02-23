@@ -670,7 +670,7 @@ export class UserService {
     }
   }
 
-  async banuser(userid: Types.ObjectId): Promise<User> {
+  async activeUser(userid: Types.ObjectId): Promise<User> {
     const user = await this.UserModel.findById(userid);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);

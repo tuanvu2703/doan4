@@ -21,6 +21,9 @@ import { ConsumerModule } from './kafka/consumer/consumer.module';
 import { ProducerModule } from './kafka/producer/producer.module';
 import { ScylladbModule } from './scylladb/scylladb.module';
 import { NotificationModule } from './kafka/notification/notification.module';
+import { PublicGroupService } from './public-group/public-group.service';
+import { PublicGroupController } from './public-group/public-group.controller';
+import { PublicGroupModule } from './public-group/public-group.module';
 
 
 
@@ -48,8 +51,9 @@ import { NotificationModule } from './kafka/notification/notification.module';
     ProducerModule,
     ScylladbModule,
     NotificationModule,
+    PublicGroupModule,
   ],
-  controllers: [AppController, OtpController, MailController],
-  providers: [AppService, MailService, OtpService],
+  controllers: [AppController, OtpController, MailController, PublicGroupController],
+  providers: [AppService, MailService, OtpService, PublicGroupService],
 })
 export class AppModule {}

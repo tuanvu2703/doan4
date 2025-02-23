@@ -24,41 +24,40 @@ export class NotificationService {
   }
 
   // 🔹 Xử lý bình luận bài viết
-  async handlePostComment(payload) {
-    const { postId, commenterId, commentContent, ownerId } = payload;
 
-    if (commenterId !== ownerId) {
-      this.eventService.notificationToUser(ownerId, 'newcomment', {
+  async handlePostEvent(payload) {
+    const { postId, userId, ownerId, message, timestamp } = payload;
+  
+    if (userId !== ownerId) {
+      this.eventService.notificationToUser(ownerId, 'newpostevent', {
         postId,
-        commenterId,
-        commentContent,
-        timestamp: new Date().toISOString(),
+        userId,
+        message,
+        timestamp,
       });
     }
   }
+
+  
+  
+  
 
   // 🔹 Xử lý like bài viết
-  async handlePostLike(payload) {
-    const { postId, likerId, ownerId } = payload;
+  // quay lại sau do chưa có module group public 
+  // async handleGroupMessage(payload) {
+  //   const { postId, likerId, ownerId } = payload;
 
-    if (likerId !== ownerId) {
-      this.eventService.notificationToUser(ownerId, 'newlike', {
-        postId,
-        likerId,
-        timestamp: new Date().toISOString(),
-      });
-    }
+  //   if (likerId !== ownerId) {
+  //     this.eventService.notificationToUser(ownerId, 'Notification in group comunity', {
+  //       postId,
+  //       likerId,
+  //       timestamp: new Date().toISOString(),
+  //     });
+  //   }
+  // }
+
+  async getNotifications(userId: string) {
+
   }
 
-  async handle(payload) {
-    const { postId, likerId, ownerId } = payload;
-
-    if (likerId !== ownerId) {
-      this.eventService.notificationToUser(ownerId, 'newlike', {
-        postId,
-        likerId,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }
 }

@@ -9,7 +9,9 @@ import { OptionalAuthGuard } from '../user/guard/optional.guard';
 import { EventService } from 'src/event/event.service';
 import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { Types } from 'mongoose';
+import { ProducerService } from 'src/kafka/producer/kafka.Producer.service';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { timeStamp } from 'console';
 
 @ApiTags('post')
 @Controller('post')
@@ -18,6 +20,7 @@ export class PostController {
     constructor(
         private postService: PostService,
         private eventService: EventService,
+        private producerService: ProducerService,
     ) { }
 
 
@@ -32,7 +35,7 @@ export class PostController {
         @Body() createPostDto: CreatePostDto,
         @UploadedFiles() files: { files: Express.Multer.File[] }
     ) {
-
+        // nội dung cần làm: thông báo đến bạn bè của người dùng về bài viết mới(1 số người thôiz)
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
@@ -88,19 +91,22 @@ export class PostController {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
         
-        const notification = {
-            title: 'new like in post',
-            body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
-            avatart : currentUser.avatar,
-            data: {
-              postId: id,
-              userId: currentUser._id.toString(),
-              type: 'like',
-            },
-        }
+        
         try {
             const {authorId, post} = await this.postService.likePost(id, currentUser._id.toString());
-            this.eventService.notificationToUser(authorId, 'new like in post', notification );
+            const notification = {
+                body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
+                avatart : currentUser.avatar,
+                data: {
+                    owner: authorId,
+                    postId: id,
+                    userId: currentUser._id.toString(),
+                    type: 'like',
+                    timeStamp: new Date().toISOString(),
+                },
+            }
+            // this.eventService.notificationToUser(authorId, 'new like in post', notification );
+            await this.producerService.sendMessage('mypost', notification);
             return post;
         } catch (error) {
             throw new HttpException('An error occurred while liking post', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -149,7 +155,8 @@ export class PostController {
     async getCurrentPost(
         @CurrentUser() currentUser: User,
     ) {
-        return this.postService.findPostCurrentUser(currentUser._id.toString())
+        const swageUserId = new Types.ObjectId(currentUser._id.toString());
+        return this.postService.findPostCurrentUser(swageUserId)
     }
  
     @Get(':postId/privacy')
@@ -195,7 +202,9 @@ export class PostController {
         @CurrentUser() currentUser: User
     ) {
         try {
-            const posts = await this.postService.getPostsByUser(userId, currentUser._id.toString() || null);
+            const swageUserId = new Types.ObjectId(userId);
+            const swageCurrentUser = new Types.ObjectId(currentUser._id.toString());
+            const posts = await this.postService.getPostsByUser(swageUserId, swageCurrentUser);
             return posts;
         }   catch (error) {
             throw new HttpException('An error occurred while fetching posts  ????', HttpStatus.INTERNAL_SERVER_ERROR);

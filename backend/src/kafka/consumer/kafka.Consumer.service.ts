@@ -7,9 +7,11 @@ import { NotificationService } from '../notification/notification.service';
 export class ConsumerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private consumer: Consumer;
-  private notificationService : NotificationService;
 
-  constructor(private readonly eventService: EventService) {
+  constructor(
+    private readonly eventService: EventService,
+    private readonly notificationService: NotificationService,
+  ) {
     if (!process.env.KAFKA_BROKER || !process.env.KAFKA_USERNAME || !process.env.KAFKA_PASSWORD) {
       throw new Error('❌ Kafka environment variables are missing!');
     }
@@ -37,31 +39,42 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         console.log('✅ Kafka Consumer connected!');
 
         await this.consumer.subscribe({ topic: 'notification', fromBeginning: false });
-        await this.consumer.subscribe({ topic: 'fanpage', fromBeginning: false });
         await this.consumer.subscribe({ topic: 'group', fromBeginning: false });
         await this.consumer.subscribe({ topic: 'mypost', fromBeginning: false });
+
+        // từ đoạn này là xử lý các message từ Kafka
+        // nó không liên quan đến ScyllaDB, nhưng nó cũng là một service
+        // và không liên quan đến connnect ở trên đây là 1 phần riêng
+
         await this.consumer.run({
           eachMessage: async ({ topic, partition, message }) => {
             try {
               const payload = JSON.parse(message.value.toString());
               console.log(`📥 Received message from "${topic}":`, payload);
-  
+              
+
+              // notifiaction cái này là topic riêng phần chat(những thông báo tin nhắn sẽ được xoá khi user đọc)
               switch (topic) {
                 case 'notification':
                   await this.notificationService.handleChatMessage(payload);
                   break;
-  
-                case 'mypost':
-                  await this.notificationService.handlePostComment(payload);
-                  break;
-  
-                case 'group':
-                  await this.notificationService.handlePostLike(payload);
-                  break;
+                //mypost là topic riêng của phần thông báo đối với bài viết
 
-                case 'fanpage':
-                  await this.notificationService.handlePostLike(payload);
-                  break;
+                  case 'mypost':
+                    if (!this.notificationService) {
+                      console.error("❌ notificationService is not initialized!");
+                    }
+                    if (typeof this.notificationService.handlePostEvent !== 'function') {
+                      console.error("❌ handlePostEvent is not a function!");
+                    }
+                    await this.notificationService.handlePostEvent(payload);
+                    break;
+
+                //group và fanpage là topic riêng của phần thông báo đối với group và fanpage
+                // quay lại sau do chưa có module group public
+                // case 'group':
+                //   await this.notificationService.handlePostLike(payload);
+                //   break;
   
                 default:
                   console.warn(`⚠️ Unknown topic: ${topic}`);
