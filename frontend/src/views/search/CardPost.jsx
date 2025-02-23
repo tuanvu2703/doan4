@@ -27,15 +27,19 @@ export default function CardPost({ post }) {
                 <div className="card-body p-4">
                     {/* Thông tin người đăng */}
                     <div className="flex gap-3">
-                        <img
-                            className="w-12 h-12 sm:w-14 sm:h-14 aspect-square rounded-full border border-black cursor-pointer"
-                            src={post.author.avatar || 'https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain'}
-                            alt=""
-                        />
-                        <div className="grid gap-2">
-                            <h2 className="font-semibold break-words">{post.author.lastName} {post.author.firstName}</h2>
-                            <p className="text-sm sm:text-base text-ellipsis break-words">{post.content}</p>
-                        </div>
+                        {post.author && (
+                            <>
+                                <img
+                                    className="w-12 h-12 sm:w-14 sm:h-14 aspect-square rounded-full border border-black cursor-pointer"
+                                    src={post.author.avatar || 'https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain'}
+                                    alt=""
+                                />
+                                <div className="grid gap-2">
+                                    <h2 className="font-semibold break-words">{post.author.lastName} {post.author.firstName}</h2>
+                                    <p className="text-sm sm:text-base text-ellipsis break-words">{post.content}</p>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Hình ảnh bài đăng */}
