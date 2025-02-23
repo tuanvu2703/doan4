@@ -214,8 +214,8 @@ export class UserService {
   }
 
   async acceptRequestFriends(
-    currentUserId: string,
-    friendRequestId: string,
+    currentUserId: Types.ObjectId,
+    friendRequestId: Types.ObjectId,
   ): Promise<{ friend: Friend; senderId: string }> {
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
   
@@ -225,7 +225,7 @@ export class UserService {
   
     const { sender, receiver } = friendRequest;
   
-    if (currentUserId !== receiver.toString()) {
+    if (currentUserId.toString() !== receiver.toString()) {
       throw new ForbiddenException('You are not authorized to accept this friend request');
     }
   
@@ -259,8 +259,8 @@ export class UserService {
 
 
   async rejectFriendRequest(
-    currentUserId: string,
-    friendRequestId: string,
+    currentUserId: Types.ObjectId,
+    friendRequestId: Types.ObjectId,
   ): Promise<{ message: string }> {
 
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
@@ -270,7 +270,7 @@ export class UserService {
     }
     const { receiver } = friendRequest;
 
-    if (currentUserId !== receiver.toString()) {
+    if (currentUserId.toString() !== receiver.toString()) {
       throw new ForbiddenException('You are not authorized to reject this friend request');
     }
     await this.FriendRequestModel.findByIdAndDelete(friendRequestId);
@@ -278,20 +278,20 @@ export class UserService {
     return { message: 'Friend request rejected successfully' };
   }
 
-  async removeFriendRequest(currentUserId: string, friendRequestId: string,): Promise<{ message: string, FriendRequest: FriendRequest }> {
+  async removeFriendRequest(currentUserId: Types.ObjectId, friendRequestId: Types.ObjectId,): Promise<{ message: string, FriendRequest: FriendRequest }> {
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
     if (!friendRequest) {
       throw new NotFoundException('No such friend request found');
     }
     const sender = friendRequest.sender;
-    if (currentUserId !== sender.toString()) {
+    if (currentUserId.toString() !== sender.toString()) {
       throw new ForbiddenException('You are not authorized to delete this friend request');
     }
     await this.FriendRequestModel.findByIdAndDelete(friendRequestId);
     return { message: 'Friend request deleted successfully' , FriendRequest: friendRequest};
   }
 
-  async unFriend(currentUserId: string, friendId: string): Promise<Friend> {
+  async unFriend(currentUserId: Types.ObjectId, friendId: Types.ObjectId): Promise<Friend> {
     try {
 
       const Friend =  await this.FriendModel.findOneAndDelete({
@@ -308,11 +308,11 @@ export class UserService {
 }
 
 
-  async getMyFriendRequest(userId: string): Promise<FriendRequest[]> {
+  async getMyFriendRequest(userId: Types.ObjectId): Promise<FriendRequest[]> {
     return this.FriendRequestModel.find({ receiver: userId });
   }
 
-  async getMySentFriendRequest(userId: string): Promise<FriendRequest[]> {
+  async getMySentFriendRequest(userId: Types.ObjectId): Promise<FriendRequest[]> {
     return this.FriendRequestModel.find({ sender: userId });
   }
 
@@ -332,7 +332,7 @@ export class UserService {
 // }
 
 
-  async getMyFriend(userId: string): Promise<Friend[]> {
+  async getMyFriend(userId: Types.ObjectId): Promise<Friend[]> {
 
     const friendList = await this.FriendModel.find({
       $or: [
@@ -357,7 +357,7 @@ export class UserService {
     });
   }
 
-  async getListFriendAnother(userId: string): Promise<Friend[]> {
+  async getListFriendAnother(userId: Types.ObjectId): Promise<Friend[]> {
     const friendList = await this.FriendModel.find({
       $or: [
         { sender: userId },
@@ -446,7 +446,7 @@ export class UserService {
   }
 
 
-  async findAllMySenderFriendRequest(userId : string): Promise<FriendRequest[]> {
+  async findAllMySenderFriendRequest(userId : Types.ObjectId): Promise<FriendRequest[]> {
     return this.FriendRequestModel.find({ sender: userId });
   }
 

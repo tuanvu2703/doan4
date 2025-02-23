@@ -172,18 +172,25 @@ export default function HomePost() {
                                 <div className="grid gap-2 w-full">
                                     <div className="flex justify-between items-center flex-wrap">
                                         <article className="text-wrap grid gap-2">
-                                            <div className="grid">
-                                                <Link
-                                                    className="break-words font-bold text-lg hover:link max-w-[80vw] sm:max-w-[60vw]"
-                                                    to={`/user/${post.author._id}`}
-                                                >
-                                                    {post.author.lastName} {post.author.firstName}
-                                                </Link>
-                                                <div className="flex gap-2 text-xs text-gray-600">
-                                                    <span>{formatDate(post.createdAt)}</span>
-                                                    <span>{formatPrivacy(post.privacy)}</span>
-                                                </div>
-                                            </div>
+                                        <div className="grid">
+                                            {post.author ? (
+                                                <>
+                                                    <Link
+                                                        className="break-words font-bold text-lg hover:link max-w-[80vw] sm:max-w-[60vw]"
+                                                        to={`/user/${post.author._id}`}
+                                                    >
+                                                        {post.author.lastName} {post.author.firstName}
+                                                    </Link>
+                                                    <div className="flex gap-2 text-xs text-gray-600">
+                                                        <span>{formatDate(post.createdAt)}</span>
+                                                        <span>{formatPrivacy(post.privacy)}</span>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <p className="text-gray-500">Tác giả không xác định</p>
+                                            )}
+                                        </div>
+
                                         </article>
                                         {userLogin._id === post.author._id ? (
                                             <DropdownPostPersonal postId={post._id} />

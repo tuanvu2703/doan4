@@ -37,6 +37,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         console.log('🔄 Connecting Kafka Consumer...');
         await this.consumer.connect(); 
         console.log('✅ Kafka Consumer connected!');
+         
 
         await this.consumer.subscribe({ topic: 'notification', fromBeginning: false });
         await this.consumer.subscribe({ topic: 'group', fromBeginning: false });
@@ -49,6 +50,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         await this.consumer.run({
           eachMessage: async ({ topic, partition, message }) => {
             try {
+              
               const payload = JSON.parse(message.value.toString());
               console.log(`📥 Received message from "${topic}":`, payload);
               
