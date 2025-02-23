@@ -33,7 +33,11 @@ export default function Register() {
         const monthDifference = today.getMonth() - birthDate.getMonth();
 
         if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
+
+        }
+
+        if (birthDate > today) {
+            validationErrors.birthday = 'Ngày sinh không được lớn hơn ngày hiện tại';
         }
 
         if (!formData.password) {
@@ -174,7 +178,7 @@ export default function Register() {
                         placeholder="Số điện thoại"
                         value={formData.numberPhone}
                         onChange={handleChange}
-                        maxLength={10}
+                        maxLength={11}
                         required
                     />
                     {errors.numberPhone && <p className="text-red-500 text-sm">{errors.numberPhone}</p>}

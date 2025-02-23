@@ -196,9 +196,9 @@ export class PostController {
     @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
     async getHomeFeed(@CurrentUser() currentUser: User) {
-        const currentUserId = currentUser ? currentUser._id.toString() : undefined;
-        const swageUserId = new Types.ObjectId(currentUserId);
-        return this.postService.getHomeFeed(swageUserId);
+    const currentUserId = currentUser ? currentUser._id.toString() : undefined;
+    const swageUserId = new Types.ObjectId(currentUserId);
+    return this.postService.getHomeFeed(swageUserId);
     }
 
     @Get('friend/:userId')
