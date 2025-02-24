@@ -92,23 +92,17 @@ export default function CardPostResult({ query }) {
                             <div className='grid gap-3'>
                                 <div>
                                     <div className='grid justify-center'>
-                                        <AVTUser user={album.author} />
+                                        {album.author && <AVTUser user={album.author} />}
                                     </div>
-                                    <h2 className="card-title justify-center">{album.author.lastName} {album.author.firstName}</h2>
+                                    {album.author && (
+                                        <h2 className="card-title justify-center">{album.author.lastName} {album.author.firstName}</h2>
+                                    )}
                                 </div>
                                 <p className='text-center'>{album.content}</p>
                             </div>
-                            {albums?.img?.length > 0 && (
-                                <div className="carousel rounded-box w-96 h-64 relative">
-                                    {albums?.img?.length > 1 && (
-                                        <button onClick={() => handlePrev(albums)} className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">‹</button>
-                                    )}
-                                    <div className="carousel-item w-full items-center">
-                                        <FilePreview file={albums.img} />
-                                    </div>
-                                    {albums?.img?.length > 1 && (
-                                        <button onClick={() => handleNext(albums)} className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">›</button>
-                                    )}
+                            {album.img.length > 0 && (
+                                <div className='flex justify-center'>
+                                    <FilePreview file={album.img} />
                                 </div>
                             )}
                         </div>

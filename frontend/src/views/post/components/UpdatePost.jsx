@@ -143,7 +143,7 @@ export default function UpdatePost() {
     console.log(formData.privacy)
 
     return (
-        <div className="bg-background text-primary-foreground min-h-screen flex items-center justify-center">
+        <div className="bg-background text-primary-foreground flex justify-center ">
             <div className="bg-card w-full max-w-md p-6 rounded-lg shadow-lg">
                 <h2 className="text-2xl font-bold mb-4">Chỉnh sửa bài viết </h2>
                 <form onSubmit={handleSubmit} enctype="multipart/form-data" className="space-y-4">

@@ -143,7 +143,7 @@ export default function DetailPost() {
   // console.log(posts)
   return (
     <div className="grid justify-center p-4">
-      <div className="w-full max-w-[600px] mx-auto min-w-[400px]">
+      <div className="w-full max-w-[700px] mx-auto min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px]">
         <div
           key={posts._id}
           className="flex flex-col md:flex-row items-start w-full p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3"
@@ -182,7 +182,7 @@ export default function DetailPost() {
 
             {/* Carousel hiển thị hình ảnh (nếu có) */}
             {posts?.img?.length > 0 && (
-              <div className="carousel rounded-box w-full sm:w-96 sm:h-64 relative mt-4">
+              <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto">
                 {posts?.img?.length > 1 && (
                   <button
                     onClick={() => handlePrev(posts)}
@@ -191,8 +191,8 @@ export default function DetailPost() {
                     ‹
                   </button>
                 )}
-                <div className="carousel-item w-full items-center">
-                  <FilePreview file={posts.img} />
+                <div className="carousel-item w-full items-center justify-center">
+                  <FilePreview file={posts.img} mh={600} />
                 </div>
                 {posts?.img?.length > 1 && (
                   <button
@@ -237,7 +237,6 @@ export default function DetailPost() {
                 <span>{posts?.comments?.length}</span>
               </button>
 
-
               <button className="flex items-end gap-1">
                 <ShareIcon className="w-5 h-5" />
               </button>
@@ -252,7 +251,6 @@ export default function DetailPost() {
         </div>
       </div>
     </div>
-
   )
 }
 

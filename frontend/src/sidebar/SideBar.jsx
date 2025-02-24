@@ -37,7 +37,7 @@ export default function SideBar() {
                 </Link>
                 <Link
                     to="/bookmark"
-                    className={`hover:bg-yellow-100 rounded-2xl flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? 'text-red-500' : 'text-gray-500'} `}
+                    className={`hover:bg-red-100 rounded-2xl flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? 'text-red-500' : 'text-gray-500'} `}
                 >
                     <BookmarkIcon className='size-11' />
                     <span className="text-sm font-medium">Lữu trữ</span>

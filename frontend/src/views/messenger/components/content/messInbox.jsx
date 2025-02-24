@@ -21,6 +21,8 @@ import Loading from '../../../../components/Loading';
 import { MessengerContext } from '../../layoutMessenger';
 import NotificationCss from '../../../../module/cssNotification/NotificationCss';
 import FileViewChane from '../../../../components/fileViewChane';
+import { FaceSmileIcon } from '@heroicons/react/24/outline';
+import Emoji from '../../../../components/Emoji';
 
 const MessengerInbox = () => {
     const { userContext } = useUser();
@@ -264,6 +266,13 @@ const MessengerInbox = () => {
         [handleSendMessenger]
     );
 
+
+    // Emoji
+    const handleEmojiClick = (emoji) => {
+        setMessage((prevMessage) => prevMessage + emoji);
+    };
+
+
     if (loading) {
         return <Loading />;
     }
@@ -340,7 +349,7 @@ const MessengerInbox = () => {
                                               `}
 
                                             onMouseEnter={() => {
-                                                if (( mess?.author?._id == userContext._id) || (mess?.sender == userContext._id)) {
+                                                if ((mess?.author?._id == userContext._id) || (mess?.sender == userContext._id)) {
                                                     setHoveredMessageId(mess._id);
                                                 }
                                             }} // Set the hovered message
@@ -510,11 +519,17 @@ const MessengerInbox = () => {
                                 className="rounded-lg border p-2 w-full resize-none text-sm  shadow-inner shadow-gray-400 focus:outline-none"
                                 rows={1}
                                 style={{ height: `${textareaHeight}px`, maxHeight: '5rem', minHeight: '40px' }}
-                                placeholder="Nhập @, tin nhắn"
+                                placeholder="Nhập nội dung tin nhắn"
                                 value={message}
                                 onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
                             />
+                            <div className="dropdown dropdown-top dropdown-end ">
+                                <FaceSmileIcon tabIndex={0} role="button" className='size-7 fill-yellow-500 text-white' />
+                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                    <Emoji onEmojiClick={handleEmojiClick} />
+                                </ul>
+                            </div>
                             <button onClick={handleSendMessenger} className="ml-2" disabled={sending}>
                                 <PaperAirplaneIcon className="h-8 w-8 fill-sky-500" />
                             </button>
