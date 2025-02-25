@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Producer, logLevel } from 'kafkajs';
 import { randomUUID } from 'crypto';
+import { Types } from 'mongoose';
 @Injectable()
 export class ProducerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
@@ -47,6 +48,14 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
   // nội dung là gì
   async sendMessage(topic: string, message: any) {
     try {
+      // Chuyển ObjectId thành string để gửi qua Kafka
+      if (message.userId instanceof Types.ObjectId) {
+        message.userId = message.userId.toString();
+      }
+      if (message.ownerId instanceof Types.ObjectId) {
+        message.ownerId = message.ownerId.toString();
+      }
+  
       await this.producer.send({
         topic,
         messages: [{ value: JSON.stringify(message) }],
@@ -56,4 +65,5 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
       console.error('❌ Kafka sendMessage error:', error);
     }
   }
+  
 }

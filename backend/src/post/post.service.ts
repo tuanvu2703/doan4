@@ -140,7 +140,7 @@ export class PostService {
     }
 
 
-    async likePost(postId: string, userId: string): Promise<{ post: Post; authorId: string }> {
+    async likePost(postId: Types.ObjectId, userId: Types.ObjectId): Promise<{ post: Post; authorId: string }> {
         // Cập nhật bài viết và thêm userId vào danh sách likes
         const post = await this.PostModel.findByIdAndUpdate(
             postId,

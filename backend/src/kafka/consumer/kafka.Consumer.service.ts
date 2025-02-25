@@ -49,43 +49,10 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
 
         await this.consumer.run({
           eachMessage: async ({ topic, partition, message }) => {
-            try {
-              
-              const payload = JSON.parse(message.value.toString());
-              console.log(`📥 Received message from "${topic}":`, payload);
-              
-
-              // notifiaction cái này là topic riêng phần chat(những thông báo tin nhắn sẽ được xoá khi user đọc)
-              switch (topic) {
-                case 'notification':
-                  await this.notificationService.handleChatMessage(payload);
-                  break;
-                //mypost là topic riêng của phần thông báo đối với bài viết
-
-                  case 'mypost':
-                    if (!this.notificationService) {
-                      console.error("❌ notificationService is not initialized!");
-                    }
-                    if (typeof this.notificationService.handlePostEvent !== 'function') {
-                      console.error("❌ handlePostEvent is not a function!");
-                    }
-                    await this.notificationService.handlePostEvent(payload);
-                    break;
-
-                //group và fanpage là topic riêng của phần thông báo đối với group và fanpage
-                // quay lại sau do chưa có module group public
-                // case 'group':
-                //   await this.notificationService.handlePostLike(payload);
-                //   break;
-  
-                default:
-                  console.warn(`⚠️ Unknown topic: ${topic}`);
-              }
-            } catch (error) {
-              console.error(`❌ Error processing message from topic ${topic}:`, error);
-            }
+            await this.notificationService.handleKafkaEvent(topic, message);
           },
         });
+        
   
     } catch (error) {
         console.error('❌ Kafka Consumer connection failed:', error);

@@ -35,7 +35,7 @@ import { PublicGroupModule } from './public-group/public-group.module';
       isGlobal: true,
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),
-
+    MongooseModule.forRoot(process.env.MONGODB_URI_SINK, { connectionName: 'sinkDB' }),
 
 
     UserModule,
@@ -49,7 +49,7 @@ import { PublicGroupModule } from './public-group/public-group.module';
     EventModule,
     ConsumerModule,
     ProducerModule,
-    ScylladbModule,
+    // ScylladbModule,
     NotificationModule,
     PublicGroupModule,
   ],
