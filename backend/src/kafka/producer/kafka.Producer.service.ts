@@ -58,7 +58,12 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
   
       await this.producer.send({
         topic,
-        messages: [{ value: JSON.stringify(message) }],
+        messages: [
+          {
+            key: message.userId || randomUUID(), // Dùng key để Kafka đảm bảo thứ tự
+            value: JSON.stringify(message),
+          },
+        ],
       });
       console.log(`📨 Message sent to "${topic}":`, message);
     } catch (error) {

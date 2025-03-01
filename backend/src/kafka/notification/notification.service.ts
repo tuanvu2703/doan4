@@ -8,8 +8,7 @@ import { Notification } from './schema/notification.schema';
 export class NotificationService {
   
   constructor(
-    @InjectModel(Notification.name, 'sinkDB')
-    private readonly notificationModel: Model<Notification>,
+    @InjectModel(Notification.name)private readonly notificationModel: Model<Notification>,
     private eventService: EventService
   ) {}
 
@@ -50,32 +49,35 @@ export class NotificationService {
     try {
       const parsedMessage = JSON.parse(message.value);
   
-      // Chuyển đổi ObjectId nếu cần
-      if (parsedMessage.userId && !(parsedMessage.userId instanceof Types.ObjectId) && Types.ObjectId.isValid(parsedMessage.userId)) {
+      // Chuyển đổi ObjectId
+      if (parsedMessage.userId && Types.ObjectId.isValid(parsedMessage.userId)) {
         parsedMessage.userId = new Types.ObjectId(parsedMessage.userId);
       }
-      if (parsedMessage.ownerId && !(parsedMessage.ownerId instanceof Types.ObjectId) && Types.ObjectId.isValid(parsedMessage.ownerId)) {
+      if (parsedMessage.ownerId && Types.ObjectId.isValid(parsedMessage.ownerId)) {
         parsedMessage.ownerId = new Types.ObjectId(parsedMessage.ownerId);
       }
-      
+      if (parsedMessage.data.postId && Types.ObjectId.isValid(parsedMessage.data.postId)) {
+        parsedMessage.data.postId = new Types.ObjectId(parsedMessage.data.postId);
+      }
   
       // Kiểm tra nếu là hành động "like" hoặc "unlike"
       if (parsedMessage.type === 'like' || parsedMessage.type === 'unlike') {
         const existingNotification = await this.notificationModel.findOne({
           userId: parsedMessage.userId,
-          postId: parsedMessage.postId,
+          'data.postId': parsedMessage.data.postId, // Kiểm tra chính xác post
           type: 'like',
         });
   
         if (parsedMessage.type === 'like') {
           if (!existingNotification) {
+            // Nếu chưa tồn tại, tạo mới
             await this.notificationModel.create(parsedMessage);
             console.log('✅ Notification saved:', parsedMessage);
           } else {
-            // Nếu đã tồn tại, cập nhật thời gian
+            // Nếu đã tồn tại, cập nhật timestamp
             await this.notificationModel.updateOne(
               { _id: existingNotification._id },
-              { $set: { updatedAt: new Date() } }
+              { $set: { 'data.timestamp': new Date() } }
             );
             console.log('🔄 Updated existing notification:', parsedMessage);
           }
@@ -85,7 +87,7 @@ export class NotificationService {
           console.log('🗑️ Removed unlike notification:', parsedMessage);
         }
       } else {
-        // Nếu là loại thông báo khác, kiểm tra ID trước khi lưu
+        // Xử lý các loại thông báo khác
         const existingNotification = await this.notificationModel.findOne({
           messageId: parsedMessage.messageId,
         });
@@ -101,6 +103,7 @@ export class NotificationService {
       console.error('❌ Error handling Kafka message:', error);
     }
   }
+  
   
   
   async handleKafkaEvent(topic: string, message: any) {
@@ -142,14 +145,14 @@ export class NotificationService {
   }
   
 
-  async getUserNotifications(userId: string) {
+  async getUserNotifications(userId: Types.ObjectId) {
     return await this.notificationModel
       .find({ userId })
       .sort({ createdAt: -1 })
       .exec();
   }
 
-  async markAsRead(notificationId: string) {
+  async markAsRead(notificationId: Types.ObjectId) {
     return await this.notificationModel.findByIdAndUpdate(
       notificationId,
       { isRead: true },

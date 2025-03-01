@@ -4,7 +4,7 @@ import { User } from 'src/user/schemas/user.schemas';
 
 
 
-@Schema({ collection: 'notification' })
+@Schema({ timestamps: true })
 export class Notification extends Document {
   @Prop({ required: true })
   type: string;

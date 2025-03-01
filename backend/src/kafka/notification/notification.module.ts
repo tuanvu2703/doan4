@@ -4,13 +4,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationSchema, Notification } from './schema/notification.schema';
 import { NotificationController } from './notification.controller';
 import { ProducerModule } from '../producer/producer.module';
+import { UserModule } from '../../user/user.module';
 
 @Module({
 
 imports: [
   ProducerModule,
+  UserModule,
   MongooseModule.forFeature(
-    [{ name: 'Notification' , schema: NotificationSchema , collection: 'notification' }],'sinkDB' ),
+    [{ name: 'Notification' , schema: NotificationSchema}]),
 ],
 
   controllers: [NotificationController],

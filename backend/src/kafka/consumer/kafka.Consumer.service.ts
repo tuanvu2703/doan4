@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { Kafka, Consumer, logLevel } from 'kafkajs';
+import { Kafka, Consumer, logLevel, EachMessagePayload, } from 'kafkajs';
 import { EventService } from '../../event/event.service';
 import { NotificationService } from '../notification/notification.service';
 
@@ -29,7 +29,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
       logLevel: logLevel.INFO,
     });
 
-    this.consumer = this.kafka.consumer({ groupId: 'connect-lcc-77ojdj' });
+    this.consumer = this.kafka.consumer({ groupId: 'GRnotification' });
   }
 
   async onModuleInit() {
@@ -39,7 +39,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         console.log('✅ Kafka Consumer connected!');
          
 
-        await this.consumer.subscribe({ topic: 'notification', fromBeginning: false });
+        await this.consumer.subscribe({ topic: 'notification', fromBeginning: false, });
         await this.consumer.subscribe({ topic: 'group', fromBeginning: false });
         await this.consumer.subscribe({ topic: 'mypost', fromBeginning: false });
 
@@ -48,8 +48,9 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         // và không liên quan đến connnect ở trên đây là 1 phần riêng
 
         await this.consumer.run({
-          eachMessage: async ({ topic, partition, message }) => {
+          eachMessage: async ({ topic, partition, message }: EachMessagePayload) => {
             await this.notificationService.handleKafkaEvent(topic, message);
+            
           },
         });
         
@@ -60,7 +61,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     }
 }
 
-
+  
 
   async onModuleDestroy() {
     console.log('🔌 Disconnecting Kafka Consumer...');
