@@ -8,18 +8,18 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
   private producer: Producer;
 
   constructor() {
-    if (!process.env.KAFKA_BROKER || !process.env.KAFKA_USERNAME || !process.env.KAFKA_PASSWORD) {
+    if (!process.env.REDPANDA_BROKER || !process.env.REDPANDA_USERNAME || !process.env.REDPANDA_PASSWORD) {
       throw new Error('❌ Kafka environment variables are missing!');
     }
 
     this.kafka = new Kafka({
-      clientId: process.env.KAFKA_CLIENT_ID || 'nestjs-kafka-producer',
-      brokers: [process.env.KAFKA_BROKER],
+      brokers: [process.env.REDPANDA_BROKER],
+      clientId: process.env.REDPANDA_CLIENT_ID,
       ssl: true,
       sasl: {
-        mechanism: 'plain',
-        username: process.env.KAFKA_USERNAME,
-        password: process.env.KAFKA_PASSWORD,
+        mechanism: "scram-sha-256",
+        username: process.env.REDPANDA_USERNAME,
+        password: process.env.REDPANDA_PASSWORD,
       },
       connectionTimeout: 10000, // Tăng timeout lên 10s
       logLevel: logLevel.INFO,

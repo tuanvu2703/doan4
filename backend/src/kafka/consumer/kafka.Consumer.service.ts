@@ -12,18 +12,18 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     private readonly eventService: EventService,
     private readonly notificationService: NotificationService,
   ) {
-    if (!process.env.KAFKA_BROKER || !process.env.KAFKA_USERNAME || !process.env.KAFKA_PASSWORD) {
+    if (!process.env.REDPANDA_BROKER || !process.env.REDPANDA_USERNAME || !process.env.REDPANDA_PASSWORD) {
       throw new Error('❌ Kafka environment variables are missing!');
     }
 
     this.kafka = new Kafka({
-      clientId: process.env.KAFKA_CLIENT_ID,
-      brokers: [process.env.KAFKA_BROKER],
+      clientId: process.env.REDPANDA_CLIENT_ID,
+      brokers: [process.env.REDPANDA_BROKER],
       ssl: true,
       sasl: {
-        mechanism: 'plain',
-        username: process.env.KAFKA_USERNAME,
-        password: process.env.KAFKA_PASSWORD,
+        mechanism: 'scram-sha-256',
+        username: process.env.REDPANDA_USERNAME,
+        password: process.env.REDPANDA_PASSWORD,
       },
       connectionTimeout: 10000, 
       logLevel: logLevel.INFO,

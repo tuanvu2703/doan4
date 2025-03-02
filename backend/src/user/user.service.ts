@@ -670,8 +670,8 @@ export class UserService {
     }
   }
 
-  async activeUser(userid: Types.ObjectId): Promise<User> {
-    const user = await this.UserModel.findById(userid);
+  async activeUser(userId: Types.ObjectId): Promise<User> {
+    const user = await this.UserModel.findById(userId);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }

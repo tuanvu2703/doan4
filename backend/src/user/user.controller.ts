@@ -339,8 +339,21 @@ export class UserController {
       }
     }
 
-
-    
-
+  @Post('activeUser/:userId')
+  @UseGuards(AuthGuardD)
+  @UseGuards(new RolesGuard(true))
+  async activeUSer(
+    @Param('userId') userId: Types.ObjectId,
+    @CurrentUser() currentUser: User,
+  ){
+    try {
+      if(!currentUser){
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      return this.userService.activeUser(userId);
+    } catch (error) {
+      throw error;
+    }
+  }
 
 }

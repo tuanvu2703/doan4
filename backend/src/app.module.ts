@@ -24,6 +24,9 @@ import { NotificationModule } from './kafka/notification/notification.module';
 import { PublicGroupService } from './public-group/public-group.service';
 import { PublicGroupController } from './public-group/public-group.controller';
 import { PublicGroupModule } from './public-group/public-group.module';
+import { ReportController } from './report/report.controller';
+import { ReportService } from './report/report.service';
+import { ReportModule } from './report/report.module';
 
 
 
@@ -52,8 +55,9 @@ import { PublicGroupModule } from './public-group/public-group.module';
     // ScylladbModule,
     NotificationModule,
     PublicGroupModule,
+    ReportModule,
   ],
-  controllers: [AppController, OtpController, MailController, PublicGroupController],
-  providers: [AppService, MailService, OtpService, PublicGroupService],
+  controllers: [AppController, OtpController, MailController, PublicGroupController, ReportController],
+  providers: [AppService, MailService, OtpService, PublicGroupService, ReportService],
 })
 export class AppModule {}
