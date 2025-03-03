@@ -20,9 +20,6 @@ export default function DropdownOtherPost({ postId }) {
             setDropdownOpen(false);
         }
     };
-    function handleLinkClick() {
-        setDropdownOpen(false);
-    }
     return (
         <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="p-2 hover:bg-gray-300 rounded-full" onClick={() => setDropdownOpen(!dropdownOpen)}>
@@ -45,11 +42,10 @@ export default function DropdownOtherPost({ postId }) {
                             <FlagIcon className="size-5  text-red-600" />
                             <span className='text-red-600'>Báo cáo bài viết</span>
                         </button>
-
                     </li>
-                    <ReportForm postId={postId} />
                 </ul>
             )}
+            <ReportForm postId={postId} />
         </div>
     )
 }
