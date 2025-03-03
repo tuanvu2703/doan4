@@ -48,7 +48,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
   // nội dung là gì
   async sendMessage(topic: string, message: any) {
     try {
-      // Chuyển ObjectId thành string để gửi qua Kafka
+
       if (message.userId instanceof Types.ObjectId) {
         message.userId = message.userId.toString();
       }
@@ -60,7 +60,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
         topic,
         messages: [
           {
-            key: message.userId || randomUUID(), // Dùng key để Kafka đảm bảo thứ tự
+            key: message.userId || randomUUID(), 
             value: JSON.stringify(message),
           },
         ],

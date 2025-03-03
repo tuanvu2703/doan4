@@ -34,7 +34,7 @@ export class NotificationService {
 
   async handlePostEvent(payload) {
     const { postId, userId, ownerId, message, timestamp } = payload;
-  
+    
     if (userId !== ownerId) {
       this.eventService.notificationToUser(ownerId, 'newpostevent', {
         postId,
@@ -44,7 +44,7 @@ export class NotificationService {
       });
     }
   }
-  
+    
   async handleNotification(payload: any) {
     console.log("📨 Notification received:", payload);
 }
