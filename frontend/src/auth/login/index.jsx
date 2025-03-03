@@ -131,12 +131,12 @@ export default function Login() {
                     Đăng nhập
                 </button>
                 <div className="flex items-center justify-between mt-3 mb-4 text-nowrap ">
-                    <label htmlFor="password" className="block text-gray-600 text-sm font-medium mr-1">
-                        <Link className="text-sm text-gray-400 hover:underline">
+                    <label htmlFor="donotaccount" className="block text-gray-600 text-sm font-medium mr-1">
+                        <span className="text-sm text-gray-400">
                             Chưa có tài khoản?
-                        </Link>
+                        </span>
                     </label>
-                    <label htmlFor="password" className="block text-gray-600 text-sm font-medium">
+                    <label htmlFor="register" className="block text-gray-600 text-sm font-medium">
                         <Link to="/register" className="text-sm text-blue-500 hover:underline">
                             Đăng ký ngay
                         </Link>

@@ -247,9 +247,9 @@ export default function Register() {
                 </button>
                 <div className="flex items-center justify-between mt-4 mb-4 text-nowrap ">
                     <label className="block text-gray-600 text-sm font-medium mr-1">
-                        <Link className="text-sm text-gray-400 hover:underline">
+                        <span className="text-sm text-gray-400 ">
                             Bạn đã có tài khoản?
-                        </Link>
+                        </span>
                     </label>
                     <label className="block text-gray-600 text-sm font-medium">
                         <Link to="/login" className="text-sm text-blue-500 hover:underline">
