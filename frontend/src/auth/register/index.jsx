@@ -4,10 +4,9 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Ensure CSS is imported
 import NotificationCss from '../../module/cssNotification/NotificationCss';
-import Apiuri from '../../service/apiuri';
+
 import bg from '../background_auth.jpg'
 
-const uri = Apiuri.Apiuri()
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -94,7 +93,7 @@ export default function Register() {
         }
 
         try {
-            const response = await axios.post(`${uri}/user/register`, updatedFormData);
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/register`, updatedFormData);
             if (response.status === 201) {
                 toast.success('Đăng ký thành công!', NotificationCss.Success);
                 setTimeout(() => navigate('/login'), 2000);

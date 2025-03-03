@@ -33,20 +33,20 @@ export default function TablePost({ query }) {
         )
 
     }
-    // const filteredPosts = query.trim() === "" ? posts : posts.filter(post => {
-    //     return 
-    // });
+    const filteredPosts = query.trim() === "" ? posts : posts.filter(post => {
+        return post.content.toLowerCase().includes(query.toLowerCase());
+    });
 
     return (
         <tbody>
-            {posts.length === 0 ? (
+            {filteredPosts.length === 0 ? (
                 <tr>
                     <td colSpan="5" className="text-center py-4">
                         <p>Unable to find post: <i>"{query}"</i></p>
                     </td>
                 </tr>
             ) : (
-                posts.map((post) => (
+                filteredPosts.map((post) => (
                     <tr key={post._id}>
                         <th>
                             <label>

@@ -1,11 +1,10 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
+
 
 const getListMessenger = async (iduser, message) => {
     try {
-        const response = await axios.get(`${url}/chat/getMylistChat`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/chat/getMylistChat`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -22,7 +21,7 @@ const getListMessengerByUser = async (iduser) => {
     // }
 
     try {
-        const response = await axios.get(`${url}/chat/getmessagestouser/${iduser}`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/chat/getmessagestouser/${iduser}`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -44,7 +43,7 @@ const sendMess = async (iduser, message, file) => {
         }
 
         const response = await axios.post(
-            `${url}/chat/sendmessageToUser/${iduser}`,
+            `${process.env.REACT_APP_API_URL}/chat/sendmessageToUser/${iduser}`,
             formData,
             {
                 headers: {
@@ -62,7 +61,7 @@ const sendMess = async (iduser, message, file) => {
 const revokedMesage = async (idMess) => {
     ///chat/revokedMesage/{messageId}
     try {
-        const response = await axios.put(`${url}/chat/revokedMesage/${idMess}`,{},
+        const response = await axios.put(`${process.env.REACT_APP_API_URL}/chat/revokedMesage/${idMess}`,{},
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }

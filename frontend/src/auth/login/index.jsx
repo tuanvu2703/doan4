@@ -5,9 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import authToken from '../../components/authToken';
 import NotificationCss from '../../module/cssNotification/NotificationCss';
-import Apiuri from '../../service/apiuri';
+
 import bg from '../background_auth.jpg'
-const uri = Apiuri.Apiuri()
 
 export default function Login() {
     const [formData, setFormData] = useState({
@@ -47,7 +46,7 @@ export default function Login() {
                     : { numberPhone: formData.identifier, password: formData.password };
 
                 // Send login request
-                const response = await axios.post(`${uri}/user/login`, requestData);
+                const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/login`, requestData);
 
                 if (response.status === 201) {
                     authToken.setToken(response.data.accessToken); // Save the token

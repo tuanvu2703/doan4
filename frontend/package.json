@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@giphy/react-components": "^10.0.1",
     "@heroicons/react": "^2.1.5",
     "@mui/icons-material": "^6.4.5",
     "@mui/material": "^6.1.6",
@@ -15,6 +16,7 @@
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
     "browserify-zlib": "^0.2.0",
+    "config": "^3.3.12",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "heroicons": "^2.1.5",

@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
-import { MongooseModule,  } from '@nestjs/mongoose';
+import { MongooseModule, } from '@nestjs/mongoose';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
@@ -49,11 +49,11 @@ import { PublicGroupModule } from './public-group/public-group.module';
     EventModule,
     ConsumerModule,
     ProducerModule,
-    ScylladbModule,
+    // ScylladbModule,
     NotificationModule,
     PublicGroupModule,
   ],
   controllers: [AppController, OtpController, MailController, PublicGroupController],
   providers: [AppService, MailService, OtpService, PublicGroupService],
 })
-export class AppModule {}
+export class AppModule { }

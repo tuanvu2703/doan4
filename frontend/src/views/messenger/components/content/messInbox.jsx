@@ -15,8 +15,6 @@ import user from '../../../../service/user';
 import messenger from '../../../../service/messenger';
 import { useUser } from '../../../../service/UserContext';
 import authToken from '../../../../components/authToken';
-
-import apiuri from '../../../../service/apiuri';
 import Loading from '../../../../components/Loading';
 import { MessengerContext } from '../../layoutMessenger';
 import NotificationCss from '../../../../module/cssNotification/NotificationCss';
@@ -182,7 +180,7 @@ const MessengerInbox = () => {
     // useWebSocket(onMessageReceived);
     useEffect(() => {
         if (iduser) {
-            const URL = apiuri.Socketuri();
+            const URL = process.env.REACT_APP_API_SOCKET_URL
             const socketConnection = io(URL, {
                 extraHeaders: {
                     Authorization: `Bearer ${authToken.getToken()}`,

@@ -1,6 +1,5 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
-import Apiuri from './apiuri';
 
 async function getAllEmoji() {
     try {

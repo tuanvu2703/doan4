@@ -174,7 +174,7 @@ export default function Navbar() {
                 <div className="flex gap-2 items-center ml-7">
                     <button className={` z-10`}>
                         <Link to="/">
-                            <img src={logoweb} alt="Logo" className="h-12 aspect-square rounded-full shadow-md" />
+                            <img src="https://i.pinimg.com/originals/0b/a9/99/0ba999174e4b5ac7e73a85cb0fe0aeb1.png" alt="Logo" className="h-12 aspect-square rounded-full shadow-md" />
                         </Link>
                     </button>
                     <div className={` grid xs:hidden`}>
