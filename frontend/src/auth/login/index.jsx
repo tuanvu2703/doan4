@@ -6,7 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import authToken from '../../components/authToken';
 import NotificationCss from '../../module/cssNotification/NotificationCss';
 
-import bg from '../background_auth.jpg'
+import bg from '../login.jpg';
 
 export default function Login() {
     const [formData, setFormData] = useState({

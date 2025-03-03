@@ -7,7 +7,6 @@ import DropdownProfile from './DropdownProfile';
 import authToken from "../../components/authToken";
 import { profileUserCurrent } from '../../service/ProfilePersonal';
 import { useUser } from '../../service/UserContext';
-import logoweb from '../../img/logoweb.avif'
 import { ToastContainer } from 'react-toastify';
 import Notification from '../Notification/Notification';
 import AllNotification from '../Notification/AllNotification';

@@ -5,7 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Ensure CSS is imported
 import NotificationCss from '../../module/cssNotification/NotificationCss';
 
-import bg from '../background_auth.jpg'
+import bg from '../register.jpg'
 
 
 export default function Register() {

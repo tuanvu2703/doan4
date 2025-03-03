@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import bg from './background_auth.jpg';
+import bg from './forgot.jpg';
 import { forgotPassword, resetPassword, verifyOTP } from '../service/ForgotPassword';
 import { toast, ToastContainer } from 'react-toastify';
 import NotificationCss from '../module/cssNotification/NotificationCss';
+
 export default function ForgotPass() {
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
