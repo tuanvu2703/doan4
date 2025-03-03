@@ -1,5 +1,5 @@
 import React from 'react'
-import { FlagIcon, BookmarkIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
+import { FlagIcon, BookmarkIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/solid'
 import { Link } from 'react-router-dom'
 import { handleAddBookmark } from '../../../service/PostService';
 import { toast } from 'react-toastify';
