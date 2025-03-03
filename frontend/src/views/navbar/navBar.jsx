@@ -190,9 +190,7 @@ export default function Navbar() {
                 </div>
             </div>
             <div className="navbar-end">
-
                 <div className="dropdown dropdown-end">
-
                     <div role="button" tabIndex={0} className="btn btn-ghost btn-circle">
                         <div className="indicator">
                             <svg
