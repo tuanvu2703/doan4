@@ -52,7 +52,7 @@ const checkLogin = async () => {
 
 
 
-export default {
+export {
     getAllUser,
     checkLogin,
     getProfileUser
