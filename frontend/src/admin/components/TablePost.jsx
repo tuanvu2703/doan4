@@ -29,7 +29,6 @@ export default function TablePost({ query }) {
     if (loading) {
         return (
             <Loading />
-
         )
 
     }

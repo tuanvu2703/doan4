@@ -2,6 +2,7 @@ import React from 'react'
 import Loading from '../../components/Loading'
 import { Suspense } from 'react'
 import { useState } from 'react'
+import TableReport from '../components/TableReport'
 
 export default function ReportPostManagement() {
     const [query, setQuery] = useState('')
@@ -40,15 +41,18 @@ export default function ReportPostManagement() {
                             </label> */}
                         </th>
                         {/* <th>Number</th> */}
-                        <th>Reporter</th>
+                        <th>No</th>
+                        <th>Type</th>
+                        <th>reported Id</th>
                         <th>Message Report</th>
-                        <th>Image/Video</th>
-                        <th>Content</th>
+                        <th>Reporter</th>
+                        <th>CreateAt</th>
+                        <th>Status</th>
                         <th></th>
                     </tr>
                 </thead>
                 <Suspense fallback={<Loading />}>
-                    {/* <TablePost query={query} /> */}
+                    <TableReport query={query} />
                 </Suspense>
                 {/* foot */}
                 {/* <tfoot>

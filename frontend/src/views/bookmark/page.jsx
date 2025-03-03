@@ -4,7 +4,7 @@ import { getAllBookmark, getHomeFeed, handleRemoveBookmark } from '../../service
 import { profileUserCurrent } from '../../service/ProfilePersonal'
 import Loading from '../../components/Loading'
 import { Link } from 'react-router-dom'
-import { toast, ToastContainer } from 'react-toastify'
+import { toast } from 'react-toastify'
 import NotificationCss from '../../module/cssNotification/NotificationCss'
 import FilePreview from '../../components/fileViewer'
 

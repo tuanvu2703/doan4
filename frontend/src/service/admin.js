@@ -31,4 +31,21 @@ async function getAllPost() {
 
     }
 }
-export { getAllUser, getAllPost }
+
+async function getALlReport() {
+    try {
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/report/getReports`,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json' // Use your auth token provider
+                }
+            }
+        )
+        return request
+    } catch (error) {
+
+    }
+}
+
+export { getAllUser, getAllPost, getALlReport }

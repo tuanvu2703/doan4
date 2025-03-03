@@ -155,6 +155,7 @@ export default function HomePost() {
     const openModal = (file) => {
         setShowZom({ file: file, show: true });
     };
+
     return (
         <>
             {loading ? (

@@ -53,7 +53,7 @@ export default function Register() {
             validationErrors.birthday = 'Bạn phải trên 16 tuổi';
         }
 
-        const phoneRegex = /^[0-9]{10}$/;
+        const phoneRegex = /^[0-9]{11}$/;
         if (!phoneRegex.test(formData.numberPhone)) {
             validationErrors.numberPhone = 'Số điện thoại không hợp lệ';
         }

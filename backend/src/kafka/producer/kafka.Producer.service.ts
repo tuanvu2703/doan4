@@ -12,7 +12,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
       throw new Error('❌ Kafka environment variables are missing!');
     }
 
-    this.kafka = new Kafka({
+    this.kafka = new Kafka({ 
       brokers: [process.env.REDPANDA_BROKER],
       clientId: process.env.REDPANDA_CLIENT_ID,
       ssl: true,
@@ -21,7 +21,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
         username: process.env.REDPANDA_USERNAME,
         password: process.env.REDPANDA_PASSWORD,
       },
-      connectionTimeout: 10000, // Tăng timeout lên 10s
+      connectionTimeout: 10000, 
       logLevel: logLevel.INFO,
     });
 
@@ -60,7 +60,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
         topic,
         messages: [
           {
-            key: message.userId || randomUUID(), // Dùng key để Kafka đảm bảo thứ tự
+            key: message.userId || randomUUID(), 
             value: JSON.stringify(message),
           },
         ],

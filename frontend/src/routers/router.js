@@ -37,6 +37,7 @@ import UserManagement from "../admin/page/user-management.jsx";
 import PostManagement from "../admin/page/post-management.jsx";
 import ReportPostManagement from "../admin/page/reportpost-management.jsx";
 
+import AdminRoute from "./AdminRoute.jsx";
 
 function routers() {
     return (
@@ -83,11 +84,18 @@ function routers() {
                 <Route path="/test" element={<Test />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgotpass" element={<ForgotPass />} />
-                <Route path="/admin" element={<LayoutAdmin />} >
-                    <Route index element={< Dashboard />} />
+
+
+
+                {/* Route admin được bảo vệ bởi AdminRoute */}
+                <Route path="/admin" element={
+                    <AdminRoute>
+                        <LayoutAdmin />
+                    </AdminRoute>
+                }>
+                    <Route index element={<Dashboard />} />
                     <Route path="user" element={<UserManagement />} />
                     <Route path="post" element={<PostManagement />} />
-
                     <Route path="report/post" element={<ReportPostManagement />} />
                 </Route>
             </Routes>

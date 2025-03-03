@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { getAllEmoji } from '../service/emoji'
+import { getAllEmoji } from '../service/emoji';
 
 export default function Emoji({ onEmojiClick }) {
     const [emoji, setEmoji] = useState([])
