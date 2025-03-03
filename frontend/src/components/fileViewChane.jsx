@@ -4,7 +4,7 @@ const FileViewChane = ({ file, onDelete }) => {
     // Determine the file type based on its extension
     const getFileType = (fileName) => {
         const extension = fileName.split('.').pop().toLowerCase();
-        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'webm'];
         const videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv'];
 
         if (imageExtensions.includes(extension)) return 'image';

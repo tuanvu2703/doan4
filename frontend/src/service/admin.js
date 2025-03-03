@@ -1,11 +1,9 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
 
 const getAllUser = async () => {
     try {
-        const response = await axios.get(`${url}/user/getAllUser`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/getAllUser`,
 
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
@@ -20,7 +18,7 @@ const getAllUser = async () => {
 //getHomeFeed
 async function getAllPost() {
     try {
-        const request = await axios.get(`${url}/post/getAllPost`,
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/post/getAllPost`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
@@ -33,4 +31,4 @@ async function getAllPost() {
 
     }
 }
-export {getAllUser, getAllPost}
+export { getAllUser, getAllPost }

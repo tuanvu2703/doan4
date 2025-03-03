@@ -1,12 +1,11 @@
 import axios from "axios";
 import authToken from "../components/authToken";
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
+
 
 export async function changepass(currentPassword, newPassword) {
     try {
         const request = await axios.put(
-            `${url}/user/change-password`, 
+            `${process.env.REACT_APP_API_URL}/user/change-password`, 
             { currentPassword, newPassword },
             {
                 headers: {

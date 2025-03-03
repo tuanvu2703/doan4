@@ -1,11 +1,10 @@
 import axios from "axios";
 import authToken from "../components/authToken";
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
+
 
 export async function getPostPersonal() {
     try {
-        const request = await axios.get(`${url}/post/crpost`,
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/post/crpost`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
@@ -21,7 +20,7 @@ export async function getPostPersonal() {
 //getHomeFeed
 export async function getHomeFeed() {
     try {
-        const request = await axios.get(`${url}/post/getHomeFeed`,
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/post/getHomeFeed`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
@@ -37,7 +36,7 @@ export async function getHomeFeed() {
 //Like
 export async function handleLike(postId) {
     try {
-        const request = await axios.put(`${url}/post/${postId}/like`, {}, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/post/${postId}/like`, {}, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -50,7 +49,7 @@ export async function handleLike(postId) {
 //unlike
 export async function handleUnLike(postId) {
     try {
-        const request = await axios.put(`${url}/post/${postId}/unlike`, {}, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/post/${postId}/unlike`, {}, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -64,7 +63,7 @@ export async function handleUnLike(postId) {
 // Dislike
 export async function handleDisLike(postId) {
     try {
-        const request = await axios.put(`${url}/post/${postId}/dislike`, {}, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/post/${postId}/dislike`, {}, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -77,7 +76,7 @@ export async function handleDisLike(postId) {
 //undislike
 export async function handleUnDisLike(postId) {
     try {
-        const request = await axios.put(`${url}/post/${postId}/undislike`, {}, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/post/${postId}/undislike`, {}, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -91,7 +90,7 @@ export async function handleUnDisLike(postId) {
 //add
 export async function handleAddBookmark(postId) {
     try {
-        const request = await axios.post(`${url}/user/${postId}/bookmark`, {}, {
+        const request = await axios.post(`${process.env.REACT_APP_API_URL}/user/${postId}/bookmark`, {}, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -104,7 +103,7 @@ export async function handleAddBookmark(postId) {
 //remove
 export async function handleRemoveBookmark(postId) {
     try {
-        const request = await axios.delete(`${url}/user/${postId}/bookmark`, {
+        const request = await axios.delete(`${process.env.REACT_APP_API_URL}/user/${postId}/bookmark`, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -117,7 +116,7 @@ export async function handleRemoveBookmark(postId) {
 //getallBookmark from myself
 export async function getAllBookmark(userId) {
     try {
-        const request = await axios.get(`${url}/user/${userId}/bookmark`, {
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/user/${userId}/bookmark`, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -130,7 +129,7 @@ export async function getAllBookmark(userId) {
 //detail post
 export async function getDetailPost(postId) {
     try {
-        const request = await axios.get(`${url}/post/${postId}/privacy`, {
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/post/${postId}/privacy`, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -144,7 +143,7 @@ export async function getDetailPost(postId) {
 //update post
 export async function updatePost(postId, content) {
     try {
-        const request = await axios.put(`${url}/post/updatePost/${postId}`, { content }, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/post/updatePost/${postId}`, { content }, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`,
                 'Content-Type': 'multipart/form-data',
@@ -158,7 +157,7 @@ export async function updatePost(postId, content) {
 
 export async function updatePrivacyPost(postId, privacy) {
     try {
-        const request = await axios.put(`${url}/post/settingprivacy/${postId}`, { privacy }, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/post/settingprivacy/${postId}`, { privacy }, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`,
             }
@@ -171,7 +170,7 @@ export async function updatePrivacyPost(postId, privacy) {
 //delete post
 export async function deletePost(postId) {
     try {
-        const request = await axios.delete(`${url}/post/deletePost/${postId}`, {
+        const request = await axios.delete(`${process.env.REACT_APP_API_URL}/post/deletePost/${postId}`, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`,
             }

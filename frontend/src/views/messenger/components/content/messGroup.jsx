@@ -19,7 +19,6 @@ import NotificationCss from '../../../../module/cssNotification/NotificationCss'
 import group from '../../../../service/group';
 import { io } from 'socket.io-client';
 import authToken from '../../../../components/authToken';
-import apiuri from '../../../../service/apiuri';
 import FileViewChane from '../../../../components/fileViewChane';
 
 
@@ -231,7 +230,7 @@ const MessengerInbox = () => {
 
     useEffect(() => {
         if (idGroup && token) {
-            const URL = apiuri.Socketuri();
+            const URL = process.env.REACT_APP_API_SOCKET_URL
             const socketConnection = io(URL, {
                 extraHeaders: {
                     Authorization: `Bearer ${authToken.getToken()}`,

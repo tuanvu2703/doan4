@@ -1,22 +1,20 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
-import Apiuri from './apiuri';
-import { useCallback } from 'react';
 import socket from './webSocket/socket';
-import useWebSocket from './webSocket/usewebsocket';
-const url = Apiuri.Apiuri()
+
+
 
 const AddFriend = async (id) => {
 
     try {
-        const result = await axios.get(`${url}/friend/status/${id}`,
+        const result = await axios.get(`${process.env.REACT_APP_API_URL}/friend/status/${id}`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
         );
         console.log(result.data.status)
         if (result.data.status == 'no_request') {
-            const response = await axios.post(`${url}/user/friendrequest/${id}`, {},
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/friendrequest/${id}`, {},
                 {
                     headers: { Authorization: `Bearer ${authToken.getToken()}` },
                 }
@@ -41,7 +39,7 @@ const AddFriend = async (id) => {
 
 const getListFriendRequest = async () => {
     try {
-        const response = await axios.get(`${url}/user/getMyFriendRequest`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/getMyFriendRequest`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -53,7 +51,7 @@ const getListFriendRequest = async () => {
 };
 const getListMyFriend = async () => {
     try {
-        const response = await axios.get(`${url}/user/getMyFriend`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/getMyFriend`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -66,7 +64,7 @@ const getListMyFriend = async () => {
 const accectRequestAddFriend = async (id) => {
     try {
 
-        const response = await axios.post(`${url}/user/acceptfriend/${id}`, {},
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/acceptfriend/${id}`, {},
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -79,7 +77,7 @@ const accectRequestAddFriend = async (id) => {
 };
 const declineRequestAddFriend = async (id) => {
     try {
-        const response = await axios.post(`${url}/user/rejectFriendRequest/${id}`, {},
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/rejectFriendRequest/${id}`, {},
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -93,7 +91,7 @@ const declineRequestAddFriend = async (id) => {
 const checkFriend = async (id) => {
     try {
         // Fetch user's friend list
-        const listResponse = await axios.get(`${url}/user/getalluser`, {
+        const listResponse = await axios.get(`${process.env.REACT_APP_API_URL}/user/getalluser`, {
             headers: { Authorization: `Bearer ${authToken.getToken()}` },
         });
         const lisfr = listResponse.data;
@@ -114,7 +112,7 @@ const checkFriend = async (id) => {
 
 const cancelFriend = async (id) => {
     try {
-        const response = await axios.delete(`${url}/user/unfriend/${id}`,
+        const response = await axios.delete(`${process.env.REACT_APP_API_URL}/user/unfriend/${id}`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -128,7 +126,7 @@ const cancelFriend = async (id) => {
 const cancelFriendRequest = async (id) => {
     const remove = async (idrq) => {
         try {
-            const response = await axios.delete(`${url}/user/removeFriendRequest/${idrq}`, {
+            const response = await axios.delete(`${process.env.REACT_APP_API_URL}/user/removeFriendRequest/${idrq}`, {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             });
             return { success: true, data: response.data.message };
@@ -137,7 +135,7 @@ const cancelFriendRequest = async (id) => {
         }
     };
     try {
-        const userrequest = await axios.get(`${url}/user/getMyFriendRequest`,
+        const userrequest = await axios.get(`${process.env.REACT_APP_API_URL}/user/getMyFriendRequest`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -147,7 +145,7 @@ const cancelFriendRequest = async (id) => {
             .map((item) => item._id);
         let idrq = [];
         if (idRequest.length == 0) {
-            const userrequest = await axios.get(`${url}/friend/status/${id}`,
+            const userrequest = await axios.get(`${process.env.REACT_APP_API_URL}/friend/status/${id}`,
                 {
                     headers: { Authorization: `Bearer ${authToken.getToken()}` },
                 }
@@ -159,7 +157,7 @@ const cancelFriendRequest = async (id) => {
         }
         const rmv = await remove(idrq);
         if (rmv.success == false) {
-            const response = await axios.post(`${url}/user/rejectFriendRequest/${idrq}`, {},
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/rejectFriendRequest/${idrq}`, {},
                 {
                     headers: { Authorization: `Bearer ${authToken.getToken()}` },
                 }
@@ -174,7 +172,7 @@ const cancelFriendRequest = async (id) => {
 };
 async function getListFriendAnother(userId) {
     try {
-        const request = await axios.get(`${url}/user/getlistfriendanother/${userId}`,
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/user/getlistfriendanother/${userId}`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }

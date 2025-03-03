@@ -9,6 +9,8 @@ import { profileUserCurrent } from '../../service/ProfilePersonal';
 import { useUser } from '../../service/UserContext';
 import logoweb from '../../img/logoweb.avif'
 import { ToastContainer } from 'react-toastify';
+import Notification from '../Notification/Notification';
+import AllNotification from '../Notification/AllNotification';
 export default function Navbar() {
 
     const { userContext, setUserContext } = useUser(); // Access user data from context
@@ -172,7 +174,7 @@ export default function Navbar() {
                 <div className="flex gap-2 items-center ml-7">
                     <button className={` z-10`}>
                         <Link to="/">
-                            <img src={logoweb} alt="Logo" className="h-12 aspect-square rounded-full shadow-md" />
+                            <img src="https://i.pinimg.com/originals/0b/a9/99/0ba999174e4b5ac7e73a85cb0fe0aeb1.png" alt="Logo" className="h-12 aspect-square rounded-full shadow-md" />
                         </Link>
                     </button>
                     <div className={` grid xs:hidden`}>
@@ -190,23 +192,39 @@ export default function Navbar() {
             </div>
             <div className="navbar-end">
 
-                <button className="btn btn-ghost btn-circle">
-                    <div className="indicator">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <span className="badge badge-xs badge-primary indicator-item"></span>
+                <div className="dropdown dropdown-end">
+
+                    <div role="button" tabIndex={0} className="btn btn-ghost btn-circle">
+                        <div className="indicator">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <span className="badge badge-xs badge-primary indicator-item"></span>
+                        </div>
                     </div>
-                </button>
+                    <ul
+                        tabIndex={0}
+                        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-auto max-w-[90vw] sm:w-96 p-2 shadow"
+                    >
+                        <div className="block sm:hidden">
+                            <AllNotification />
+                        </div>
+                        <div className="hidden sm:block">
+                            <Notification />
+                        </div>
+                    </ul>
+
+
+                </div>
                 {authToken.getToken() !== null ? (
                     <DropdownProfile user={userContext} />
                 ) : (

@@ -1,18 +1,16 @@
 import axios from "axios";
 import authToken from "../components/authToken";
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
 
 export async function profileUserCurrent() {
     try {
-        var request = await axios.get(`${url}/user/current`, {
+        var request = await axios.get(`${process.env.REACT_APP_API_URL}/user/current`, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
         })
         return request
     } catch (error) {
-        
+
         console.log(error)
         authToken.deleteToken();
     }
@@ -20,7 +18,7 @@ export async function profileUserCurrent() {
 
 export async function updateName(firstName, lastName) {
     try {
-        const request = await axios.put(`${url}/user/update`, { firstName, lastName }, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/user/update`, { firstName, lastName }, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -33,7 +31,7 @@ export async function updateName(firstName, lastName) {
 
 export async function updateInformation(birthday, gender, address, email) {
     try {
-        const request = await axios.put(`${url}/user/update`, { birthday, gender, address, email }, {
+        const request = await axios.put(`${process.env.REACT_APP_API_URL}/user/update`, { birthday, gender, address, email }, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -48,7 +46,7 @@ export async function uploadAvatar(file) {
     try {
         const formData = new FormData();
         formData.append('files', file);
-        const request = await axios.post(`${url}/user/upload-avatar`, formData, {
+        const request = await axios.post(`${process.env.REACT_APP_API_URL}/user/upload-avatar`, formData, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`,
                 'Content-Type': 'multipart/form-data'
@@ -64,7 +62,7 @@ export async function uploadBackground(file) {
     try {
         const formData = new FormData();
         formData.append('files', file);
-        const request = await axios.post(`${url}/user/uploadcoveravatar`, formData, {
+        const request = await axios.post(`${process.env.REACT_APP_API_URL}/user/uploadcoveravatar`, formData, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`,
                 'Content-Type': 'multipart/form-data'

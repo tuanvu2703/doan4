@@ -1,7 +1,6 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
+
 
 const createGroup = async (groupName, members) => {
     if (groupName.length > 50) {
@@ -12,7 +11,7 @@ const createGroup = async (groupName, members) => {
             const participants = members;
 
             const response = await axios.post(
-                `${url}/chat/creategroup`,
+                `${process.env.REACT_APP_API_URL}/chat/creategroup`,
                 {
                     name: groupName,
                     participants, // Pass the object instead of an array
@@ -31,7 +30,7 @@ const createGroup = async (groupName, members) => {
 
 const addMemberGroup = async (idgr, listmember) => {
     try {
-        const response = await axios.put(`${url}/chat/addMembersTogroup/${idgr}`, {
+        const response = await axios.put(`${process.env.REACT_APP_API_URL}/chat/addMembersTogroup/${idgr}`, {
             participants: listmember
         },
             {
@@ -45,7 +44,7 @@ const addMemberGroup = async (idgr, listmember) => {
 };
 const removeMemberGroup = async (idgr, listmember) => {
     try {
-        const response = await axios.put(`${url}/chat/removeMemBerInGroup/${idgr}`, {
+        const response = await axios.put(`${process.env.REACT_APP_API_URL}/chat/removeMemBerInGroup/${idgr}`, {
             participants: listmember
         },
             {
@@ -59,7 +58,7 @@ const removeMemberGroup = async (idgr, listmember) => {
 };
 const removeGroup = async (idgr) => {
     try {
-        const response = await axios.delete(`${url}/chat/deleteGroup/${idgr}`, 
+        const response = await axios.delete(`${process.env.REACT_APP_API_URL}/chat/deleteGroup/${idgr}`, 
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -75,7 +74,7 @@ const getMyListChat = async () => {
     // }
 
     try {
-        const response = await axios.get(`${url}/chat/getMylistChat`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/chat/getMylistChat`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -91,7 +90,7 @@ const getMemberIngroup = async (idgr) => {
     }
 
     try {
-        const response = await axios.get(`${url}/chat/MembersGroup/${idgr}`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/chat/MembersGroup/${idgr}`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -107,7 +106,7 @@ const getMessengerGroup = async (idgr) => {
     }
 
     try {
-        const response = await axios.get(`${url}/chat/getmessagegroup/${idgr}`,
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/chat/getmessagegroup/${idgr}`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -127,7 +126,7 @@ const sendMessGroup = async (idgroup, message, file) => {
         }
 
         const response = await axios.post(
-            `${url}/chat/sendmessagetoGroup/${idgroup}`,
+            `${process.env.REACT_APP_API_URL}/chat/sendmessagetoGroup/${idgroup}`,
             formData,
             {
                 headers: {

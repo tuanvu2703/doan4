@@ -1,11 +1,10 @@
 import axios from "axios";
 import authToken from "../components/authToken";
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
+
 
 export async function OtherProfile(id) {
     try {
-        const request = axios.get(`${url}/user/getDetailUser/${id}`,
+        const request = axios.get(`${process.env.REACT_APP_API_URL}/user/getDetailUser/${id}`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`
@@ -19,7 +18,7 @@ export async function OtherProfile(id) {
 }
 export async function getAllOtherPosts(id) {
     try {
-        const request = axios.get(`${url}/post/friend/${id}`,
+        const request = axios.get(`${process.env.REACT_APP_API_URL}/post/friend/${id}`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`

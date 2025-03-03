@@ -1,11 +1,10 @@
 import axios from "axios";
 import authToken from "../components/authToken";
-import Apiuri from './apiuri';
-const url = Apiuri.Apiuri()
+
 
 export async function getSearchResult(search) {
     try {
-        const request = await axios.get(`${url}/post/getPostByContent/${search}`, {
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/post/getPostByContent/${search}`, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
@@ -18,7 +17,7 @@ export async function getSearchResult(search) {
 
 export async function getSearchUser(search) {
     try {
-        const request = await axios.get(`${url}/user/getUserByName/${search}`, {
+        const request = await axios.get(`${process.env.REACT_APP_API_URL}/user/getUserByName/${search}`, {
             headers: {
                 Authorization: `Bearer ${authToken.getToken()}`
             }
