@@ -140,7 +140,7 @@ export class PostService {
     }
 
 
-    async likePost(postId: string, userId: string): Promise<{ post: Post; authorId: string }> {
+    async likePost(postId: Types.ObjectId, userId: Types.ObjectId): Promise<{ post: Post; authorId: string }> {
         // Cập nhật bài viết và thêm userId vào danh sách likes
         const post = await this.PostModel.findByIdAndUpdate(
             postId,
@@ -315,23 +315,23 @@ export class PostService {
 
     async getPostsByUser(userId: Types.ObjectId, currentUserId?: Types.ObjectId): Promise<Post[]> {
         try {
-            // Chuyển đổi `currentUserId` sang ObjectId nếu có
+            
             
     
-            // Lấy tất cả bài viết của `userId`
+            
             const posts = await this.PostModel.find({ author: userId });
             console.log(posts);
             // Lọc bài viết theo quyền riêng tư
             const filteredPosts = await Promise.all(
                 posts.map(async (post) => {
-                    // const postAuthorObjectId = new Types.ObjectId(post.author); // Chuyển sang ObjectId nếu cần
+                    
     
-                    // Chế độ công khai
+                   
                     if (post.privacy === 'public') {
                         return post;
                     }
     
-                    // Chế độ riêng tư
+                    
                     if (post.privacy === 'private') {
                         if (userId.equals(currentUserId)) {
                             return post; // Chỉ tác giả mới xem được
@@ -339,14 +339,14 @@ export class PostService {
                         return null;
                     }
     
-                    // Chế độ bạn bè
+                    
                     if (post.privacy === 'friends') {
-                        // Tác giả có thể xem bài viết của chính họ
+                       
                         if (userId.equals(currentUserId)) {
                             return post;
                         }
     
-                        // Kiểm tra nếu người dùng hiện tại và tác giả là bạn bè
+                       
                         const isFriend = await this.FriendModel.exists({
                             $or: [
                                 { sender: userId, receiver: currentUserId},
@@ -360,23 +360,21 @@ export class PostService {
                         return null;
                     }
     
-                    // Chế độ cụ thể
                     if (post.privacy === 'specific') {
                         if (
                             post.allowedUsers.some((id) =>
                                 id.toString() === currentUserId?.toString()
                             )
                         ) {
-                            return post; // Người dùng được phép xem
+                            return post; 
                         }
                         return null;
                     }
     
-                    return null; // Mặc định loại bỏ nếu không xác định được quyền riêng tư
+                    return null; 
                 })
             );
     
-            // Lọc bỏ các bài viết null (người dùng không được phép xem)
             return filteredPosts.filter((post) => post !== null);
         } catch (error) {
             console.error('Error in getPostsByUser:', error);

@@ -91,23 +91,27 @@ export class PostController {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-        
-        
+
         try {
-            const {authorId, post} = await this.postService.likePost(id, currentUser._id.toString());
+            const swpostId = new Types.ObjectId(id);
+            const swUserId = new Types.ObjectId(currentUser._id.toString());
+            const {authorId, post} = await this.postService.likePost(swpostId,swUserId);
+            const swAuthorId = new Types.ObjectId(authorId.toString());
             const notification = {
-                body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
-                avatart : currentUser.avatar,
+                type: 'like',
+                userId: swAuthorId, // 🔹 ID người like bài viết
+                ownerId: swUserId, // 🔹 ID chủ bài viết
                 data: {
-                    owner: authorId,
-                    postId: id,
-                    userId: currentUser._id.toString(),
-                    type: 'like',
-                    timeStamp: new Date().toISOString(),
+                  postId: new Types.ObjectId(id), // 🔹 ID bài viết
+                  message: `New like from ${currentUser.firstName} ${currentUser.lastName}`,
+                  avatar: currentUser.avatar,
+                  timestamp: new Date(),
                 },
-            }
-            // this.eventService.notificationToUser(authorId, 'new like in post', notification );
-            await this.producerService.sendMessage('mypost', notification);
+              };
+              
+              // Gửi qua Kafka
+              await this.producerService.sendMessage('mypost', notification);
+              
             return post;
         } catch (error) {
             throw new HttpException('An error occurred while liking post', HttpStatus.INTERNAL_SERVER_ERROR);

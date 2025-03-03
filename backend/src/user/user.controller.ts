@@ -229,7 +229,9 @@ export class UserController {
       avatar: currentUser.avatar,
     }
     try {
-      const {senderId, friend} = await this.userService.acceptRequestFriends(currentUser._id.toString(), friendRequestId);
+      const swageFriendRequestId = new Types.ObjectId(friendRequestId);
+      const swageUserId = new Types.ObjectId(currentUser._id.toString())
+      const {senderId, friend} = await this.userService.acceptRequestFriends(swageUserId, swageFriendRequestId);
       this.eventService.notificationToUser(senderId, 'accept friend request', author);
       return friend;
     } catch (error) {
@@ -245,7 +247,9 @@ export class UserController {
     @CurrentUser() currentUser: User,
     @Param('friendRequestId') friendRequestId: string,
   ){
-    return this.userService.rejectFriendRequest(currentUser._id.toString(), friendRequestId);
+    const swFriendRequestId = new Types.ObjectId(friendRequestId);
+    const swageUserId = new Types.ObjectId(currentUser._id.toString())
+    return this.userService.rejectFriendRequest(swageUserId, swFriendRequestId);
   }
   
   @ApiBearerAuth() 
@@ -254,7 +258,8 @@ export class UserController {
   async getMyFriendRequest(
     @CurrentUser() currentUser: User,
   ){
-    return this.userService.getMyFriendRequest(currentUser._id.toString());
+    const swageUserId = new Types.ObjectId(currentUser._id.toString())
+    return this.userService.getMyFriendRequest(swageUserId);
   }
   @ApiBearerAuth() 
     @Delete('unfriend/:friendId')
@@ -263,8 +268,9 @@ export class UserController {
       @CurrentUser() currentUser: User,
       @Param('friendId') friendId: string,
     ){
+      const swageFriendId = new Types.ObjectId(friendId);
       const swageUserId = new Types.ObjectId(currentUser._id.toString())
-      return this.userService.unFriend(currentUser._id.toString(), friendId);
+      return this.userService.unFriend(swageUserId, swageFriendId);
     }
 
     @ApiBearerAuth() 
@@ -274,7 +280,7 @@ export class UserController {
       @CurrentUser() currentUser: User,
     ){
       const swageUserId = new Types.ObjectId(currentUser._id.toString())
-      return this.userService.getMyFriend(currentUser._id.toString());
+      return this.userService.getMyFriend(swageUserId);
     } //check
 
     @ApiBearerAuth() 
@@ -283,7 +289,8 @@ export class UserController {
     async getAllMysenderFriendRequest(
       @CurrentUser() currentUser: User,
     ){
-      return this.userService.findAllMySenderFriendRequest(currentUser._id.toString());
+      const swageUserId = new Types.ObjectId(currentUser._id.toString())
+      return this.userService.findAllMySenderFriendRequest(swageUserId);
     }
 
     @Delete('removeFriendRequest/:friendRequestId')
@@ -293,7 +300,9 @@ export class UserController {
       @CurrentUser() currentUser: User,
       @Param('friendRequestId') friendRequestId: string,
     ){
-      return this.userService.removeFriendRequest(currentUser._id.toString(), friendRequestId);
+      const swageUserId = new Types.ObjectId(currentUser._id.toString())
+      const swageFriendRequestId = new Types.ObjectId(friendRequestId);
+      return this.userService.removeFriendRequest(swageUserId, swageFriendRequestId);
     }
 
     @ApiBearerAuth() 
@@ -311,7 +320,7 @@ export class UserController {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
       const userIdOBJ = new Types.ObjectId(userId);
-      return this.userService.getListFriendAnother(userId);
+      return this.userService.getListFriendAnother(userIdOBJ);
     } 
     @ApiBearerAuth() 
     @Get('getUserByName/:name')
@@ -330,8 +339,21 @@ export class UserController {
       }
     }
 
-
-    
-
+  @Post('activeUser/:userId')
+  @UseGuards(new RolesGuard(true))
+  @UseGuards(AuthGuardD)
+  async activeUSer(
+    @Param('userId') userId: Types.ObjectId,
+    @CurrentUser() currentUser: User,
+  ){
+    try {
+      if(!currentUser){
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      return this.userService.activeUser(userId);
+    } catch (error) {
+      throw error;
+    }
+  }
 
 }
