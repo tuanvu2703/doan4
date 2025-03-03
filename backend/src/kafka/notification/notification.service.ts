@@ -44,60 +44,49 @@ export class NotificationService {
       });
     }
   }
+  
+  async handleNotification(payload: any) {
+    console.log("📨 Notification received:", payload);
+}
 
-  async handleKafkaMessage(message: any) {
+
+  async handleKafkaMessage(message: any, shouldSave = true, skipSaveForTopics: string[] = []) {
     try {
       const parsedMessage = JSON.parse(message.value);
   
-      // Chuyển đổi ObjectId
-      if (parsedMessage.userId && Types.ObjectId.isValid(parsedMessage.userId)) {
-        parsedMessage.userId = new Types.ObjectId(parsedMessage.userId);
-      }
-      if (parsedMessage.ownerId && Types.ObjectId.isValid(parsedMessage.ownerId)) {
-        parsedMessage.ownerId = new Types.ObjectId(parsedMessage.ownerId);
-      }
-      if (parsedMessage.data.postId && Types.ObjectId.isValid(parsedMessage.data.postId)) {
+      // Chuyển đổi ObjectId nếu có
+      ['userId', 'ownerId', 'sender', 'reportedId'].forEach((field) => {
+        if (parsedMessage[field] && Types.ObjectId.isValid(parsedMessage[field])) {
+          parsedMessage[field] = new Types.ObjectId(parsedMessage[field]);
+        }
+      });
+  
+      if (parsedMessage.data?.postId && Types.ObjectId.isValid(parsedMessage.data.postId)) {
         parsedMessage.data.postId = new Types.ObjectId(parsedMessage.data.postId);
       }
   
-      // Kiểm tra nếu là hành động "like" hoặc "unlike"
-      if (parsedMessage.type === 'like' || parsedMessage.type === 'unlike') {
-        const existingNotification = await this.notificationModel.findOne({
-          userId: parsedMessage.userId,
-          'data.postId': parsedMessage.data.postId, // Kiểm tra chính xác post
-          type: 'like',
-        });
+      // Nếu topic nằm trong danh sách bỏ qua => Không lưu vào DB
+      if (skipSaveForTopics.includes(parsedMessage.topic)) {
+        console.log(`🛑 Skipping save for topic: ${parsedMessage.topic}`);
+        return;
+      }
   
-        if (parsedMessage.type === 'like') {
-          if (!existingNotification) {
-            // Nếu chưa tồn tại, tạo mới
-            await this.notificationModel.create(parsedMessage);
-            console.log('✅ Notification saved:', parsedMessage);
-          } else {
-            // Nếu đã tồn tại, cập nhật timestamp
-            await this.notificationModel.updateOne(
-              { _id: existingNotification._id },
-              { $set: { 'data.timestamp': new Date() } }
-            );
-            console.log('🔄 Updated existing notification:', parsedMessage);
-          }
-        } else if (parsedMessage.type === 'unlike' && existingNotification) {
-          // Nếu unlike, xóa thông báo
-          await this.notificationModel.deleteOne({ _id: existingNotification._id });
-          console.log('🗑️ Removed unlike notification:', parsedMessage);
-        }
+      // Kiểm tra xem có cần lưu không
+      if (!shouldSave) {
+        console.log('🚀 Processing message without saving:', parsedMessage);
+        return;
+      }
+  
+      // Lưu vào MongoDB nếu chưa có
+      const existingNotification = await this.notificationModel.findOne({
+        messageId: parsedMessage.messageId,
+      });
+  
+      if (!existingNotification) {
+        await this.notificationModel.create(parsedMessage);
+        console.log('✅ Notification saved:', parsedMessage);
       } else {
-        // Xử lý các loại thông báo khác
-        const existingNotification = await this.notificationModel.findOne({
-          messageId: parsedMessage.messageId,
-        });
-  
-        if (!existingNotification) {
-          await this.notificationModel.create(parsedMessage);
-          console.log('✅ Notification saved:', parsedMessage);
-        } else {
-          console.log('⚠️ Duplicate message detected, skipping:', parsedMessage);
-        }
+        console.log('⚠️ Duplicate message detected, skipping:', parsedMessage);
       }
     } catch (error) {
       console.error('❌ Error handling Kafka message:', error);
@@ -105,45 +94,32 @@ export class NotificationService {
   }
   
   
-  
   async handleKafkaEvent(topic: string, message: any) {
     try {
-      const parsedMessage = JSON.parse(message.value.toString());
-  
-      console.log(`📥 Received message from "${topic}":`, parsedMessage);
-  
-      switch (topic) {
-        case 'notification':
-          await this.handleChatMessage(parsedMessage);
-          break;
-  
-        case 'mypost':
-          await this.handlePostEvent(parsedMessage);
-          break;
-  
-        default:
-          console.warn(`⚠️ Unknown topic: ${topic}`);
-      }
-      await this.handleKafkaMessage(message);
-      // 🔹 Kiểm tra và lưu vào MongoDB nếu không bị trùng
-      if (parsedMessage.messageId) {
-        const existingNotification = await this.notificationModel.findOne({
-          messageId: parsedMessage.messageId,
-        });
-  
-        if (!existingNotification) {
-          await this.notificationModel.create(parsedMessage);
-          console.log('✅ Notification saved:', parsedMessage);
-        } else {
-          console.log('⚠️ Duplicate message detected, skipping:', parsedMessage);
+        const parsedMessage = JSON.parse(message.value.toString());
+
+        console.log(`📥 Received message from "${topic}":`, parsedMessage);
+
+        switch (topic) {
+            case 'notification':
+                await this.handleNotification(parsedMessage);
+                return; // Không gọi handleKafkaMessage
+
+            case 'mypost':
+                await this.handlePostEvent(parsedMessage);
+                break;
+
+            default:
+                console.warn(`⚠️ Unknown topic: ${topic}`);
         }
-      }
-  
+
+        await this.handleKafkaMessage(message, topic !== 'chat', ['chat', 'notification']);
+
     } catch (error) {
-      console.error(`❌ Error processing Kafka message from ${topic}:`, error);
+        console.error(`❌ Error processing Kafka message from ${topic}:`, error);
     }
-  }
-  
+}
+
 
   async getUserNotifications(userId: Types.ObjectId) {
     return await this.notificationModel

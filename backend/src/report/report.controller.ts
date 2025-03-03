@@ -1,11 +1,12 @@
-import { Body, Controller, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { AuthGuardD } from '../user/guard/auth.guard';
 import { CurrentUser } from '../user/decorator/currentUser.decorator';
 import { User } from '../user/schemas/user.schemas';
 import { CreateReportDto } from './dto/CreateReport.dto';
 import { Types } from 'mongoose';
-import { ApiTags,ApiOperation,ApiBody } from '@nestjs/swagger';
+import { ApiTags,ApiOperation,ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { RolesGuard } from 'src/user/guard/role.guard';
 
 
 @ApiTags('Report')
@@ -17,8 +18,9 @@ export class ReportController {
 
     @Post('sendReport')
     @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
     @ApiOperation({ summary: 'Gửi báo cáo bài viết hoặc người dùng' })
-    @ApiBody({ type: CreateReportDto }) // Định nghĩa request body trong Swagger
+    @ApiBody({ type: CreateReportDto })
     async sendReport(
         @CurrentUser() currentUser: User,
         @Body() createReportDto: CreateReportDto,
@@ -26,8 +28,25 @@ export class ReportController {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-        createReportDto.sender = currentUser._id.toString(); // Gán sender từ currentUser
-        return await this.reportService.createReport(createReportDto);
+        const swageUserId = new Types.ObjectId(currentUser._id.toString());
+        return await this.reportService.createReport(currentUser._id.toString(),createReportDto);
+    }
+
+    @Get('getReports')
+    @UseGuards(new RolesGuard(true))
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Lấy tất cả báo cáo' })
+    async getReports(
+        @CurrentUser() currentUser: User,
+    ) {
+        if (!currentUser) {
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        if(currentUser.role.toString() !== 'true'){
+            throw new HttpException('You are not authorized to access this resource', HttpStatus.UNAUTHORIZED);
+        }
+        return await this.reportService.getReports();
     }
     
 }

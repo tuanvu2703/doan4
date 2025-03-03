@@ -17,30 +17,36 @@ export class ReportService {
         @InjectModel(Post.name) private postModel : Model<Post>,
     ) {}
 
-    async createReport(createReportDto: CreateReportDto): Promise<Report> {
-        // Chuyển đổi các ID từ string sang ObjectId
-        const formattedReportDto = {
-            ...createReportDto,
-            sender: new Types.ObjectId(createReportDto.sender),
-            data: {
-                ...createReportDto.data,
-                reportedPerson: createReportDto.data.type === 'user' 
-                    ? new Types.ObjectId(createReportDto.data.reportedPerson) 
-                    : undefined,
-                reportedPost: createReportDto.data.type === 'post' 
-                    ? new Types.ObjectId(createReportDto.data.reportedPost) 
-                    : undefined,
-            }
-        };
-    
-        // Tạo report mới từ dữ liệu đã format
-        const newReport = new this.ReportModel(formattedReportDto);
-        await newReport.save();
-    
-        // Gửi vào Kafka
-        this.producerService.sendMessage('report', newReport);
-    
-        return newReport;
+    async createReport(userId: string, createReportDto: CreateReportDto): Promise<Report> {
+        const { type, reportedId, reason } = createReportDto; // Lấy trực tiếp dữ liệu từ DTO
+
+        // Check if a similar report already exists
+        const existingReport = await this.ReportModel.findOne({
+            sender: new Types.ObjectId(userId),
+            type,
+            reportedId: new Types.ObjectId(reportedId),
+        });
+
+        if (existingReport) {
+            throw new Error('You have already reported this item.');
+        }
+
+        const report = new this.ReportModel({
+            sender: new Types.ObjectId(userId),
+            type,
+            reportedId: new Types.ObjectId(reportedId),
+            reason,
+            status: 'pending',
+        });
+        this.producerService.sendMessage('notification', report);
+        return await report.save();
     }
-    
+
+    async getReports(): Promise<Report[]> {
+        return await this.ReportModel.find().exec();
+    }
+
+
 }
+    
+

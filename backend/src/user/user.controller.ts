@@ -340,8 +340,8 @@ export class UserController {
     }
 
   @Post('activeUser/:userId')
-  @UseGuards(AuthGuardD)
   @UseGuards(new RolesGuard(true))
+  @UseGuards(AuthGuardD)
   async activeUSer(
     @Param('userId') userId: Types.ObjectId,
     @CurrentUser() currentUser: User,

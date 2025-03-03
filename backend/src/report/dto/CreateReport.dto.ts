@@ -1,44 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
-class ReportDataDto {
+export class CreateReportDto {
     @ApiProperty({ enum: ['user', 'post'], description: 'Loại báo cáo (user hoặc post)' })
     @IsEnum(['user', 'post'])
     type: 'user' | 'post';
 
-    @ApiPropertyOptional({ description: 'ID của người bị báo cáo (chỉ có nếu type = user)' })
-    @IsOptional()
+    @ApiProperty({ description: 'ID của người hoặc bài viết bị báo cáo' })
     @IsString()
-    reportedPerson?: string;
+    reportedId: string;
 
-    @ApiPropertyOptional({ description: 'ID của bài viết bị báo cáo (chỉ có nếu type = post)' })
-    @IsOptional()
-    @IsString()
-    reportedPost?: string;
-
-    @ApiProperty({ description: 'Lý do báo cáo' })
-    @IsString()
+    @ApiProperty({ 
+        enum: ['spam', 'hate_speech', 'nudity', 'fake_news', 'violence', 'other'], 
+        description: 'Lý do báo cáo'
+    })
+    @IsEnum(['spam', 'hate_speech', 'nudity', 'fake_news', 'violence', 'other'])
     reason: string;
 }
 
-export class CreateReportDto {
-    @ApiProperty({ description: 'ID của người gửi báo cáo' })
-    @IsString()
-    sender: string;
-
-    @ApiProperty({ description: 'Thông tin báo cáo', type: ReportDataDto })
-    @ValidateNested()
-    @Type(() => ReportDataDto)
-    data: ReportDataDto;
-
-    @ApiPropertyOptional({ description: 'Trạng thái báo cáo (mặc định là pending)' })
-    @IsString()
-    @IsOptional()
-    status?: string;
-
-    @ApiPropertyOptional({ description: 'Nội dung xử lý báo cáo' })
-    @IsString()
-    @IsOptional()
-    implementation?: string;
-}
