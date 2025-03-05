@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException,  } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException,  } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ProducerService } from '../kafka/producer/kafka.Producer.service';
@@ -25,12 +25,13 @@ export class ReportService {
 
         const existingReport = await this.ReportModel.findOne({
             sender: new Types.ObjectId(userId),
-            type,
             reportedId: new Types.ObjectId(reportedId),
+            type: { $eq: type }, 
         });
+        
 
         if (existingReport) {
-            throw new Error('You have already reported this item.');
+            throw new ConflictException('You have already reported this item.');
         }
 
         const report = new this.ReportModel({
