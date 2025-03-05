@@ -1,6 +1,6 @@
 import axios from "axios";
 import authToken from "../components/authToken";
-
+import API from './API';
 
 export async function getPostPersonal() {
     try {
@@ -20,7 +20,7 @@ export async function getPostPersonal() {
 //getHomeFeed
 export async function getHomeFeed() {
     try {
-        const request = await axios.get(`${process.env.REACT_APP_API_URL}/post/getHomeFeed`,
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/post/getHomeFeed`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider

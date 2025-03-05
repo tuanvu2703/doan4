@@ -1,5 +1,7 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
+import API from './API';
+
 
 
 const getAllUser = async (id) => {
@@ -35,7 +37,7 @@ const getProfileUser = async (id) => {
 
 const checkLogin = async () => {
     try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/current`, {
+        const response = await API.get(`${process.env.REACT_APP_API_URL}/user/current`, {
             headers: { Authorization: `Bearer ${authToken.getToken()}` },
         });
 
@@ -50,9 +52,7 @@ const checkLogin = async () => {
     }
 };
 
-
-
-export {
+export default {
     getAllUser,
     checkLogin,
     getProfileUser

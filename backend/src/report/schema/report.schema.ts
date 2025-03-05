@@ -27,7 +27,7 @@ export class Report extends Document {
   @Prop({
     type: String,
     required: false,
-    enum: ['approve' , 'reject'], 
+    enum: ['approve' , 'reject'],
   })
   implementation?: string; 
 }

@@ -91,28 +91,29 @@ export class UserService {
     };
   }
 
-  async refreshToken(userId: string, refreshToken: string): Promise<{ accessToken: string }> {
-    const user = await this.UserModel.findById(userId);
-
-    if (!user || user.refreshToken !== refreshToken) {
-      throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
-    }
-
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
     try {
-      this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'), 
-      });
+        const decoded = this.jwtService.verify(refreshToken, {
+            secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        });
+
+        const user = await this.UserModel.findById(decoded.userId);
+        if (!user || user.refreshToken !== refreshToken) {
+            throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+        }
+
+        const newAccessToken = this.jwtService.sign({ userId: decoded.userId });
+
+        return { accessToken: newAccessToken };
     } catch (error) {
-      throw new HttpException('Refresh token expired', HttpStatus.UNAUTHORIZED);
+        throw new HttpException('Refresh token expired or invalid', HttpStatus.UNAUTHORIZED);
     }
-
-    const accessToken = this.jwtService.sign({ userId });
-
-    return { accessToken };
-  }
+}
 
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
+
+
+  async login(loginDto: LoginDto) {
     const { numberPhone, email, password } = loginDto;
 
     if (!numberPhone && !email) {
