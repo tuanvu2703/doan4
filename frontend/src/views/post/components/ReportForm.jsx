@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { sendReport } from '../../../service/report';
-import Loading from '../../../components/Loading';
 import { toast } from 'react-toastify'
 import NotificationCss from '../../../module/cssNotification/NotificationCss';
 
 export default function ReportForm({ postId }) {
-    const [loading, setLoading] = useState(false);
     const [report, setReport] = useState({
         type: 'post',
         reportedId: postId,
@@ -18,7 +16,6 @@ export default function ReportForm({ postId }) {
     };
 
     const handleReport = async () => {
-        setLoading(true);
         if (!report.reason) {
             setMessage('Vui lòng chọn lý do báo cáo.');
             return;
@@ -33,6 +30,7 @@ export default function ReportForm({ postId }) {
             } else {
                 // Nếu không có dữ liệu phản hồi, hiển thị thông báo đã report
                 setMessage('Bài viết này đã được bạn báo cáo, vui lòng không báo cáo nhiều lần!');
+                toast.success(rs?.message ? rs.message : 'Bài viết này đã được bạn báo cáo, vui lòng không báo cáo nhiều lần!', NotificationCss.Fail);
             }
         } catch (error) {
             console.error('Lỗi khi báo cáo bài viết:', error);
@@ -42,11 +40,7 @@ export default function ReportForm({ postId }) {
                 setMessage('Đã xảy ra lỗi. Vui lòng thử lại.');
             }
         }
-        finally {
-            setLoading(false);
-        }
     };
-    if (loading) return <Loading />;
 
     return (
         <dialog id={`my_modal_report_${postId}`} className="modal">
