@@ -1,4 +1,6 @@
-import { Body, Controller, Get, HttpException, Post, Put, UseGuards,HttpStatus, BadRequestException, Param, UseInterceptors, UploadedFiles, Delete } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Post, Put, Request ,
+Response, UseGuards,HttpStatus , BadRequestException, Param,
+UseInterceptors, UploadedFiles, Delete, Res, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from './schemas/user.schemas';
@@ -20,6 +22,7 @@ import { APIS } from 'googleapis/build/src/apis';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 
+
 @ApiTags('User')
 @Controller('user')
 export class UserController {
@@ -35,15 +38,37 @@ export class UserController {
   }
 
   @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.userService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res() res,
+    @Req() req,
+    ){
+    const { accessToken, refreshToken } = await this.userService.login(loginDto);
+    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false, 
+      sameSite: 'Lax',
+      path: '/user/refresh-token',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+   });
+   
+    
+    return res.json({ accessToken });
   }
-
+  
   @Post('refresh-token')
-  async refreshToken(@Body('userId') userId: string,
-  @Body('refreshToken') refreshToken: string) {
-    return this.userService.refreshToken(userId, refreshToken);
+  async refreshToken(@Request() req) {
+    const refreshToken = req.cookies.refreshToken;
+  
+    if (!refreshToken) {
+      throw new HttpException('No refresh token provided', HttpStatus.UNAUTHORIZED);
+    }
+  
+    return this.userService.refreshToken(refreshToken);
   }
+  
+ 
   @ApiBearerAuth()
   @Get('current')
   @UseGuards(AuthGuardD)

@@ -99,17 +99,16 @@ export class PostController {
             const swAuthorId = new Types.ObjectId(authorId.toString());
             const notification = {
                 type: 'like',
-                userId: swAuthorId, // 🔹 ID người like bài viết
-                ownerId: swUserId, // 🔹 ID chủ bài viết
+                userId: swAuthorId, 
+                ownerId: swUserId, 
                 data: {
-                  postId: new Types.ObjectId(id), // 🔹 ID bài viết
+                  postId: new Types.ObjectId(id), 
                   message: `New like from ${currentUser.firstName} ${currentUser.lastName}`,
                   avatar: currentUser.avatar,
                   timestamp: new Date(),
                 },
               };
               
-              // Gửi qua Kafka
               await this.producerService.sendMessage('mypost', notification);
               
             return post;

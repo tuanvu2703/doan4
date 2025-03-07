@@ -24,7 +24,11 @@ export class Report extends Document {
   @Prop({ required: true, default: 'pending', enum: ['pending', 'resolved', 'rejected'] })
   status: string;
 
-  @Prop()
+  @Prop({
+    type: String,
+    required: false,
+    enum: ['approve' , 'reject'],
+  })
   implementation?: string; 
 }
 
