@@ -451,6 +451,9 @@ export class UserService {
     return this.FriendRequestModel.find({ sender: userId });
   }
 
+  async findAllUserForAdmin(): Promise<User[]> {
+    return this.UserModel.find().select('-password -refreshToken -createdAt -updatedAt -otp -otpExpirationTime -bookmarks').exec();
+  }
 
   async findAllUsers(userId: string): Promise<any[]> {
     try {
