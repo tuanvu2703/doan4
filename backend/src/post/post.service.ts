@@ -10,7 +10,7 @@ import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { PostF } from './interface/PostHomeFeed.interface';
 import { Friend } from 'src/user/schemas/friend.schema';
-import { firebase } from 'googleapis/build/src/apis/firebase';
+
 
 
 @Injectable()
@@ -304,6 +304,10 @@ export class PostService {
             console.log(posts);
             const filteredPosts = await Promise.all(
                 posts.map(async (post) => {
+
+                    if (!post.isActive) {
+                        return null;
+                    }
                    
                     if (post.privacy === 'public') {
                         return post;
@@ -315,10 +319,7 @@ export class PostService {
                         }
                         return null;
                     }
-                    if(!post.isActive){
-                        return null;
-                    }
-    
+
                     if (post.privacy === 'friends') {
                        
                         if (userId.equals(currentUserId)) {
@@ -395,7 +396,7 @@ export class PostService {
             const useridSting = userId.toString();
             const conditions: Array<any> = [
                 { privacy: 'public' }, // ok
-                { isActive: true }, // ok
+                // { isActive: true }, // ok
                 { privacy: 'specific', allowedUsers: userId },// ok
                 { privacy: 'friends', author: { $in: [...friendIds, useridSting] } }, 
             ];
@@ -403,7 +404,8 @@ export class PostService {
             // Lấy tất cả bài viết dựa trên điều kiện
             const posts = await this.PostModel.find({
                 $and: [
-                    { privacy: { $ne: 'private' } },
+                    { privacy: { $ne: 'private' }},
+                    { isActive: true },
                     { $or: conditions },
                     
                 ],
@@ -454,7 +456,7 @@ export class PostService {
     
             const filteredPosts = await Promise.all(
                 posts.map(async (post) => {
-                    const userId = post.author._id; // ID của tác giả bài viết
+                    const userId = post.author
     
                     if (!post.isActive) {
                         return null; //thêm cái đìu kiệng is active dô  níu là false thì sủi

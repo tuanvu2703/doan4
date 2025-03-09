@@ -679,9 +679,8 @@ export class UserService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-    user.isActive = !user.isActive;
-    const newactiveUser = await user.save();
-    return newactiveUser;
+    user.isActive = false;
+    return await user.save();
   }
 
 }

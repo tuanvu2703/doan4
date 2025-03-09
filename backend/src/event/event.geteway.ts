@@ -15,7 +15,7 @@ import { Types } from 'mongoose';
 
 @WebSocketGateway({
 
-  // Namespace: '/events',
+
   cors: {
     origin: (origin, callback) => {
       const allowedOrigins = ["http://localhost:3000",];
@@ -31,6 +31,7 @@ import { Types } from 'mongoose';
   },
   
 })
+
 export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
