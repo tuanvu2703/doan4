@@ -5,8 +5,7 @@ import cors from 'cors'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { cookie } from 'request';
 import * as cookieParser from 'cookie-parser';
-import * as bodyParser from 'body-parser';
-
+// import helmet from 'helmet';
 
 
 
@@ -26,7 +25,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
+  // app.use(helmet());
   app.enableCors({
     origin: ['http://localhost:3000', 'https://zafacook.netlify.app'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

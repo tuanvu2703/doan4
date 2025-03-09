@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { WebrtcService } from './webrtc.service';
-import { WebrtcController } from './webrtc.controller';
+
 import { CallGateway } from './wrtc.gateway';
 import { AuththenticationSoket } from 'src/user/guard/authSocket.guard';
 import { UserModule } from 'src/user/user.module';
@@ -9,7 +8,7 @@ import { UserModule } from 'src/user/user.module';
   imports: [
     UserModule,
   ],
-  providers: [WebrtcService, CallGateway, AuththenticationSoket],
-  controllers: [WebrtcController]
+  providers: [CallGateway, AuththenticationSoket],
+  controllers: []
 })
 export class WebrtcModule {}
