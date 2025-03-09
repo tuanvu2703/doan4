@@ -7,7 +7,7 @@ import {
   OnGatewayDisconnect,
   WsException,
 } from '@nestjs/websockets';
-import { Socket, Server } from 'socket.io';
+import { Socket, Server, Namespace } from 'socket.io';
 import { AuththenticationSoket } from '../user/guard/authSocket.guard';
 import { User } from '../user/schemas/user.schemas';
 import { CurrentUser } from 'src/user/decorator/currentUser.decorator';
@@ -15,6 +15,7 @@ import { Types } from 'mongoose';
 
 @WebSocketGateway({
 
+  // Namespace: '/events',
   cors: {
     origin: (origin, callback) => {
       const allowedOrigins = ["http://localhost:3000",];
@@ -45,7 +46,6 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
 
   async handleConnection(client: Socket) {
 
-  
     try {
       const user = await this.authenticationSoket.authenticate(client);
       if (!user) {
@@ -59,10 +59,8 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
         this.activeUsers.set(userId, new Set());
       }
   
-      // Thêm clientId vào Set của userId
       this.activeUsers.get(userId).add(client.id);
   
-      // Ensure client joins a room matching notification format (e.g., user:userId)
       client.join(`user:${userId}`);
   
     } catch (error) {
@@ -72,7 +70,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   handleDisconnect(client: Socket) {
-    // Tìm userId mà client thuộc về
+
     const userId = Array.from(this.activeUsers.entries()).find(([_, clientIds]) =>
         clientIds.has(client.id)
     )?.[0];
@@ -81,10 +79,9 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
         const userSockets = this.activeUsers.get(userId);
 
         if (userSockets) {
-            // Xóa clientId khỏi Set
+
             userSockets.delete(client.id);
 
-            // Nếu Set rỗng, xóa userId khỏi Map
             if (userSockets.size === 0) {
                 this.activeUsers.delete(userId);
             }
@@ -94,7 +91,4 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
     }
 }
 
-  
-  
-  
 }

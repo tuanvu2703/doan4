@@ -1,6 +1,8 @@
 import { Body, Controller, Get, HttpException, Post, Put, Request ,
 Response, UseGuards,HttpStatus , BadRequestException, Param,
-UseInterceptors, UploadedFiles, Delete, Res, Req } from '@nestjs/common';
+UseInterceptors, UploadedFiles, Delete, Res, Req, 
+UnauthorizedException,
+ForbiddenException} from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
 import { User } from './schemas/user.schemas';
@@ -373,11 +375,30 @@ export class UserController {
   ){
     try {
       if(!currentUser){
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        throw new UnauthorizedException('you dont have permission');
       }
       return this.userService.activeUser(userId);
     } catch (error) {
       throw error;
+    }
+  }
+
+  @Get('alluseradmin')
+  @UseGuards(new RolesGuard(true))
+  @UseGuards(AuthGuardD)
+  async getalluserforadmin(
+    @CurrentUser() currentUser: User,
+  ){
+    try {
+      if(!currentUser){
+        throw new UnauthorizedException('you dont have permission');
+      }
+      if(currentUser.role.toString() !== 'true'){
+        throw new ForbiddenException('you dont have permission');
+      }
+      return this.userService.findAllUserForAdmin();
+    } catch (error) {
+      console.log(error);
     }
   }
 

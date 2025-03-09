@@ -457,7 +457,7 @@ export class PostService {
                     const userId = post.author._id; // ID của tác giả bài viết
     
                     if (!post.isActive) {
-                        return null; // Bài viết bị ban sẽ không hiển thị
+                        return null; //thêm cái đìu kiệng is active dô  níu là false thì sủi
                     }
     
                     if (post.privacy === 'public') {
@@ -466,7 +466,7 @@ export class PostService {
     
                     if (post.privacy === 'private') {
                         if (userId.equals(currentUserId)) {
-                            return post; // Chỉ tác giả mới xem được
+                            return post; // author xem được còn lại chim xẻ
                         }
                         return null;
                     }

@@ -86,4 +86,20 @@ export class ReportController {
         }
         return await this.reportService.implementationReport(reportId,implementationDto);
     }
+
+    @Patch('appealReport/:reportId')
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Kháng cáo báo cáo' })
+    async appealReport(
+        @CurrentUser() currentUser: User,
+        @Param('reportId') reportId: string
+    ){
+        if (!currentUser) {
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        const swageReportId = new Types.ObjectId(reportId);
+        const swageUserId = new Types.ObjectId(currentUser._id.toString());
+        return await this.reportService.appealReport(swageReportId,swageUserId);
+    }
 }

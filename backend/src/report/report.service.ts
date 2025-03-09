@@ -62,12 +62,11 @@ export class ReportService {
         if (!report) {
             throw new NotFoundException('Report not found');
         }
-        const swagereportId = new Types.ObjectId(reportId);
+    
         report.implementation = implementationDto.implementation;
     
         if (report.type === 'post') {
             const post = await this.PostModel.findById(report.reportedId).exec();
-            console.log(post);
             if (!post) {
                 throw new NotFoundException('Post not found');
             }
@@ -76,19 +75,23 @@ export class ReportService {
                 report.status = 'resolved';
                 post.isActive = false;
                 await post.save();
+
+                report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // +7 ngày
     
+                // ✅ Gửi thông báo về việc bài viết bị xóa và hướng dẫn kháng cáo
                 await this.producerService.sendMessage('mypost', {
                     userId: report.sender,
                     owner: post.author,
                     type: 'report',
-                    message: 'Your post has been reported and removed due to violation of community guidelines.',
+                    message: 'Your post has been reported and removed due to violation of community guidelines. If you believe this is a mistake, you can appeal within 7 days.',
                 });
     
                 await this.eventService.notificationToUser(report.sender.toString(), 'Report', {
                     type: 'report',
                     reportId: report._id,
-                    message: 'Your report has been approved',
+                    message: 'Your report has been approved. The post has been removed.',
                 });
+    
             } else if (implementationDto.implementation === 'reject') {
                 report.status = 'rejected';
                 await this.producerService.sendMessage('mypost', {
@@ -109,18 +112,23 @@ export class ReportService {
                 user.isActive = false;
                 await user.save();
     
+                // ✅ THÊM THỜI GIAN HẾT HẠN KHÁNG CÁO
+                report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // +7 ngày
+    
+                // ✅ Gửi thông báo về việc tài khoản bị vô hiệu hóa và hướng dẫn kháng cáo
                 await this.producerService.sendMessage('myuser', {
                     userId: report.sender,
                     owner: user._id,
                     type: 'report',
-                    message: 'The user has been reported and deactivated due to violation of community guidelines.',
+                    message: 'Your account has been deactivated due to violation of community guidelines. If you believe this is a mistake, you can appeal within 7 days.',
                 });
     
                 await this.eventService.notificationToUser(report.sender.toString(), 'Report', {
                     type: 'report',
                     reportId: report._id,
-                    message: 'Your report has been approved',
+                    message: 'Your report has been approved. The user has been deactivated.',
                 });
+    
             } else if (implementationDto.implementation === 'reject') {
                 report.status = 'rejected';
                 await this.producerService.sendMessage('myuser', {
@@ -134,6 +142,33 @@ export class ReportService {
     
         return await report.save();
     }
+    
+
+    async appealReport(reportId: Types.ObjectId, userId: Types.ObjectId): Promise<Report> {
+        const report = await this.ReportModel.findById(reportId).exec();
+        if (!report) {
+            throw new NotFoundException('Report not found');
+        }
+    
+        if (report.reportedId.toString() !== userId.toString()) {
+            throw new ConflictException('You are not authorized to appeal this report');
+        }
+    
+        if (report.status !== 'resolved') {
+            throw new ConflictException('This report is not eligible for appeal');
+        }
+    
+        if (!report.appealDeadline || new Date() > report.appealDeadline) {
+            throw new ConflictException('The appeal deadline has passed');
+        }
+    
+        report.isAppealed = true;
+        report.status = 'pending'; 
+        return await report.save();
+    }
+    
+
+
 
 }
     

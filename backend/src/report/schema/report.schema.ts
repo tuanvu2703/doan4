@@ -30,6 +30,14 @@ export class Report extends Document {
     enum: ['approve' , 'reject'],
   })
   implementation?: string; 
+
+
+  @Prop({ type: Date, required: false })
+    appealDeadline?: Date;
+
+  @Prop({ type: Boolean, default: false })
+    isAppealed: boolean;
+
 }
 
 export const ReportSchema = SchemaFactory.createForClass(Report);
