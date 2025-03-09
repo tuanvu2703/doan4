@@ -1,6 +1,6 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
-
+import API from './API';
 const getAllUser = async () => {
     try {
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/getAllUser`,
@@ -48,4 +48,20 @@ async function getALlReport() {
     }
 }
 
-export { getAllUser, getAllPost, getALlReport }
+async function activeUser(userId) {
+    try {
+        const request = await API.post(`${process.env.REACT_APP_API_URL}/user/activeUser/${userId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+        return request
+    } catch (error) {
+        return error
+    }
+}
+
+export { getAllUser, getAllPost, getALlReport, activeUser }
