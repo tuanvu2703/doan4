@@ -58,5 +58,6 @@ export default {
 }
 
 export {
-    checkLogin
+    checkLogin,
+    getProfileUser
 }

@@ -3,7 +3,7 @@ import authToken from '../components/authToken';
 import API from './API';
 const getAllUser = async () => {
     try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/getAllUser`,
+        const response = await API.get(`${process.env.REACT_APP_API_URL}/user/alluseradmin`,
 
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
@@ -15,10 +15,10 @@ const getAllUser = async () => {
     }
 };
 
-//getHomeFeed
+
 async function getAllPost() {
     try {
-        const request = await axios.get(`${process.env.REACT_APP_API_URL}/post/getAllPost`,
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/post/getAllPost`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
@@ -34,7 +34,7 @@ async function getAllPost() {
 
 async function getALlReport() {
     try {
-        const request = await axios.get(`${process.env.REACT_APP_API_URL}/report/getReports`,
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/report/getReports`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`,
@@ -64,4 +64,20 @@ async function activeUser(userId) {
     }
 }
 
-export { getAllUser, getAllPost, getALlReport, activeUser }
+async function handleReport(reportId,implementation) {
+    try {
+        const request = await API.patch(`${process.env.REACT_APP_API_URL}/report/implementationReport/${reportId}`,{implementation},
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+        return request
+    } catch (error) {
+        return error
+    }
+}
+
+export { getAllUser, getAllPost, getALlReport, activeUser, handleReport }

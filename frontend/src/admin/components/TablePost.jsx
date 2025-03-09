@@ -76,7 +76,7 @@ export default function TablePost({ query }) {
                             })}
                         </td>
                         <th>
-                            <button className="btn btn-error btn-xs">Delete</button>
+                            <button className="btn btn-error btn-xs">Hidden</button>
                         </th>
                     </tr>
                 ))

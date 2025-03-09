@@ -9,7 +9,6 @@ export default function Stat({ title, value, desc, icon }) {
                 </div>
                 <div className="stat-title">{title}</div>
                 <div className="stat-value">{value}</div>
-                <div className="stat-desc">21% more than last month</div>
             </div>
         </div>
     )

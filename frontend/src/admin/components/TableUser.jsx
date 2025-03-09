@@ -42,13 +42,14 @@ export default function TableUser({ query }) {
         try {
             const response = await activeUser(userId);
             if (response) {
-
+                setUsers(prevUsers => prevUsers.map(user =>
+                    user._id === userId ? { ...user, isActive: !user.isActive } : user
+                ));
             }
         } catch (error) {
             console.error("Error active user:", error);
         }
     }
-    console.log(users)
     return (
         <tbody>
             {filteredUsers.length === 0 ? (
@@ -86,9 +87,9 @@ export default function TableUser({ query }) {
                         <td>{user.email} </td>
                         <th>
                             {user.isActive ? (
-                                <button className="btn btn-success btn-xs">Active</button>
+                                <button className="btn btn-error btn-xs" onClick={(e) => handleActiveUser(user._id)}>Unactive</button>
                             ) : (
-                                <button className="btn btn-error btn-xs">Unactive</button>
+                                <button className="btn btn-success btn-xs" onClick={(e) => handleActiveUser(user._id)}>Active</button>
                             )}
                         </th>
                     </tr>

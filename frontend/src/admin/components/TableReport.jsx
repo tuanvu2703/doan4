@@ -1,12 +1,12 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { getALlReport } from '../../service/admin';
+import { handleReport, getALlReport } from '../../service/admin';
 import Loading from '../../components/Loading';
 import ModalReportPost from './ModalReportPost';
+import ModalReportUser from './ModalReportUser';
 export default function TableReport({ query }) {
   const [report, setReport] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,8 +36,36 @@ export default function TableReport({ query }) {
         year: 'numeric'
       }).includes(query) ||
       report.status.toLowerCase().includes(query.toLowerCase()) ||
-      report.type.toLowerCase().includes(query.toLowerCase());
+      report.type.toLowerCase().includes(query.toLowerCase()) ||
+      report.reportedId.toLowerCase().includes(query.toLowerCase()) ||
+      report.sender.toLowerCase().includes(query.toLowerCase());
   });
+
+  const handleApproval = async (reportId) => {
+    try {
+      const response = await handleReport(reportId, 'approve');
+      if (response) {
+        setReport(prevReport => prevReport.map(report =>
+          report._id === reportId ? { ...report, status: 'resolved' } : report
+        ));
+      }
+    } catch (error) {
+      console.error("Error active user:", error);
+    }
+  }
+
+  const handleRejected = async (reportId) => {
+    try {
+      const response = await handleReport(reportId, 'reject');
+      if (response) {
+        setReport(prevReport => prevReport.map(report =>
+          report._id === reportId ? { ...report, status: 'rejected' } : report
+        ));
+      }
+    } catch (error) {
+      console.error("Error active user:", error);
+    }
+  }
   return (
     <tbody>
       {filteredReport.length === 0 ? (
@@ -47,7 +75,7 @@ export default function TableReport({ query }) {
           </td>
         </tr>
       ) : (
-        filteredReport.map((rp) => (
+        filteredReport.map((rp, index) => (
           <tr key={rp._id}>
             <th>
               <label>
@@ -55,7 +83,7 @@ export default function TableReport({ query }) {
               </label>
             </th>
             <td>
-              {Number() + 1}
+              {index + 1}
             </td>
             <td>
               {rp.type}
@@ -67,7 +95,7 @@ export default function TableReport({ query }) {
               {rp.reason}
             </td>
             <td>
-              {rp.sender}
+              <button className='hover:underline' onClick={() => document.getElementById(`my_modal_report_user_${rp.sender}`).showModal()}>{rp.sender}</button>
             </td>
             <td>
               {new Date(rp.createdAt).toLocaleDateString('en-GB', {
@@ -80,12 +108,17 @@ export default function TableReport({ query }) {
               {rp.status}
             </td>
             <th>
-              <div className='flex gap-3'>
-                <button className="btn btn-success btn-xs">Approval</button>
-                <button className="btn btn-error btn-xs">Rejected</button>
-              </div>
+              {rp.status === 'resolved' | rp.status === 'rejected' ? (
+                <div></div>
+              ) : (
+                <div className='flex gap-3'>
+                  <button className="btn btn-success btn-xs" onClick={(e) => handleApproval(rp._id)}>Approval</button>
+                  <button className="btn btn-error btn-xs" onClick={(e) => handleRejected(rp._id)}>Rejected</button>
+                </div>
+              )}
             </th>
             <ModalReportPost postId={rp.reportedId} />
+            <ModalReportUser userId={rp.sender} />
           </tr>
         ))
       )}

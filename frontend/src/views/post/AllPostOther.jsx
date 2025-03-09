@@ -19,12 +19,17 @@ export default function AllPostOther({ user }) {
     const { setShowZom } = useUser()
     useEffect(() => {
         const fetchdata = async () => {
-            const response = await getAllOtherPosts(id)
-            if (response) {
-                const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                setPosts(sortedPosts)
-                const responseUserPersonal = await profileUserCurrent()
-                setUserLogin(responseUserPersonal.data)
+            try {
+                const response = await getAllOtherPosts(id)
+                if (response) {
+                    const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    setPosts(sortedPosts)
+                    const responseUserPersonal = await profileUserCurrent()
+                    setUserLogin(responseUserPersonal.data)
+                }
+            }
+            catch (error) {
+                console.error("Error fetching users:", error);
             }
         }
         fetchdata()

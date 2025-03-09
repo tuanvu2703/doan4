@@ -6,12 +6,10 @@ import TableReport from '../components/TableReport'
 
 export default function ReportPostManagement() {
     const [query, setQuery] = useState('')
+
+
     return (
         <div className="overflow-x-auto mx-5 my-5 border-white border-2">
-            {/* <label>
-                Search albums:
-                <input value={query} onChange={e => setQuery(e.target.value)} />
-            </label> */}
             <label className="input input-bordered flex items-center gap-2 rounded-none">
                 <input
                     type="text"
@@ -31,16 +29,18 @@ export default function ReportPostManagement() {
                         clipRule="evenodd" />
                 </svg>
             </label>
+            <div className="filter my-1 flex gap-2">
+                <input className="btn filter-reset" type="radio" name="metaframeworks" aria-label="All" onClick={() => setQuery('')} />
+                <input className="btn" type="radio" name="metaframeworks" aria-label="hate_speech" onClick={() => setQuery('hate_speech')} />
+                <input className="btn" type="radio" name="metaframeworks" aria-label="violence" onClick={() => setQuery('violence')} />
+                <input className="btn" type="radio" name="metaframeworks" aria-label="spam" onClick={() => setQuery('spam')} />
+                <input className="btn" type="radio" name="metaframeworks" aria-label="nudity" onClick={() => setQuery('nudity')} />
+                <input className="btn" type="radio" name="metaframeworks" aria-label="fake_news" onClick={() => setQuery('fake_news')} />
+            </div>
             <table className="table">
-                {/* head */}
                 <thead className=' text-[#EEEEEE]'>
                     <tr>
-                        <th>
-                            {/* <label>
-                                <input type="checkbox" className="checkbox border-white" />
-                            </label> */}
-                        </th>
-                        {/* <th>Number</th> */}
+                        <th></th>
                         <th>No</th>
                         <th>Type</th>
                         <th>reported Id</th>
@@ -54,16 +54,6 @@ export default function ReportPostManagement() {
                 <Suspense fallback={<Loading />}>
                     <TableReport query={query} />
                 </Suspense>
-                {/* foot */}
-                {/* <tfoot>
-                    <tr>
-                        <th></th>
-                        <th>Name</th>
-                        <th>Job</th>
-                        <th>Favorite Color</th>
-                        <th></th>
-                    </tr>
-                </tfoot> */}
             </table>
         </div>
     )
