@@ -20,19 +20,15 @@ import { AuththenticationSoket } from '../user/guard/authSocket.guard';
 })
 export class CallGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
-  
-  private activeUsers = new Map<string, string>();  
-  private activeCalls = new Map<string, string>();  
+
+  private activeUsers = new Map<string, string>(); 
+  private activeCalls = new Map<string, Set<string>>(); 
 
   constructor(private readonly authenticationSoket: AuththenticationSoket) {}
 
   afterInit(server: Server) {
     console.log('✅ WebRTC Gateway initialized');
   }
-  //logic
-  //1. user connect call và được cho join vào 1 room user(tương tự event)
-  //2. user tạo cuộc gọi thì sẽ được join vào room activeCalls(cả nhận và gửi)
-  //khi cuộc gọi chấp nhận sẽ được thì 2 cháu đang offer chủ yếu là giao tiếp = spd
 
   async handleConnection(client: Socket) {
     try {
@@ -40,12 +36,12 @@ export class CallGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (!user) throw new WsException('Unauthorized');
 
       const userId = user._id.toString();
-      this.activeUsers.set(userId, client.id); 
-      
+      this.activeUsers.set(userId, client.id);
+
       client.join(`user:${userId}`);
       console.log(`✅ User ${userId} connected: ${client.id}`);
 
-      client.emit("userId", { userId });
+      client.emit('userId', { userId });
     } catch (error) {
       console.error('Error during connection:', error);
       client.disconnect();
@@ -54,38 +50,51 @@ export class CallGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   handleDisconnect(client: Socket) {
     const userId = [...this.activeUsers.entries()].find(([_, socketId]) => socketId === client.id)?.[0];
-
     if (userId) {
       this.activeUsers.delete(userId);
       console.log(`❌ User ${userId} disconnected: ${client.id}`);
 
-
       if (this.activeCalls.has(userId)) {
-        const targetUserId = this.activeCalls.get(userId);
-        this.server.to(`user:${targetUserId}`).emit('callEnded', { from: userId });
+        const connectedUsers = this.activeCalls.get(userId);
+        connectedUsers.forEach(targetUserId => {
+          this.server.to(`user:${targetUserId}`).emit('callEnded', { from: userId });
+          this.activeCalls.get(targetUserId)?.delete(userId);
+        });
         this.activeCalls.delete(userId);
-        this.activeCalls.delete(targetUserId);
       }
     }
   }
 
   @SubscribeMessage('startCall')
-  async handleStartCall(client: Socket, data: { targetUserId: string }) {
+  async handleStartCall(client: Socket, data: { targetUserIds: string[] }) {
     const user = await this.authenticationSoket.authenticate(client);
     if (!user) throw new WsException('Unauthorized');
 
     const callerId = user._id.toString();
-    const { targetUserId } = data;
+    const { targetUserIds } = data;
 
-    if (!this.activeUsers.has(targetUserId)) {
-      return client.emit('callUnavailable', { message: 'User is offline' });
+    if (this.activeCalls.has(callerId) && this.activeCalls.get(callerId).size > 0) {
+      return client.emit('callUnavailable', { message: 'Bạn đang trong một cuộc gọi khác' });
     }
 
-    this.activeCalls.set(callerId, targetUserId);
-    this.activeCalls.set(targetUserId, callerId);
+    if (targetUserIds.length > 5) {
+      return client.emit('callUnavailable', { message: 'Tối đa 5 người trong nhóm' });
+    }
 
-    console.log(`📞 ${callerId} gọi ${targetUserId}`);
-    this.server.to(`user:${targetUserId}`).emit('incomingCall', { from: callerId });
+    const offlineUsers = targetUserIds.filter(id => !this.activeUsers.has(id));
+    if (offlineUsers.length > 0) {
+      return client.emit('callUnavailable', { message: `Users offline: ${offlineUsers.join(', ')}` });
+    }
+
+    if (!this.activeCalls.has(callerId)) this.activeCalls.set(callerId, new Set());
+    targetUserIds.forEach(id => this.activeCalls.get(callerId).add(id));
+
+    targetUserIds.forEach(targetUserId => {
+      if (!this.activeCalls.has(targetUserId)) this.activeCalls.set(targetUserId, new Set());
+      this.activeCalls.get(targetUserId).add(callerId);
+      console.log(`📞 ${callerId} gọi ${targetUserId}`);
+      this.server.to(`user:${targetUserId}`).emit('incomingCall', { from: callerId, group: targetUserIds });
+    });
   }
 
   @SubscribeMessage('rejectCall')
@@ -93,30 +102,32 @@ export class CallGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const user = await this.authenticationSoket.authenticate(client);
     if (!user) throw new WsException('Unauthorized');
 
-    console.log(`❌ ${user._id} từ chối cuộc gọi từ ${data.callerId}`);
+    const userId = user._id.toString();
+    console.log(`❌ ${userId} từ chối cuộc gọi từ ${data.callerId}`);
 
-    this.server.to(`user:${data.callerId}`).emit('callRejected', { from: user._id });
-    this.activeCalls.delete(data.callerId);
-    this.activeCalls.delete(user._id.toString());
+    this.server.to(`user:${data.callerId}`).emit('callRejected', { from: userId });
+    this.activeCalls.get(data.callerId)?.delete(userId);
+    this.activeCalls.get(userId)?.delete(data.callerId);
   }
 
   @SubscribeMessage('endCall')
-  async handleEndCall(client: Socket, data: { targetUserId: string }) {
+  async handleEndCall(client: Socket) {
     const user = await this.authenticationSoket.authenticate(client);
     if (!user) throw new WsException('Unauthorized');
 
-    console.log(`🚫 ${user._id} kết thúc cuộc gọi với ${data.targetUserId}`);
+    const userId = user._id.toString();
+    console.log(`🚫 ${userId} kết thúc cuộc gọi`);
 
-    this.server.to(`user:${data.targetUserId}`).emit('callEnded', { from: user._id });
-    this.server.to(`user:${user._id}`).emit('callEnded', { from: data.targetUserId });
-
-    this.activeCalls.delete(user._id.toString());
-    this.activeCalls.delete(data.targetUserId);
+    if (this.activeCalls.has(userId)) {
+      const connectedUsers = this.activeCalls.get(userId);
+      connectedUsers.forEach(targetUserId => {
+        this.server.to(`user:${targetUserId}`).emit('callEnded', { from: userId });
+        this.activeCalls.get(targetUserId)?.delete(userId);
+      });
+      this.activeCalls.delete(userId);
+    }
   }
-  //lý thuyêt: thực chất server chỉ tạo connect giữa 2 user, Signaling, RTC nằm ở client, truyền và nhận đữ liệu
-  /** 
-   * WebRTC Signaling - Offer
-   */
+
   @SubscribeMessage('offer')
   async handleOffer(client: Socket, { targetUserId, sdp }) {
     const user = await this.authenticationSoket.authenticate(client);
@@ -126,9 +137,6 @@ export class CallGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.server.to(`user:${targetUserId}`).emit('offer', { from: user._id, sdp });
   }
 
-  /** 
-   * WebRTC Signaling - Answer
-   */
   @SubscribeMessage('answer')
   async handleAnswer(client: Socket, { targetUserId, sdp }) {
     const user = await this.authenticationSoket.authenticate(client);
@@ -138,9 +146,6 @@ export class CallGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.server.to(`user:${targetUserId}`).emit('answer', { from: user._id, sdp });
   }
 
-  /** 
-   * WebRTC Signaling - ICE Candidate
-   */
   @SubscribeMessage('ice-candidate')
   async handleIceCandidate(client: Socket, { targetUserId, candidate }) {
     const user = await this.authenticationSoket.authenticate(client);
