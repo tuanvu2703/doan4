@@ -9,7 +9,7 @@ import authToken from '../../../components/authToken';
 import { PhotoIcon, FaceSmileIcon, GifIcon } from '@heroicons/react/24/solid';
 import Loading from '../../../components/Loading';
 import FileViewChane from '../../../components/fileViewChane';
-import Emoji from '../../../components/DropdownEmoji';
+import DropdownEmoji from '../../../components/DropdownEmoji';
 import Gif from './Gif';
 
 
@@ -258,7 +258,7 @@ export default function ModalStatus({ user }) {
                             <div className="dropdown dropdown-top dropdown-end ">
                                 <FaceSmileIcon tabIndex={0} className='size-8 fill-yellow-500 ' />
                                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <Emoji onEmojiClick={handleEmojiClick} />
+                                    <DropdownEmoji onEmojiClick={handleEmojiClick} />
                                 </ul>
                             </div>
                             <div className="dropdown dropdown-top dropdown-end ">

@@ -20,7 +20,7 @@ import { MessengerContext } from '../../layoutMessenger';
 import NotificationCss from '../../../../module/cssNotification/NotificationCss';
 import FileViewChane from '../../../../components/fileViewChane';
 import { FaceSmileIcon } from '@heroicons/react/24/outline';
-import Emoji from '../../../../components/Emoji';
+import DropdownEmoji from '../../../../components/DropdownEmoji';
 
 const MessengerInbox = () => {
     const { userContext } = useUser();
@@ -525,7 +525,7 @@ const MessengerInbox = () => {
                             <div className="dropdown dropdown-top dropdown-end ">
                                 <FaceSmileIcon tabIndex={0} role="button" className='size-7 fill-yellow-500 text-white' />
                                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <Emoji onEmojiClick={handleEmojiClick} />
+                                    <DropdownEmoji onEmojiClick={handleEmojiClick} />
                                 </ul>
                             </div>
                             <button onClick={handleSendMessenger} className="ml-2" disabled={sending}>
