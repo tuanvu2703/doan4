@@ -1,8 +1,8 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { getAllEmoji } from '../service/emoji';
+import { getAllEmoji } from '../api/Emoji'
 
-export default function Emoji({ onEmojiClick }) {
+export default function DropdownEmoji({ onEmojiClick }) {
     const [emoji, setEmoji] = useState([])
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

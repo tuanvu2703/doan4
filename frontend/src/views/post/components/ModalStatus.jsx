@@ -9,7 +9,7 @@ import authToken from '../../../components/authToken';
 import { PhotoIcon, FaceSmileIcon, GifIcon } from '@heroicons/react/24/solid';
 import Loading from '../../../components/Loading';
 import FileViewChane from '../../../components/fileViewChane';
-import Emoji from '../../../components/Emoji';
+import Emoji from '../../../components/DropdownEmoji';
 import Gif from './Gif';
 
 
