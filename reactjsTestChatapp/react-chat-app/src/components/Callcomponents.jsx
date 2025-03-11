@@ -1,181 +1,270 @@
-import React, { useEffect, useRef, useState } from 'react';
-import io from 'socket.io-client';
-import Peer from 'peerjs';
+import React, { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
 
-const SERVER_URL = 'http://localhost:3001/call';
-
-function App() {
-  const [token, setToken] = useState('');
+const Call = () => {
+  const localVideoRef = useRef(null);
+  const remoteVideoRefs = useRef({});
+  const peerConnections = useRef({});
+  const [userId, setUserId] = useState(null);
+  const [targetUserIds, setTargetUserIds] = useState("");
+  const [token, setToken] = useState("");
   const [socket, setSocket] = useState(null);
-  const [peer, setPeer] = useState(null);
-  const [myId, setMyId] = useState('');
-  const [targetUserId, setTargetUserId] = useState('');
-  const [incomingCall, setIncomingCall] = useState(null);
-  const [callActive, setCallActive] = useState(false);
+  const [stream, setStream] = useState(null);
 
-  const myVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
-  const localStream = useRef(null);
+  const URL = "https://social-network-jbtx.onrender.com/call";
+  const iceServers = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  };
 
   useEffect(() => {
-    if (token) {
-      const newSocket = io(SERVER_URL, {
-        extraHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      newSocket.on('userId', ({ userId }) => {
-        setMyId(userId);
-      });
-
-      newSocket.on('incomingCall', ({ from }) => {
-        setIncomingCall(from);
-      });
-
-      newSocket.on('callEnded', () => {
-        endCall();
-      });
-
-      setSocket(newSocket);
+    if (!window.RTCPeerConnection) {
+      alert("Trình duyệt của bạn không hỗ trợ WebRTC!");
+      return;
     }
-  }, [token]);
 
-  useEffect(() => {
-    if (socket) {
-      const peerInstance = new Peer();
-
-      peerInstance.on('open', (id) => {
-        console.log('My Peer ID:', id);
-      });
-
-      peerInstance.on('call', (call) => {
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
-          call.answer(stream);
-          call.on('stream', (remoteStream) => {
-            remoteVideoRef.current.srcObject = remoteStream;
-          });
+    const getMediaDevices = async () => {
+      try {
+        const userStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
         });
-      });
+        setStream(userStream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = userStream;
+        }
+      } catch (err) {
+        console.error("Lỗi lấy thiết bị media:", err);
+        alert("Không thể truy cập camera hoặc micro!");
+      }
+    };
+    getMediaDevices();
 
-      setPeer(peerInstance);
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const connectSocket = () => {
+    if (!token) return alert("Vui lòng nhập token");
+
+    const newSocket = io(URL, {
+      extraHeaders: { Authorization: `Bearer ${token}` },
+    });
+
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
+      console.log("✅ Kết nối WebSocket thành công");
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("❌ WebSocket ngắt kết nối");
+      alert("Mất kết nối với server, vui lòng thử lại.");
+      endCall();
+    });
+
+    newSocket.on("userId", ({ userId }) => {
+      console.log("🆔 User ID:", userId);
+      setUserId(userId);
+    });
+
+    newSocket.on("incomingCall", ({ from, group }) => {
+      const accept = window.confirm(`📞 Cuộc gọi từ ${from}, chấp nhận?`);
+      if (accept) {
+        acceptCall(from, group || [from]);
+      } else {
+        newSocket.emit("rejectCall", { callerId: from });
+      }
+    });
+
+    newSocket.on("callRejected", ({ from }) => {
+      alert(`❌ Cuộc gọi từ ${from} đã bị từ chối`);
+      cleanupPeer(from);
+    });
+
+    newSocket.on("callEnded", ({ from }) => {
+      alert(`🚫 Cuộc gọi kết thúc bởi ${from}`);
+      cleanupPeer(from);
+    });
+
+    newSocket.on("callUnavailable", ({ message }) => {
+      alert(`❌ ${message}`);
+    });
+
+    newSocket.on("offer", async ({ from, sdp }) => {
+      try {
+        console.log(`📡 Nhận offer từ ${from} lúc ${new Date().toISOString()}`);
+        if (!peerConnections.current[from]) {
+          peerConnections.current[from] = createPeerConnection(from);
+        }
+        await peerConnections.current[from].setRemoteDescription(new RTCSessionDescription(sdp));
+        const answer = await peerConnections.current[from].createAnswer();
+        await peerConnections.current[from].setLocalDescription(answer);
+        newSocket.emit("answer", { targetUserId: from, sdp: answer });
+      } catch (error) {
+        console.error("Lỗi xử lý offer:", error);
+        alert(`Không thể thiết lập cuộc gọi với ${from}`);
+        cleanupPeer(from);
+      }
+    });
+
+    newSocket.on("answer", async ({ from, sdp }) => {
+      try {
+        console.log("📡 Nhận answer từ", from);
+        if (!peerConnections.current[from]) {
+          console.warn(`PeerConnection cho ${from} chưa tồn tại khi nhận answer`);
+          return;
+        }
+        await peerConnections.current[from].setRemoteDescription(new RTCSessionDescription(sdp));
+      } catch (error) {
+        console.error("Lỗi xử lý answer:", error);
+        alert(`Không thể kết nối với ${from}`);
+        cleanupPeer(from);
+      }
+    });
+
+    newSocket.on("ice-candidate", async ({ from, candidate }) => {
+      try {
+        console.log(`❄️ Nhận ICE từ ${from} lúc ${new Date().toISOString()}`);
+        if (!peerConnections.current[from]) {
+          console.warn(`PeerConnection cho ${from} chưa được khởi tạo, tạo mới...`);
+          peerConnections.current[from] = createPeerConnection(from);
+        }
+        if (!peerConnections.current[from].remoteDescription) {
+          console.warn(`Chưa có remoteDescription cho ${from}, bỏ qua ICE candidate`);
+          return;
+        }
+        await peerConnections.current[from].addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (error) {
+        console.error("Lỗi xử lý ICE:", error);
+      }
+    });
+  };
+
+  const createPeerConnection = (targetId) => {
+    const pc = new RTCPeerConnection(iceServers);
+
+    if (stream) {
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
     }
-  }, [socket]);
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate && socket) {
+        socket.emit("ice-candidate", {
+          targetUserId: targetId,
+          candidate: e.candidate,
+        });
+      }
+    };
+
+    pc.ontrack = (e) => {
+      console.log("🎥 Nhận track từ", targetId);
+      if (!remoteVideoRefs.current[targetId]) {
+        const container = document.createElement("div");
+        const video = document.createElement("video");
+        const label = document.createElement("p");
+        label.textContent = `User: ${targetId}`;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.style.width = "200px";
+        container.appendChild(video);
+        container.appendChild(label);
+        document.getElementById("remote-videos").appendChild(container);
+        remoteVideoRefs.current[targetId] = video;
+      }
+      remoteVideoRefs.current[targetId].srcObject = e.streams[0];
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
+        console.log(`❌ Kết nối với ${targetId} bị ngắt`);
+        cleanupPeer(targetId);
+      }
+    };
+
+    return pc;
+  };
 
   const startCall = async () => {
-    if (!targetUserId || !peer || !socket) return;
+    if (!targetUserIds || !socket) return alert("Nhập ID người cần gọi (cách nhau bằng dấu phẩy)");
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      myVideoRef.current.srcObject = stream;
-      localStream.current = stream;
+    const ids = targetUserIds.split(",").map(id => id.trim());
+    if (ids.length > 5) return alert("Tối đa 5 người trong nhóm");
 
-      socket.emit('startCall', { targetUserId });
+    ids.forEach(async (targetId) => {
+      try {
+        peerConnections.current[targetId] = createPeerConnection(targetId);
+        const offer = await peerConnections.current[targetId].createOffer();
+        await peerConnections.current[targetId].setLocalDescription(offer);
+        socket.emit("offer", { targetUserId: targetId, sdp: offer });
+      } catch (error) {
+        console.error(`Lỗi tạo offer cho ${targetId}:`, error);
+        alert(`Không thể gọi ${targetId}`);
+      }
+    });
 
-      const call = peer.call(targetUserId, stream);
-      call.on('stream', (remoteStream) => {
-        remoteVideoRef.current.srcObject = remoteStream;
-      });
-
-      setCallActive(true);
-    } catch (err) {
-      console.error('Lỗi khi gọi:', err);
-    }
+    socket.emit("startCall", { targetUserIds: ids });
   };
 
-  const acceptCall = async () => {
-    if (!incomingCall || !peer) return;
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      myVideoRef.current.srcObject = stream;
-      localStream.current = stream;
-
-      const call = peer.call(incomingCall, stream);
-      call.on('stream', (remoteStream) => {
-        remoteVideoRef.current.srcObject = remoteStream;
-      });
-
-      setCallActive(true);
-      setIncomingCall(null);
-    } catch (err) {
-      console.error('Lỗi khi nhận cuộc gọi:', err);
-    }
-  };
-
-  const rejectCall = () => {
-    if (socket && incomingCall) {
-      socket.emit('rejectCall', { callerId: incomingCall });
-      setIncomingCall(null);
-    }
+  const acceptCall = async (callerId, group) => {
+    group.forEach(id => {
+      if (id !== userId && !peerConnections.current[id]) {
+        peerConnections.current[id] = createPeerConnection(id);
+      }
+    });
   };
 
   const endCall = () => {
-    if (socket && targetUserId) {
-      socket.emit('endCall', { targetUserId });
-    }
+    Object.keys(peerConnections.current).forEach(targetId => cleanupPeer(targetId));
+    if (socket) socket.emit("endCall");
+  };
 
-    if (localStream.current) {
-      localStream.current.getTracks().forEach((track) => track.stop());
+  const cleanupPeer = (targetId) => {
+    if (peerConnections.current[targetId]) {
+      peerConnections.current[targetId].close();
+      delete peerConnections.current[targetId];
     }
-
-    myVideoRef.current.srcObject = null;
-    remoteVideoRef.current.srcObject = null;
-    setCallActive(false);
-    setTargetUserId('');
-    setIncomingCall(null);
+    if (remoteVideoRefs.current[targetId]) {
+      remoteVideoRefs.current[targetId].srcObject = null;
+      remoteVideoRefs.current[targetId].parentElement.remove();
+      delete remoteVideoRefs.current[targetId];
+    }
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: 20 }}>
-      <h1>WebRTC Call App</h1>
+    <div>
+      <h2>📞 Video Call Demo</h2>
 
-      {!token ? (
+      <div>
+        <label>Token: </label>
+        <input value={token} onChange={(e) => setToken(e.target.value)} />
+        <button onClick={connectSocket}>Kết nối</button>
+      </div>
+
+      <div>
+        <label>Gọi tới ID (cách nhau bằng ","): </label>
+        <input value={targetUserIds} onChange={(e) => setTargetUserIds(e.target.value)} />
+        <button onClick={startCall}>Gọi</button>
+        <button onClick={endCall}>Kết thúc</button>
+      </div>
+
+      <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
         <div>
-          <input
-            type="text"
-            placeholder="Nhập JWT Token"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-          />
-          <button onClick={() => setToken(token)}>Kết Nối</button>
+          <h4>👤 Video của bạn</h4>
+          <video ref={localVideoRef} autoPlay playsInline muted width="300" />
         </div>
-      ) : (
         <div>
-          <h3>🔹 ID của bạn: {myId}</h3>
-          <input
-            type="text"
-            placeholder="Nhập ID người muốn gọi"
-            value={targetUserId}
-            onChange={(e) => setTargetUserId(e.target.value)}
-            disabled={callActive}
-          />
-
-          <div>
-            {!callActive && <button onClick={startCall}>📞 Gọi</button>}
-            {incomingCall && (
-              <>
-                <button onClick={acceptCall}>✅ Chấp nhận</button>
-                <button onClick={rejectCall}>❌ Từ chối</button>
-              </>
-            )}
-            {callActive && <button onClick={endCall}>⏹ Kết thúc</button>}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
-            <div>
-              <h3>🎥 Video của bạn</h3>
-              <video ref={myVideoRef} autoPlay playsInline muted width="300" height="200" />
-            </div>
-            <div>
-              <h3>👤 Video của đối phương</h3>
-              <video ref={remoteVideoRef} autoPlay playsInline width="300" height="200" />
-            </div>
-          </div>
+          <h4>👥 Video nhóm</h4>
+          <div
+            id="remote-videos"
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px" }}
+          ></div>
         </div>
-      )}
+      </div>
     </div>
   );
-}
+};
 
-export default App;
+export default Call;

@@ -1,6 +1,6 @@
 // useWebSocket.js
 import { useEffect } from "react";
-import socket from "./socket"; // Import từ file socket.js
+import { socket } from "./socket";
 
 const useWebSocket = (onMessageReceived) => {
   useEffect(() => {

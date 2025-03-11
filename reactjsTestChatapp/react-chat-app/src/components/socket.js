@@ -7,4 +7,4 @@ const socket = io(URL, {
   },
 });
 
-export default socket;
+export { socket };
