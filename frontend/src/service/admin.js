@@ -81,3 +81,53 @@ async function handleReport(reportId, implementation) {
 }
 
 export { getAllUser, getAllPost, getALlReport, activeUser, handleReport }
+
+async function getALlReport() {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/report/getReports`,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json' // Use your auth token provider
+                }
+            }
+        )
+        return request
+    } catch (error) {
+
+    }
+}
+
+async function activeUser(userId) {
+    try {
+        const request = await API.put(`${process.env.REACT_APP_API_URL}/user/activeUser/${userId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+        return request
+    } catch (error) {
+        return error
+    }
+}
+
+async function handleReport(reportId, implementation) {
+    try {
+        const request = await API.patch(`${process.env.REACT_APP_API_URL}/report/implementationReport/${reportId}`, { implementation },
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+        return request
+    } catch (error) {
+        return error
+    }
+}
+
+export { getAllUser, getAllPost, getALlReport, activeUser, handleReport }
