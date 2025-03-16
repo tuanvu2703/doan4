@@ -76,9 +76,8 @@ export class ReportService {
                 post.isActive = false;
                 await post.save();
 
-                report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // +7 ngày
+                report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
     
-                // ✅ Gửi thông báo về việc bài viết bị xóa và hướng dẫn kháng cáo
                 await this.producerService.sendMessage('mypost', {
                     userId: report.sender,
                     owner: post.author,
@@ -112,10 +111,10 @@ export class ReportService {
                 user.isActive = false;
                 await user.save();
     
-                // ✅ THÊM THỜI GIAN HẾT HẠN KHÁNG CÁO
-                report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // +7 ngày
+
+                report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
-                // ✅ Gửi thông báo về việc tài khoản bị vô hiệu hóa và hướng dẫn kháng cáo
+
                 await this.producerService.sendMessage('myuser', {
                     userId: report.sender,
                     owner: user._id,
@@ -167,9 +166,6 @@ export class ReportService {
         return await report.save();
     }
     
-
-
-
 }
     
 

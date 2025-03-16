@@ -574,6 +574,7 @@ export class UserService {
     if (!files || files.length === 0) {
       throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
     }
+
     if (files.length > 1) {
       throw new HttpException('Only one file is allowed', HttpStatus.BAD_REQUEST);
     }
@@ -588,6 +589,7 @@ export class UserService {
     }
     return await user.save();
   }
+  
   async savePost(userId: string, postId: string): Promise<User> {
     const bookmarks = await this.UserModel.findById(userId);
     if (!bookmarks) {

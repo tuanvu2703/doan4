@@ -28,9 +28,7 @@ import { ReportController } from './report/report.controller';
 import { ReportService } from './report/report.service';
 import { ReportModule } from './report/report.module';
 import { WebrtcModule } from './webrtc/webrtc.module';
-
-
-
+import { CommentService } from './comment/comment.service';
 
 @Global()
 @Module({
@@ -62,6 +60,6 @@ import { WebrtcModule } from './webrtc/webrtc.module';
 
   ],
   controllers: [AppController, OtpController, MailController, PublicGroupController, ReportController],
-  providers: [AppService, MailService, OtpService, PublicGroupService, ReportService],
+  providers: [AppService, MailService, OtpService, PublicGroupService, ReportService,],
 })
 export class AppModule { }

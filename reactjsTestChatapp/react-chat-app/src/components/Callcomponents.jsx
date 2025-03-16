@@ -5,7 +5,7 @@ const Call = () => {
   const localVideoRef = useRef(null);
   const remoteVideoRefs = useRef({});
   const peerConnections = useRef({});
-  const iceCandidatesBuffer = useRef({}); // Buffer để lưu ICE candidates
+  const iceCandidatesBuffer = useRef({}); 
   const [userId, setUserId] = useState(null);
   const [targetUserIds, setTargetUserIds] = useState("");
   const [token, setToken] = useState("");
@@ -323,3 +323,5 @@ const Call = () => {
 };
 
 export default Call;
+
+//C:\Users\HP\OneDrive\Documents\PlatformIO\Projects\ESP32
