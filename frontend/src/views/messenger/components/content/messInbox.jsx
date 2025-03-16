@@ -66,7 +66,11 @@ const MessengerInbox = () => {
             const res = await messenger.revokedMesage(messageToRevoke); // API call to revoke the message
             if (res.success) {
                 setMessengerdata((prevMessages) =>
-                    prevMessages.filter((message) => message._id !== messageToRevoke)
+                    prevMessages.map((message) =>
+                        message._id === messageToRevoke
+                            ? { ...message, content: 'The message has been revoked' }
+                            : message
+                    )
                 );
                 toast.success(res?.message || 'Bạn vừa thu hồi tin nhắn thành công', NotificationCss.Success);
             } else {
@@ -290,7 +294,7 @@ const MessengerInbox = () => {
         acc[date].push(message);
         return acc;
     }, {});
-    console.log(groupedMessages)
+    console.log(message)
     return (
         <div className="flex flex-col h-full ">
             <div className="p-2 flex border-b h-14 bg-white shadow-sm">
@@ -330,7 +334,7 @@ const MessengerInbox = () => {
                     <div key={date} className="">
                         <div className="mb-4 pb-2 px-3 ">
                             <div className="text-center text-gray-500 text-sm my-2">
-                                {format(new Date(date), ' dd')} <span>tháng</span> {format(new Date(date), 'MM')} 
+                                {format(new Date(date), ' dd')} <span>tháng</span> {format(new Date(date), 'MM')} <span>năm</span> {format(new Date(date), 'yyyy')}
                             </div>
                             {
                                 groupedMessages[date].map((mess, index) => (
@@ -357,7 +361,7 @@ const MessengerInbox = () => {
                                         >
 
                                             <div className='flex flex-row '>
-                                                {hoveredMessageId === mess._id && (
+                                                {(hoveredMessageId === mess._id && mess.content !== 'The message has been revoked') && (
                                                     <div className='h-full flex p-2 items-center'>
                                                         <button onClick={() => handleRevokedClick(mess._id)}>
                                                             <ArrowUturnLeftIcon className="h-6 w-7 text-gray-500 bg-gray-100 rounded-sm " />
