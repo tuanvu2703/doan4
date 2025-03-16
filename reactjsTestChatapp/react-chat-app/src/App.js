@@ -4,7 +4,7 @@ import Call from './components/Callcomponents';
 function App() {
   return (
     <div className="App">
-      <Call />
+      <Call/>
     </div>
   );
 }
