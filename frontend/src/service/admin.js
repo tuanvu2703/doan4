@@ -1,4 +1,4 @@
-import axios from 'axios';
+
 import authToken from '../components/authToken';
 import API from './API';
 const getAllUser = async () => {
@@ -50,7 +50,7 @@ async function getALlReport() {
 
 async function activeUser(userId) {
     try {
-        const request = await API.post(`${process.env.REACT_APP_API_URL}/user/activeUser/${userId}`,
+        const request = await API.put(`${process.env.REACT_APP_API_URL}/user/activeUser/${userId}`,
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`,
@@ -64,9 +64,9 @@ async function activeUser(userId) {
     }
 }
 
-async function handleReport(reportId,implementation) {
+async function handleReport(reportId, implementation) {
     try {
-        const request = await API.patch(`${process.env.REACT_APP_API_URL}/report/implementationReport/${reportId}`,{implementation},
+        const request = await API.patch(`${process.env.REACT_APP_API_URL}/report/implementationReport/${reportId}`, { implementation },
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`,
