@@ -679,7 +679,7 @@ export class UserService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-    user.isActive = false;
+    user.isActive = !user.isActive
     return await user.save();
   }
 
