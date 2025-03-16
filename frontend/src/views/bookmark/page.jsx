@@ -77,13 +77,9 @@ export default function Bookmark() {
                     data.map((post, index) => (
                         <div
                             key={index}
-                            className=" bg-base-100 shadow-xl border-[1px] border-gray-600 rounded-sm w-full"
+                            className=" bg-base-100 shadow-xl  rounded-md w-full"
                         >
-                            <div className="">
-                                <h2 className="card-title text-lg p-2">
-                                    {post.content ? post.content : "không có nội dung"}
-                                </h2>
-
+                            <div>
                                 {post?.img?.length > 0 ? (
                                     <div className="relative w-full h-48 md:h-64 overflow-hidden">
                                         {post?.img?.length > 1 && (
@@ -107,11 +103,13 @@ export default function Bookmark() {
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="relative w-full h-48 md:h-64 flex items-center justify-center bg-gray-100">
-                                        <span className="text-gray-500">NO IMAGE/VIDEO</span>
+                                    <div className="relative w-full h-48 md:h-64 flex items-center justify-center bg-slate-400 rounded-t-md">
+                                        <span className="text-slate-700">NO IMAGE/VIDEO</span>
                                     </div>
                                 )}
-
+                                <h2 className="card-title text-lg p-2">
+                                    {post.content ? post.content : "không có nội dung"}
+                                </h2>
 
                                 <div className=" m-2">
                                     <span className="text-sm text-gray-600">Bài viết đã lưu của: </span>

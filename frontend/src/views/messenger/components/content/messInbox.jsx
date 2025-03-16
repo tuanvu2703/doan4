@@ -8,7 +8,7 @@ import { PaperAirplaneIcon, ArrowDownIcon } from '@heroicons/react/16/solid';
 import { useLocation } from 'react-router-dom';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Box, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { ChevronRightIcon, ChevronLeftIcon, ArrowUturnLeftIcon, PhotoIcon } from "@heroicons/react/24/solid";
+import { ChevronRightIcon, ChevronLeftIcon, ArrowUturnLeftIcon, PhotoIcon, PhoneIcon, VideoCameraIcon } from "@heroicons/react/24/solid";
 
 import imgUser from '../../../../img/user.png';
 import user from '../../../../service/user';
@@ -77,7 +77,7 @@ const MessengerInbox = () => {
             console.log("Error revoking message:", error);
         } finally {
             setOpenDialog(false); // Close the dialog
-            setMessageToRevoke(null); // Clear the message ID
+            // Clear the message ID
         }
     };
     const cancelRevokeMessage = () => {
@@ -313,12 +313,14 @@ const MessengerInbox = () => {
 
 
                 </div>
-                <div className=" flex justify-end">
+                <div className=" flex justify-end  items-center gap-1">
+                    <PhoneIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
+                    <VideoCameraIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                     <button onClick={handleHiddenRight} >
                         {
-                            RightShow ? <ChevronRightIcon className="h-8 w-8 text-gray-700" />
+                            RightShow ? <ChevronRightIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                                 :
-                                <ChevronLeftIcon className="h-8 w-8 text-gray-700" />
+                                <ChevronLeftIcon className="h-8 w-8 text-gray-700  p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                         }
                     </button>
                 </div>
@@ -328,7 +330,7 @@ const MessengerInbox = () => {
                     <div key={date} className="">
                         <div className="mb-4 pb-2 px-3 ">
                             <div className="text-center text-gray-500 text-sm my-2">
-                                {format(new Date(date), 'MMMM dd, yyyy')}
+                                {format(new Date(date), ' dd')} <span>tháng</span> {format(new Date(date), 'MM')} 
                             </div>
                             {
                                 groupedMessages[date].map((mess, index) => (
@@ -337,17 +339,17 @@ const MessengerInbox = () => {
                                             className={`flex 
 
                                                 ${mess?.author?._id ? (
-                                                    mess?.author?._id == userContext._id ?
+                                                    mess?.author?._id === userContext._id ?
                                                         'justify-end pl-16' : 'pr-16'
                                                 ) : (
-                                                    mess?.sender == userContext._id ?
+                                                    mess?.sender === userContext._id ?
                                                         'justify-end pl-16' : 'pr-16'
                                                 )
                                                 }
                                               `}
 
                                             onMouseEnter={() => {
-                                                if ((mess?.author?._id == userContext._id) || (mess?.sender == userContext._id)) {
+                                                if ((mess?.author?._id === userContext._id) || (mess?.sender === userContext._id)) {
                                                     setHoveredMessageId(mess._id);
                                                 }
                                             }} // Set the hovered message
@@ -375,10 +377,10 @@ const MessengerInbox = () => {
                                                         //             mess?.author?._id == mess?.sender && mess?.sender != userContext._id &&
                                                         //             'bg-white 4'
                                                         mess?.author?._id ? (
-                                                            mess?.author?._id == userContext._id ?
+                                                            mess?.author?._id === userContext._id ?
                                                                 'bg-blue-100' : 'bg-white'
                                                         ) : (
-                                                            mess?.sender == userContext._id ?
+                                                            mess?.sender === userContext._id ?
                                                                 'bg-blue-100' : 'bg-white'
                                                         )
                                                     )}
@@ -411,9 +413,9 @@ const MessengerInbox = () => {
                                                         );
                                                     })}
 
-                                                    <p className="text-black p-2 break-words max-w-prose">{mess.content}</p>
+                                                    <p className="text-black p-2 break-words max-w-prose">{mess.content === 'The message has been revoked' ? ('Tin nhắn đã được thu hồi') : (`${mess.content}`)}</p>
                                                     <p className="text-xs text-gray-400 text-left pl-2">
-                                                        {format(new Date(mess.createdAt), 'hh:mm a')}
+                                                        {format(new Date(mess.createdAt), 'hh:mm')}
                                                     </p>
                                                 </div>
 

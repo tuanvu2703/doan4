@@ -47,11 +47,11 @@ export default function TablePost({ query }) {
             ) : (
                 filteredPosts.map((post) => (
                     <tr key={post._id}>
-                        <th>
+                        {/* <th>
                             <label>
                                 <input type="checkbox" className="checkbox border-white" />
                             </label>
-                        </th>
+                        </th> */}
                         <td>
                             {post.img.length > 0 ? (
                                 <UserProvider>

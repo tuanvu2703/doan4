@@ -39,7 +39,7 @@ export default function Dashboard() {
                 <Stat title={"Tổng số người dùng"} value={user.length} icon={<UserIcon className='size-8 text-sky-600' />} />
                 <Stat title={"Tổng số bài viết"} value={post.length} icon={<CubeIcon className='size-8 text-green-600' />} />
                 <Stat title={"Tổng số báo cáo bài viết"} value={report.length} icon={<FlagIcon className='size-8 text-red-600' />} />
-                <Stat title={"Tổng số báo cáo chờ xử lý"} value={rppending.length} icon={<EllipsisHorizontalCircleIcon className='size-8 text-gray-600' />} />
+                <Stat title={"Tổng số báo cáo chờ xử lý"} value={rppending.length} icon={<EllipsisHorizontalCircleIcon className='size-8 text-gray-400' />} />
                 <Stat title={"Tổng số báo cáo đã xử lý"} value={rpdone.length} icon={<CheckBadgeIcon className='size-8 text-green-600' />} />
                 <Stat title={"Tổng số báo cáo đã từ chối xử lý"} value={rpreject.length} icon={<ArchiveBoxXMarkIcon className='size-8 text-red-600' />} />
             </div>

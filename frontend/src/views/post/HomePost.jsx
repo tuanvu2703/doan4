@@ -168,7 +168,7 @@ export default function HomePost() {
                             return (
                                 <div
                                     key={post._id}
-                                    className="grid p-4 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3"
+                                    className="grid p-4 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3 bg-white"
                                 >
                                     <div className="flex items-start gap-3">
                                         <AVTUser user={post.author} />

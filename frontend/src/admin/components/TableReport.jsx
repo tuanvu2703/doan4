@@ -77,11 +77,11 @@ export default function TableReport({ query }) {
       ) : (
         filteredReport.map((rp, index) => (
           <tr key={rp._id}>
-            <th>
+            {/* <th>
               <label>
                 <input type="checkbox" className="checkbox border-white" />
               </label>
-            </th>
+            </th> */}
             <td>
               {index + 1}
             </td>

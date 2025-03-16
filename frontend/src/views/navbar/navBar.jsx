@@ -28,10 +28,6 @@ export default function Navbar() {
     const isActiveTab = (path) => location.pathname === path;
     const isActiveString = (path) => window.location.pathname.startsWith(path);
     const active = isActiveString('/friends');
-    const [windowSize, setWindowSize] = useState({
-        width: window.innerWidth,
-        height: window.innerHeight,
-    });
     // const [chanecontainer, setChanecontainer] = useState(windowSize.width < 767)
     // useEffect(() => {
     //     // Hàm cập nhật kích thước màn hình
@@ -176,7 +172,7 @@ export default function Navbar() {
                             <img src="https://i.pinimg.com/originals/0b/a9/99/0ba999174e4b5ac7e73a85cb0fe0aeb1.png" alt="Logo" className="h-12 aspect-square rounded-full shadow-md" />
                         </Link>
                     </button>
-                    <div className={` grid xs:hidden`}>
+                    <div className={`hidden sm:grid`}>
                         <Link to="/">
                             <h1 className='font-bold text-xl'>NEMO</h1>
                             <h2 className=' text-lg'>ANTISOCIAL</h2>

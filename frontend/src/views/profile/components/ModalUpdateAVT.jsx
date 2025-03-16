@@ -214,6 +214,9 @@ export default function ModalUpdateAVT() {
                 </div>
 
             </form>
+            <form method="dialog" className="modal-backdrop">
+                <button>close</button>
+            </form>
         </dialog>
     )
 }

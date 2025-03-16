@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./navbar/navBar";
 import LeftListMenu from "./menu/LeftMenuList";
 import authToken from "../components/authToken";
@@ -12,13 +12,14 @@ import imgUser from "../img/user.png"
 import { profileUserCurrent } from '../service/ProfilePersonal';
 import SideBar from "../sidebar/SideBar";
 import { ToastContainer } from 'react-toastify';
+import { useMatch } from 'react-router-dom';
 
 
 export default function Layout() {
     const navigate = useNavigate();
     const [userCurrent, setUserCurrent] = useState({});
     const [disconnect, setDisconnect] = useState(true);
-    if (disconnect == true) {
+    if (disconnect === true) {
         socket.on("connect", () => {
             console.log("Connected to WebSocket server with ID:", socket.id);
             setDisconnect(false)
@@ -144,6 +145,13 @@ export default function Layout() {
         };
     }, [userCurrent]);
 
+    const [isMessengerPath, SetIsMessengerPath] = useState(true);
+    const location = useLocation();
+    useEffect(() => {
+        SetIsMessengerPath(/^\/messenger(\/|$)/.test(location.pathname));
+    }, [location]);
+    console.log(isMessengerPath);
+
     return (
         // <div className="max-w-screen h-full">
         //     <UserProvider>
@@ -159,17 +167,23 @@ export default function Layout() {
         //         </div>
         //     </UserProvider>
         // </div>
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-base-200">
             <UserProvider>
                 <Navbar />
                 <div className="navbar"></div>
-                <div className="container mx-auto flex flex-1 gap-6">
+                <div className="container mx-auto flex ">
                     {/* Sidebar */}
-                    <div className="hidden md:block md:w-1/5 lg:w-1/6 xl:w-1/6">
-                        <SideBar />
-                    </div>
+                    {isMessengerPath ? (
+                        <div className="hidden md:block">
+                            <SideBar />
+                        </div>
+                    ) : (
+                        <div className="hidden md:block md:w-1/5 lg:w-1/6 xl:w-1/6">
+                            <SideBar />
+                        </div>
+                    )}
                     {/* Main Content */}
-                    <main className="bg-background w-full md:w-4/5 lg:w-5/6 xl:w-5/6 ">
+                    <main className="bg-background w-full ">
                         <Outlet />
                         <ToastContainer position="bottom-left" autoClose={3000} />
                     </main>
