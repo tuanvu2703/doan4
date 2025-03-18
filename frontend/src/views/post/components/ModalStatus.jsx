@@ -126,10 +126,9 @@ export default function ModalStatus({ user }) {
     const handleEmojiClick = (emoji) => {
         setFormData({
             ...formData,
-            content: formData.content + emoji
+            content: (formData.content || '') + emoji // Đảm bảo content luôn là chuỗi
         });
     };
-
 
     const handleGifSelect = (gifUrl) => {
         setFormData({

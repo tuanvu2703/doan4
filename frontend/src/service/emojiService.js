@@ -1,12 +1,13 @@
 import axios from 'axios';
 import authToken from '../components/authToken';
 
+const API_EMOJI_KEY = process.env.REACT_APP_EMOJI_KEY;
 async function getAllEmoji() {
     try {
-        const request = await axios.get(`https://emoji-api.com/emojis?access_key=388e50ed78f726a217e25609ed0effa2a348ecfa`,
+        const request = await axios.get(`https://api.api-ninjas.com/v1/emoji?name=all`,
             {
                 headers: {
-                    Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+                    'X-Api-Key': API_EMOJI_KEY, // Truyền API Key vào header
                     'Content-Type': 'application/json'
                 }
             }
@@ -16,4 +17,7 @@ async function getAllEmoji() {
 
     }
 }
+
+
 export { getAllEmoji }
+

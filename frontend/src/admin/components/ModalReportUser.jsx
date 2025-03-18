@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 export default function ModalReportUser({ userId }) {
     const [user, setUser] = useState({})
 
-
     useEffect(() => {
         const fetchdata = async () => {
             try {

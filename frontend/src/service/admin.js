@@ -5,7 +5,8 @@ const getAllUser = async () => {
         const response = await API.get(`${process.env.REACT_APP_API_URL}/user/alluseradmin`,
 
             {
-                headers: { Authorization: `Bearer ${authToken.getToken()}` },
+                extraHeaders: { Authorization: `Bearer ${authToken.getToken()}` },
+                // headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
         );
         return { success: true, data: response.data };

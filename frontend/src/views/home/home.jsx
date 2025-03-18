@@ -1,11 +1,10 @@
 
-import Post from "../post/PostPersonal.jsx";
 import PostStatus from "../post/components/PostStatus.jsx";
 import { useState, useEffect } from "react";
 import { profileUserCurrent } from "../../service/ProfilePersonal.js";
-import Story from "../story/Story.jsx";
+
 import HomePost from "../post/HomePost.jsx";
-import SiderBarFriend from "../../sidebar/SiderBarFriend.jsx";
+
 
 function Home() {
     const [user, setUser] = useState({})

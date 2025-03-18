@@ -34,7 +34,7 @@ export default function DropdownEmoji({ onEmojiClick }) {
         <div>
             <ul className='overflow-y-auto h-64 grid grid-cols-4'>
                 {emoji.map((emoji) => (
-                    <li key={emoji.slug}>
+                    <li key={emoji.code}>
                         <button type='button' onClick={() => onEmojiClick(emoji.character)}>
                             {emoji.character}
                         </button>

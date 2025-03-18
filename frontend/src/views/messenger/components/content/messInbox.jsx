@@ -46,6 +46,16 @@ const MessengerInbox = () => {
     const [messageToRevoke, setMessageToRevoke] = useState(null); // Store message to be revoked
     const { setShowZom } = useUser();
     const [socket, setSocket] = useState(null); // Trạng thái kết nối socket
+
+    //Call
+    const [modal, setModal] = useState(false);
+
+
+    const handleVideoCall = () => {
+        // Logic to handle video call
+        setModal(true);
+    };
+
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const userId = queryParams.get('iduser');
@@ -238,7 +248,7 @@ const MessengerInbox = () => {
 
     const handleSendMessenger = useCallback(async () => {
 
-        if (!message.trim() && !file || sending) return; // Prevent sending if already in progress
+        if ((!message.trim() && !file) || sending) return; // Prevent sending if already in progress
         // console.log('aaa')
         setSending(true); // Set sending state
         try {
@@ -274,6 +284,9 @@ const MessengerInbox = () => {
         setMessage((prevMessage) => prevMessage + emoji);
     };
 
+    const handleClickCall = useCallback(() => {
+        window.open(`http://localhost:3000/Call/${iduser}`, "_blank", "noopener,noreferrer,width=1100,height=700");
+    }, [iduser]);
 
     if (loading) {
         return <Loading />;
@@ -294,7 +307,9 @@ const MessengerInbox = () => {
         acc[date].push(message);
         return acc;
     }, {});
-    console.log(message)
+
+    //Call
+
     return (
         <div className="flex flex-col h-full ">
             <div className="p-2 flex border-b h-14 bg-white shadow-sm">
@@ -318,8 +333,12 @@ const MessengerInbox = () => {
 
                 </div>
                 <div className=" flex justify-end  items-center gap-1">
-                    <PhoneIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
-                    <VideoCameraIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
+                    <button>
+                        <PhoneIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
+                    </button>
+                    <button onClick={handleClickCall}>
+                        <VideoCameraIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
+                    </button>
                     <button onClick={handleHiddenRight} >
                         {
                             RightShow ? <ChevronRightIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
