@@ -16,7 +16,8 @@ export default function Call() {
 
     const { targetUserIds } = useParams();
 
-    const URL = "https://social-network-jbtx.onrender.com/call";
+    const URL = `${process.env.REACT_APP_SOCKET_URL}/call`;
+    console.log(URL);
     const iceServers = {
         iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
