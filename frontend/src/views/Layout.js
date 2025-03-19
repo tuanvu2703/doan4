@@ -4,10 +4,9 @@ import LeftListMenu from "./menu/LeftMenuList";
 import authToken from "../components/authToken";
 import { useEffect, useCallback, useState } from "react";
 import { UserProvider } from "../service/UserContext";
-import socket from "../service/webSocket/socket";
+import socket, { socketcall } from "../service/webSocket/socket";
 import { toast } from "react-toastify";
 import NotificationCss from "../module/cssNotification/NotificationCss";
-import SocketLayout from "../service/webSocket/socketLayout";
 import imgUser from "../img/user.png"
 import { profileUserCurrent } from '../service/ProfilePersonal';
 import SideBar from "../sidebar/SideBar";
@@ -19,17 +18,23 @@ export default function Layout() {
     const navigate = useNavigate();
     const [userCurrent, setUserCurrent] = useState({});
     const [disconnect, setDisconnect] = useState(true);
-    if (disconnect === true) {
-        socket.on("connect", () => {
-            console.log("Connected to WebSocket server with ID:", socket.id);
-            setDisconnect(false)
-        });
-    } else {
-        socket.on("disconnect", () => {
-            console.log("Disconnected from server");
-            setDisconnect(true)
-        });
-    }
+    useEffect(() => {
+        if (disconnect === true) {
+            socket.on("connect", () => {
+                console.log("Connected to WebSocket server with ID:", socket.id);
+                setDisconnect(false)
+            });
+            socketcall.on("connect", () => {
+                console.log("Connected to WebSocket serverCALL with ID:", socketcall);
+                setDisconnect(false)
+            });
+        } else {
+            socket.on("disconnect", () => {
+                console.log("Disconnected from server");
+                setDisconnect(true)
+            });
+        }
+    }, [disconnect])
 
     const getDataUser = async () => {
         try {

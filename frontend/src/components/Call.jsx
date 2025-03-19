@@ -16,8 +16,7 @@ export default function Call() {
 
     const { targetUserIds } = useParams();
 
-    const URL = `${process.env.REACT_APP_SOCKET_URL}/call`;
-    console.log(URL);
+    const URL = `${process.env.REACT_APP_API_URL}/call`;
     const iceServers = {
         iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
@@ -34,6 +33,11 @@ export default function Call() {
             },
         ],
     };
+    useEffect(() => {
+        if (targetUserIds) {
+            connectSocket();
+        }
+    }, [targetUserIds]);
 
     useEffect(() => {
         const getMediaDevices = async () => {
@@ -191,13 +195,9 @@ export default function Call() {
         const newSocket = io(URL, {
             extraHeaders: { Authorization: `Bearer ${authToken.getToken()}` },
         });
+
         setSocket(newSocket);
     };
-    useEffect(() => {
-        if (callStatus === "connected" && targetUserIds) {
-            startCall();
-        }
-    }, [callStatus, targetUserIds]);
 
     const createPeerConnection = (targetId) => {
         console.log("🔗 [Peer] Tạo PeerConnection với:", targetId);
@@ -242,9 +242,10 @@ export default function Call() {
         };
         return pc;
     };
-
+    console.log(targetUserIds, socket, stream, callStatus);
     const startCall = async () => {
-        if (!targetUserIds || !socket || !stream) return alert("Vui lòng kết nối socket và bật camera/micro");
+        if (!targetUserIds || !socket || !stream)
+            return alert("Vui lòng kết nối socket và bật camera/micro");
 
         const ids = targetUserIds.split(",").map((id) => id.trim());
         if (ids.length > 5) return alert("Tối đa 5 người trong nhóm");

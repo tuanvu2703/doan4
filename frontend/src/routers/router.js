@@ -85,7 +85,7 @@ function routers() {
                 <Route path="/test" element={<Test />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgotpass" element={<ForgotPass />} />
-                <Route path="/call/:userId" element={<Call />} />
+                <Route path="/call/:targetUserIds" element={<Call />} />
 
 
 
