@@ -23,7 +23,7 @@ export class PostService {
         private jwtService: JwtService
     ) { }
 
-    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId, files?: Express.Multer.File[]): Promise<{ userPost: User, savedPost: Post }> {
+    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId, files?: Express.Multer.File[]): Promise<Post> {
         const swageUserId = new Types.ObjectId(userId);
     
         let allowedUsers: Types.ObjectId[] = [];
@@ -32,51 +32,51 @@ export class PostService {
             if (!createPostDto.allowedUsers) {
                 throw new HttpException('Allowed users must be provided for specific privacy', HttpStatus.BAD_REQUEST);
             }
-        
-            console.log("Raw allowedUsers:", createPostDto.allowedUsers);
-        
+
             let allowedUsersRaw: string[] = [];
-        
+
             if (typeof createPostDto.allowedUsers === 'string') {
-                // Ép kiểu `allowedUsers` thành chuỗi trước khi tách
                 allowedUsersRaw = (createPostDto.allowedUsers as string).split(',').map(id => id.trim());
-                console.log("Processed allowedUsers:", allowedUsers);
             } else if (Array.isArray(createPostDto.allowedUsers)) {
                 allowedUsersRaw = createPostDto.allowedUsers as string[];
-                console.log("Processed allowedUsers:", allowedUsers);
+            } else {
+                throw new HttpException('Invalid allowedUsers format', HttpStatus.BAD_REQUEST);
             }
-        
+
             allowedUsers = allowedUsersRaw.map(id => new Types.ObjectId(id));
-            console.log("Processed allowedUsers:", allowedUsers);
         }
-        
+
+
         const newPost = new this.PostModel({
             content: createPostDto.content,
             author: swageUserId,
             privacy: createPostDto.privacy,
-            allowedUsers: allowedUsers, 
+            allowedUsers: allowedUsers,
             likes: [],
             dislikes: [],
             isActive: true,
         });
-    
+
+        if (createPostDto.gif) {
+            newPost.gif = createPostDto.gif;
+        }
+
         if (files && files.length > 0) {
             try {
-                const uploadedImages = await Promise.all(files.map(file => this.cloudinaryService.uploadFile(file)));
+                const uploadedImages = await Promise.all(
+                    files.map(file => this.cloudinaryService.uploadFile(file))
+                );
                 newPost.img = uploadedImages;
             } catch (error) {
                 throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-    
-        // Lưu bài viết vào database
+
         const savedPost = await newPost.save();
         const userPost = await this.UserModel.findById(userId);
-    
-        return {
-            userPost,
-            savedPost
-        };
+
+        return savedPost
+
     }
     
     

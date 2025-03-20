@@ -31,6 +31,9 @@ export class Post extends Document {
   @Prop({ type: [String], }) 
   img: string[];
 
+  @Prop({ type: String })
+  gif: string;
+
   @Prop({ default: true }) 
   isActive: boolean;
 
