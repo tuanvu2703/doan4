@@ -84,7 +84,9 @@ const FileViewer = ({ file, mh }) => {
     return (
         <>
             {files.map((f, index) => (
-                renderSingleFilePreview(f)
+                <React.Fragment key={index}>
+                    {renderSingleFilePreview(f)}
+                </React.Fragment>
             ))}
         </>
     );

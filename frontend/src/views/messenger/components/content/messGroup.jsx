@@ -330,7 +330,7 @@ const MessengerInbox = () => {
             <div className="overflow-y-scroll h-full p-4 pt-1 bg-gray-100">
 
                 {
-                    loadingMess == false ?
+                    loadingMess === false ?
                         <span className="loading loading-spinner loading-lg">Đang tải tin nhắn</span>
                         :
                         Object.entries(groupedMessages).map(([date, messages]) => (

@@ -21,6 +21,7 @@ import NotificationCss from '../../../../module/cssNotification/NotificationCss'
 import FileViewChane from '../../../../components/fileViewChane';
 import { FaceSmileIcon } from '@heroicons/react/24/outline';
 import DropdownEmoji from '../../../../components/DropdownEmoji';
+import Call from '../../../../components/Call';
 
 const MessengerInbox = () => {
     const { userContext } = useUser();
@@ -48,13 +49,9 @@ const MessengerInbox = () => {
     const [socket, setSocket] = useState(null); // Trạng thái kết nối socket
 
     //Call
-    const [modal, setModal] = useState(false);
 
+    const [modalCall, setModalCall] = useState(false);
 
-    const handleVideoCall = () => {
-        // Logic to handle video call
-        setModal(true);
-    };
 
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
@@ -284,9 +281,6 @@ const MessengerInbox = () => {
         setMessage((prevMessage) => prevMessage + emoji);
     };
 
-    const handleClickCall = useCallback(() => {
-        window.open(`http://localhost:3000/Call/${iduser}`, "_blank", "noopener,noreferrer,width=1100,height=700");
-    }, [iduser]);
 
     if (loading) {
         return <Loading />;
@@ -336,7 +330,7 @@ const MessengerInbox = () => {
                     <button>
                         <PhoneIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                     </button>
-                    <button onClick={handleClickCall}>
+                    <button onClick={() => setModalCall(true)}>
                         <VideoCameraIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                     </button>
                     <button onClick={handleHiddenRight} >
@@ -579,6 +573,21 @@ const MessengerInbox = () => {
                     </DialogActions>
                 </Dialog>
             </div>
+            {modalCall &&
+                <Call
+                    isOpen={modalCall}
+                    onClose={() => {
+                        setModalCall(false);
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                                .then((stream) => {
+                                    stream.getTracks().forEach((track) => track.stop());
+                                })
+                                .catch((err) => console.error("❌ [Media] Lỗi dọn dẹp camera/micro:", err));
+                        }
+                    }}
+                    targetUserIds={iduser}
+                />}
         </div >
     );
 };

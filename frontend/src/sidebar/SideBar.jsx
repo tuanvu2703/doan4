@@ -12,7 +12,7 @@ export default function SideBar() {
     useEffect(() => {
         SetIsMessengerPath(/^\/messenger(\/|$)/.test(location.pathname));
     }, [location]);
-    console.log(isMessengerPath);
+
     return (
         <>
             {isMessengerPath ? (

@@ -38,7 +38,6 @@ import PostManagement from "../admin/page/post-management.jsx";
 import ReportPostManagement from "../admin/page/reportpost-management.jsx";
 
 import AdminRoute from "./AdminRoute.jsx";
-import Call from "../components/Call.jsx";
 
 function routers() {
     return (
@@ -85,7 +84,8 @@ function routers() {
                 <Route path="/test" element={<Test />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgotpass" element={<ForgotPass />} />
-                <Route path="/call/:targetUserIds" element={<Call />} />
+                {/* <Route path="/call/:targetUserIds" element={<Call />} />
+                <Route path="/call/accept/:targetUserIds" element={<AcceptCall />} /> */}
 
 
 

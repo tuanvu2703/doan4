@@ -4,7 +4,7 @@ import authToken from "../components/authToken";
 import { PhoneXMarkIcon, XMarkIcon } from "@heroicons/react/16/solid";
 import { useParams } from "react-router-dom";
 
-export default function Call({ onClose, isOpen, targetUserIds, status }) {
+export default function AcceptCall() {
     const localVideoRef = useRef(null);
     const remoteVideoRefs = useRef({});
     const peerConnections = useRef({});
@@ -12,8 +12,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     const [userId, setUserId] = useState(null);
     const [socket, setSocket] = useState(null);
     const [stream, setStream] = useState(null);
-    const [callStatus, setCallStatus] = useState(status);
+    const [callStatus, setCallStatus] = useState("in-call");
 
+    const { targetUserIds } = useParams();
 
     const URL = `${process.env.REACT_APP_API_URL}/call`;
     const iceServers = {
@@ -39,43 +40,37 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     }, [targetUserIds]);
 
     useEffect(() => {
-        if (isOpen) {
-            const getMediaDevices = async () => {
-                try {
-                    const userStream = await navigator.mediaDevices.getUserMedia({
-                        video: true,
-                        audio: true,
-                    });
-                    console.log("✅ [Media] Đã lấy stream thành công");
-                    setStream(userStream);
-                    if (localVideoRef.current) {
-                        localVideoRef.current.srcObject = userStream;
-                    }
-                } catch (err) {
-                    console.error("❌ [Media] Lỗi lấy thiết bị media:", err);
-                    alert("Không thể truy cập camera hoặc micro!");
+        const getMediaDevices = async () => {
+            try {
+                const userStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true,
+                });
+                console.log("✅ [Media] Đã lấy stream thành công");
+                setStream(userStream);
+                if (localVideoRef.current) {
+                    localVideoRef.current.srcObject = userStream;
                 }
-            };
-            getMediaDevices();
-        } else {
-            cleanupMediaStream();
-        }
-    }, [isOpen]);
+            } catch (err) {
+                console.error("❌ [Media] Lỗi lấy thiết bị media:", err);
+                alert("Không thể truy cập camera hoặc micro!");
+            }
+        };
+        getMediaDevices();
 
-    const cleanupMediaStream = () => {
-        if (stream) {
-            console.log("🧹 [Media] Dọn dẹp stream");
-            stream.getTracks().forEach((track) => track.stop());
-            setStream(null);
-        }
-    };
+        return () => {
+            if (stream) {
+                console.log("🧹 [Media] Dọn dẹp stream");
+                stream.getTracks().forEach((track) => track.stop());
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (!socket) return;
 
         socket.on("connect", () => {
             console.log("✅ [Socket] Kết nối WebSocket thành công");
-            setCallStatus("calling");
         });
 
         socket.on("disconnect", () => {
@@ -92,14 +87,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
 
         socket.on("incomingCall", ({ from, group }) => {
             console.log("📞 [Socket] Nhận incomingCall từ:", from, "group:", group);
-            const accept = window.confirm(`📞 Cuộc gọi từ ${from}, chấp nhận?`);
-            if (accept) {
-                setCallStatus("in-call");
-                acceptCall(from, group);
-            } else {
-                console.log("❌ [Socket] Gửi rejectCall tới:", from);
-                socket.emit("rejectCall", { callerId: from });
-            }
+            // Tự động chấp nhận cuộc gọi
+            console.log("✅ [Socket] Tự động chấp nhận cuộc gọi từ:", from);
+            acceptCall(from, group);
         });
 
         socket.on("callRejected", ({ from }) => {
@@ -220,7 +210,12 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     useEffect(() => {
         if (targetUserIds && socket && stream) {
             console.log("🔌 [Socket] Kết nối thành công với:", targetUserIds);
-            startCall();
+            const ids = targetUserIds.split(",").map((id) => id.trim());
+            ids.forEach((id) => {
+                if (!peerConnections.current[id]) {
+                    peerConnections.current[id] = createPeerConnection(id);
+                }
+            });
         }
     }, [targetUserIds, socket, stream]);
 
@@ -267,26 +262,26 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         };
         return pc;
     };
-    const startCall = async () => {
-        if (!targetUserIds || !socket || !stream)
-            return alert("Vui lòng kết nối socket và bật camera/micro");
+    // const startCall = async () => {
+    //     if (!targetUserIds || !socket || !stream)
+    //         return alert("Vui lòng kết nối socket và bật camera/micro");
 
-        const ids = targetUserIds.split(",").map((id) => id.trim());
-        if (ids.length > 5) return alert("Tối đa 5 người trong nhóm");
+    //     const ids = targetUserIds.split(",").map((id) => id.trim());
+    //     if (ids.length > 5) return alert("Tối đa 5 người trong nhóm");
 
-        console.log("📞 [Socket] Gửi startCall tới:", ids);
-        socket.emit("startCall", { targetUserIds: ids });
+    //     console.log("📞 [Socket] Gửi startCall tới:", ids);
+    //     socket.emit("startCall", { targetUserIds: ids });
 
-        for (const targetId of ids) {
-            if (!peerConnections.current[targetId]) {
-                peerConnections.current[targetId] = createPeerConnection(targetId);
-                const offer = await peerConnections.current[targetId].createOffer();
-                await peerConnections.current[targetId].setLocalDescription(offer);
-                console.log("📡 [Socket] Gửi offer tới:", targetId, "SDP:", offer);
-                socket.emit("offer", { targetUserId: targetId, sdp: offer });
-            }
-        }
-    };
+    //     for (const targetId of ids) {
+    //         if (!peerConnections.current[targetId]) {
+    //             peerConnections.current[targetId] = createPeerConnection(targetId);
+    //             const offer = await peerConnections.current[targetId].createOffer();
+    //             await peerConnections.current[targetId].setLocalDescription(offer);
+    //             console.log("📡 [Socket] Gửi offer tới:", targetId, "SDP:", offer);
+    //             socket.emit("offer", { targetUserId: targetId, sdp: offer });
+    //         }
+    //     }
+    // };
 
     const acceptCall = async (callerId, group) => {
         console.log("✅ [Call] Chấp nhận cuộc gọi từ:", callerId, "group:", group);
@@ -301,11 +296,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         console.log("🚫 [Socket] Gửi endCall");
         Object.keys(peerConnections.current).forEach((targetId) => cleanupPeer(targetId));
         if (socket) socket.emit("endCall");
-        cleanupMediaStream(); // Ensure media stream is cleaned up
         setCallStatus("idle");
-        if (onClose) {
-            onClose();
-        }
     };
 
     const cleanupPeer = (targetId) => {
@@ -323,79 +314,78 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             delete iceCandidatesBuffer.current[targetId];
         }
     };
-    console.log("Trạng thái: ", callStatus);
+
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className=" p-6 rounded-lg shadow-lg">
-
+        <>
+            {callStatus === "calling" && (
+                <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
+                    <p>Đang gọi...</p>
+                </div>
+            )}
+            {callStatus === "in-call" && (
+                <div id="remote-videos" style={{ width: "500px", height: "auto", display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    {/* Remote videos will be dynamically added here */}
+                </div>
+            )}
+            {callStatus === "idle" && (
+                <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
+                    <p>Cuộc gọi kết thúc</p>
+                </div>
+            )}
+            <div className=" text-white w-screen h-screen"
+                id="remote-videos"
+            ></div>
+            <div>
+                <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    style={{ width: "300px" }}
+                    className="absolute bottom-3 right-3 rounded-md"
+                ></video>
+            </div>
+            <div>
+                {/* <input
+                    type="text"
+                    placeholder="Enter target user IDs (comma-separated)"
+                    value={targetUserIds}
+                    onChange={(e) => setTargetUserIds(e.target.value)}
+                    style={{ marginRight: "10px" }}
+                /> */}
+                {/* <button onClick={startCall} disabled={callStatus !== "connected"}>
+                    Start Call
+                </button> */}
                 {callStatus === "calling" && (
-                    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
-                        <p>Đang gọi...</p>
-                    </div>
-                )}
-                {callStatus === "in-call" && (
-                    <div
-                        id="remote-videos"
-                        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px", width: "100%", height: "100%" }}
-                    ></div>
+                    <button
+                        className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
+                        onClick={endCall}
+                        disabled={callStatus === "idle"}
+                    >
+                        <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
+                    </button>
+                )} {callStatus === "in-call" && (
+                    <button
+                        className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
+                        onClick={endCall}
+                        disabled={callStatus === "idle"}
+                    >
+                        <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
+                    </button>
                 )}
                 {callStatus === "idle" && (
-                    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
-                        <p>Cuộc gọi kết thúc</p>
+                    <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2  flex gap-14">
+                        <button
+                            className=""
+                            onClick={endCall}
+                            disabled={callStatus === "idle"}
+                        >
+                            <XMarkIcon className="h-14 w-14  bg-white cursor-pointer rounded-full text-red-600 p-1" />
+                        </button>
                     </div>
                 )}
-
-                <div>
-                    <video
-                        ref={localVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        style={{ width: "300px" }}
-                        className="absolute bottom-3 right-3 rounded-md"
-                    ></video>
-                </div>
-                <div>
-                    {/* <input
-                                    type="text"
-                                    placeholder="Enter target user IDs (comma-separated)"
-                                    value={targetUserIds}
-                                    onChange={(e) => setTargetUserIds(e.target.value)}
-                                    style={{ marginRight: "10px" }}
-                                /> */}
-                    {/* <button onClick={startCall} disabled={callStatus !== "connected"}>
-                                    Start Call
-                                </button> */}
-                    {callStatus === "calling" && (
-                        <button
-                            className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
-                            onClick={endCall}
-                            disabled={callStatus === "idle"}
-                        >
-                            <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
-                        </button>
-                    )} {callStatus === "in-call" && (
-                        <button
-                            className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
-                            onClick={endCall}
-                            disabled={callStatus === "idle"}
-                        >
-                            <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
-                        </button>
-                    )}
-                    {callStatus === "idle" && (
-                        <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2  flex gap-14">
-                            <button
-                                onClick={endCall}
-
-                            >
-                                <XMarkIcon className="h-14 w-14  bg-white cursor-pointer rounded-full text-red-600 p-1" />
-                            </button>
-                        </div>
-                    )}
-                </div>
             </div>
-        </div>
+        </>
     )
 }
