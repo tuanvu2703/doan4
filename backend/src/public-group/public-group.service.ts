@@ -124,8 +124,71 @@ export class PublicGroupService {
 
     }
 
+    async acceptRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: string): Promise<MemberGroup> {
+      const requestJoinGroup = await this.RequestJoinGroupModel.findById(requestJoinGroupId);
+      if (!requestJoinGroup) {
+        throw new HttpException('Request not found', HttpStatus.NOT_FOUND);
+      }
+    
+      const grouptype = await this.PublicGroupModel.findById(requestJoinGroup.group);
+      if (!grouptype) {
+        throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+      }
+    
+      const user = await this.userService.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+    
+      // If group is private, check if user is admin or owner
+      if (grouptype.typegroup === 'private') {
+        const memberGroup = await this.MemberGroupModel.findOne({ group: requestJoinGroup.group, member: userId });
+        if (!memberGroup || (memberGroup.role !== 'admin' && memberGroup.role !== 'owner')) {
+          throw new HttpException('Only admin or owner can accept join requests for private group', HttpStatus.FORBIDDEN);
+        }
+      }
+    
+      const group = requestJoinGroup.group;
+      const member = requestJoinGroup.sender;
+      const newMemberGroup = {
+        group,
+        member,
+        role: 'member',
+      };
+    
+      const createdMemberGroup = new this.MemberGroupModel(newMemberGroup);
+      await createdMemberGroup.save();
+      await this.RequestJoinGroupModel.findByIdAndDelete(requestJoinGroupId);
+    
+      return createdMemberGroup;
+    }
+    
 
-
-
+    async rejectRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: string): Promise<RequestJoinGroup> {
+      const requestJoinGroup = await this.RequestJoinGroupModel.findById(requestJoinGroupId);
+      if (!requestJoinGroup) {
+        throw new HttpException('Request not found', HttpStatus.NOT_FOUND);
+      }
+    
+      const grouptype = await this.PublicGroupModel.findById(requestJoinGroup.group);
+      if (!grouptype) {
+        throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+      }
+    
+      const user = await this.userService.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+    
+      if (grouptype.typegroup === 'private') {
+        const memberGroup = await this.MemberGroupModel.findOne({ group: requestJoinGroup.group, member: userId });
+        if (!memberGroup || (memberGroup.role !== 'admin' && memberGroup.role !== 'owner')) {
+          throw new HttpException('Only admin or owner can reject join requests for private group', HttpStatus.FORBIDDEN);
+        }
+      }
+    
+      await this.RequestJoinGroupModel.findByIdAndDelete(requestJoinGroupId);
+      return requestJoinGroup;
+    }
 
 }

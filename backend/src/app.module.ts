@@ -19,7 +19,6 @@ import { EventModule } from './event/event.module';
 import { EventService } from './event/event.service';
 import { ConsumerModule } from './kafka/consumer/consumer.module';
 import { ProducerModule } from './kafka/producer/producer.module';
-import { ScylladbModule } from './scylladb/scylladb.module';
 import { NotificationModule } from './kafka/notification/notification.module';
 import { PublicGroupService } from './public-group/public-group.service';
 import { PublicGroupController } from './public-group/public-group.controller';
@@ -27,8 +26,9 @@ import { PublicGroupModule } from './public-group/public-group.module';
 import { ReportController } from './report/report.controller';
 import { ReportService } from './report/report.service';
 import { ReportModule } from './report/report.module';
-import { WebrtcModule } from './webrtc/webrtc.module';
 import { CommentService } from './comment/comment.service';
+import { EventGeteWay } from './event/event.geteway';
+import { WebRTCService } from './event/webrtc.service';
 
 @Global()
 @Module({
@@ -38,8 +38,6 @@ import { CommentService } from './comment/comment.service';
       isGlobal: true,
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),
-    // MongooseModule.forRoot(process.env.MONGODB_URI_SINK, { connectionName: 'sinkDB' }),
-
 
     UserModule,
     PostModule,
@@ -56,10 +54,22 @@ import { CommentService } from './comment/comment.service';
     NotificationModule,
     PublicGroupModule,
     ReportModule,
-    WebrtcModule,
 
   ],
-  controllers: [AppController, OtpController, MailController, PublicGroupController, ReportController],
-  providers: [AppService, MailService, OtpService, PublicGroupService, ReportService,],
+  controllers: [
+    AppController, 
+    OtpController, 
+    MailController, 
+    PublicGroupController, 
+    ReportController
+  ],
+
+  providers: [
+    AppService, 
+    MailService, 
+    OtpService, 
+    PublicGroupService, 
+    ReportService, 
+  ],
 })
 export class AppModule { }

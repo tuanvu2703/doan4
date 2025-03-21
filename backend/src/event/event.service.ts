@@ -4,7 +4,9 @@ import { EventGeteWay } from './event.geteway';
 
 @Injectable()
     export class EventService {
-        constructor(private readonly socket: EventGeteWay) { }
+        constructor(
+            private readonly socket: EventGeteWay)
+        {}
 
     notificationAllClients(data: any) {
         this.socket.server.emit('events', data);

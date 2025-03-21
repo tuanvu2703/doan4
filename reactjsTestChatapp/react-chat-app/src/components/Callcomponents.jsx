@@ -13,7 +13,7 @@ const Call = () => {
   const [stream, setStream] = useState(null);
   const [callStatus, setCallStatus] = useState("idle");
 
-  const URL = "https://social-network-jbtx.onrender.com/call";
+  const URL = "http://localhost:3001";
   const iceServers = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },

@@ -92,6 +92,28 @@ export class PublicGroupController {
       const convertedGroupId = new Types.ObjectId(groupId);
       return this.publicGroupService.requestjonGroup(convertedGroupId, userId);
     }
+
+
+    @Post('acceptJoinGroup/:requestId')
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    @ApiParam({
+      name: 'requestId',
+      required: true,
+      description: 'Nhập _id của yêu cầu',
+      example: '65fc4e5a4d3a7f1f2a1c9c10'
+    })
+    @ApiResponse({ status: 200, description: 'Chấp nhận yêu cầu tham gia nhóm thành công' })
+    @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+    async acceptJoinGroup(
+      @CurrentUser() currentUser: User,
+      @Param('requestId') requestId: string
+    ) {
+
+      const convertedRequestId = new Types.ObjectId(requestId);
+      return this.publicGroupService.acceptRequestJoinGroup(convertedRequestId, currentUser._id.toString());
+    }
+    
     
 
 

@@ -18,6 +18,7 @@ export class MemberGroup extends Document {
   @Prop({
     enum: ['owner', 'member', 'admin'],
     required: true,
+    default: 'member',
   })
   role: string;   //role: 0 - member, 1 - admin, 2 - owner
 
