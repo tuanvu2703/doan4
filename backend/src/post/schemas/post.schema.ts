@@ -1,11 +1,20 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
+import { PublicGroup } from 'src/public-group/schema/plgroup.schema';
 import { User } from 'src/user/schemas/user.schemas';
 
 @Schema({
   timestamps: true, 
 })
 export class Post extends Document {
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'PublicGroup', 
+    required: false,
+    set: (value: Types.ObjectId) => (value ? value : undefined),
+  })
+  group: PublicGroup
 
   @Prop()
   content: string;

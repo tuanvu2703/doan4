@@ -9,6 +9,7 @@ import { UserModule } from '../user/user.module';
 import { EventService } from 'src/event/event.service';
 import { EventModule } from 'src/event/event.module';
 import { ProducerModule } from '../kafka/producer/producer.module';
+import { PublicGroupModule } from 'src/public-group/public-group.module';
 
 
 @Global()
@@ -19,6 +20,7 @@ import { ProducerModule } from '../kafka/producer/producer.module';
     UserModule,
     EventModule,
     ProducerModule,
+    PublicGroupModule,
   ],
   controllers: [PostController],
   providers: [PostService, EventService],

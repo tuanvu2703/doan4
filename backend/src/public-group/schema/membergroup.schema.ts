@@ -31,4 +31,3 @@ export class MemberGroup extends Document {
 
 
 export const MemberGroupSchema = SchemaFactory.createForClass(MemberGroup);
-

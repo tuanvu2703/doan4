@@ -10,6 +10,9 @@ import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { PostF } from './interface/PostHomeFeed.interface';
 import { Friend } from 'src/user/schemas/friend.schema';
+import { PublicGroup } from 'src/public-group/schema/plgroup.schema';
+import { MemberGroup } from 'src/public-group/schema/membergroup.schema';
+
 
 
 
@@ -18,15 +21,47 @@ export class PostService {
     constructor(
         @InjectModel(Post.name) private PostModel: Model<Post>,
         @InjectModel(User.name) private UserModel: Model<User>,
+        @InjectModel(PublicGroup.name) private PublicGroupModel : Model<PublicGroup>,
+        @InjectModel(MemberGroup.name) private MemberGroupModel: Model<MemberGroup>,
         @InjectModel(Friend.name) private FriendModel: Model<Friend>,
         private cloudinaryService: CloudinaryService,
         private jwtService: JwtService
     ) { }
 
-    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId, files?: Express.Multer.File[]): Promise<Post> {
-        const swageUserId = new Types.ObjectId(userId);
+    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId,files?: Express.Multer.File[]): Promise<Post> {
+
     
         let allowedUsers: Types.ObjectId[] = [];
+
+        let groupId: Types.ObjectId | undefined;
+        if (createPostDto.group) {
+          try {
+            groupId = new Types.ObjectId(createPostDto.group);
+          } catch (error) {
+            throw new HttpException('Invalid group ID', HttpStatus.BAD_REQUEST);
+          }
+        }
+    
+
+        if (groupId) {
+          const membership = await this.MemberGroupModel.findOne({
+            group: groupId,
+            member: userId,
+          }).exec();
+    
+          if (!membership) {
+            throw new HttpException('You are not a member of this group', HttpStatus.FORBIDDEN);
+          }
+          if (membership.blackList) {
+            throw new HttpException('You are in the blacklist of this group', HttpStatus.FORBIDDEN);
+          }
+          if (membership.role === 'member' && createPostDto.privacy !== 'public') {
+            throw new HttpException(
+              'Only admins or owners can set privacy for group posts',
+              HttpStatus.FORBIDDEN,
+            );
+          }
+        }
 
         if (createPostDto.privacy === 'specific') {
             if (!createPostDto.allowedUsers) {
@@ -49,7 +84,8 @@ export class PostService {
 
         const newPost = new this.PostModel({
             content: createPostDto.content,
-            author: swageUserId,
+            group: groupId,
+            author: userId,
             privacy: createPostDto.privacy,
             allowedUsers: allowedUsers,
             likes: [],
@@ -73,10 +109,7 @@ export class PostService {
         }
 
         const savedPost = await newPost.save();
-        const userPost = await this.UserModel.findById(userId);
-
         return savedPost
-
     }
     
     

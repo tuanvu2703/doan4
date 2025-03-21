@@ -1,8 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UserService } from 'src/user/user.service';
-import { PostService } from 'src/post/post.service';
-import { CommentService } from 'src/comment/comment.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { PublicGroup } from './schema/plgroup.schema';
@@ -19,8 +17,6 @@ export class PublicGroupService {
         @InjectModel(RequestJoinGroup.name) private readonly RequestJoinGroupModel: Model<RequestJoinGroup>,
         private readonly cloudinaryService: CloudinaryService,
         private readonly userService: UserService,
-        private readonly postService: PostService,
-        private readonly commentService: CommentService,
     ) {}
 
     async createPublicGroup(

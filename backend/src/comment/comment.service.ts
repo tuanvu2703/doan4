@@ -8,7 +8,6 @@ import { promises } from 'dns';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { User } from '../user/schemas/user.schemas';
 import { JwtService } from '@nestjs/jwt';
-import { PostService } from 'src/post/post.service';
 import { Post } from '../post/schemas/post.schema';
 
 @Injectable()
@@ -18,7 +17,7 @@ export class CommentService {
     @InjectModel(User.name) private readonly UserModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     private cloudinaryService: CloudinaryService,
-    private postService: PostService,
+
     private jwtService: JwtService,
   ) { }
 

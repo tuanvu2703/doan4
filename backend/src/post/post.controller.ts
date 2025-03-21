@@ -41,7 +41,7 @@ export class PostController {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
         const swageUserId = new Types.ObjectId(currentUser._id.toString());
-        return this.postService.createPost(createPostDto, swageUserId, files.files);
+        return this.postService.createPost(createPostDto, swageUserId  ,files.files);
     }
 
     @Get('testOptionalGuard')

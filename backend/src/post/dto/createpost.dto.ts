@@ -13,6 +13,17 @@ class AtLeastOneField {
 }
 
 export class CreatePostDto {
+
+  @ApiProperty({
+    example: '67eas9128301dbsa',
+    required: false,
+    type: 'string',
+  })
+  @IsOptional()
+  @IsString()
+  readonly group?: string;
+
+
   @ApiProperty({
     example: 'ngày nắng thì phải mở máy lạnh',
     required: false,

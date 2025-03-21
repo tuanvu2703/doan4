@@ -24,4 +24,3 @@ export class RequestJoinGroup extends Document {
 }
 
 export const RequestJoinGroupSchema = SchemaFactory.createForClass(RequestJoinGroup);
-
