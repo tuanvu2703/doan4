@@ -8,6 +8,7 @@ import { Post } from '../post/schemas/post.schema';
 import { Report } from './schema/report.schema';
 import { EventService } from 'src/event/event.service';
 import { ImplementationDto } from './dto/implementation.dto';
+import { report } from 'process';
 
 
 @Injectable()
@@ -46,11 +47,51 @@ export class ReportService {
     }
 
     async getReports(): Promise<Report[]> {
-        return await this.ReportModel.find().exec();
-    }
+        const reports = await this.ReportModel.find()
+          .populate('sender', 'username email avatar')
 
+          for (const report of reports) {
+            if (report.type === 'User') {
+                await report.populate({
+                    path: 'reportedId',
+                    select: 'firstName lastName avatar',
+                });
+            } else if (report.type === 'Post') {
+                await report.populate({
+                    path: 'reportedId',
+                    select: 'content img createdAt author',
+                    populate: {
+                        path: 'author',
+                        select: 'firstName lastName avatar',
+                    },
+                })
+            }
+        }
+    
+        return reports;
+    }
+      
     async getReportById(reportId: string): Promise<Report> {
-        const report = await this.ReportModel.findById(reportId).exec();
+        const report = await this.ReportModel.findById(reportId)
+        .populate('sender', 'username email avatar')
+
+            if (report.type === 'User') {
+                await report.populate({
+                    path: 'reportedId',
+                    select: 'username email avatar',
+                });
+            } else if (report.type === 'Post') {
+                await report.populate({
+                    path: 'reportedId',
+                    select: 'content img createdAt author',
+                    populate: {
+                        path: 'author',
+                        select: 'firstName lastName avatar',
+                    },
+                })
+            }
+        
+
         if (!report) {
             throw new NotFoundException('Report not found');
         }
@@ -65,7 +106,7 @@ export class ReportService {
     
         report.implementation = implementationDto.implementation;
     
-        if (report.type === 'post') {
+        if (report.type === 'Post') {
             const post = await this.PostModel.findById(report.reportedId).exec();
             if (!post) {
                 throw new NotFoundException('Post not found');
@@ -100,7 +141,7 @@ export class ReportService {
                     message: 'Your report has been rejected',
                 });
             }
-        } else if (report.type === 'user') {
+        } else if (report.type === 'User') {
             const user = await this.UserModel.findById(report.reportedId).exec();
             if (!user) {
                 throw new NotFoundException('User not found');

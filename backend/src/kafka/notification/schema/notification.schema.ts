@@ -10,19 +10,19 @@ export class Notification extends Document {
   type: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: false })
-  userId: User; // người nhận thông báo
+  targetUserId?: User;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   ownerId: User; // người thực hiện thông báo 
 
-  @Prop({ type: [Types.ObjectId], ref:'User' ,required: false }) // Thêm targetIds nếu cần
-  targetIds?: Types.ObjectId[];
+  @Prop({ type: [Types.ObjectId], ref:'User' ,required: false }) 
+  targetUserIds?: Types.ObjectId[];
 
   @Prop({ required: true, type: Object })
   data: Record<string, any>;
 
-  @Prop({ default: false })
-  isRead: boolean;
+  @Prop({ type: [Types.ObjectId], ref: 'User', required: false })
+  readBy: Types.ObjectId[];
 
   @Prop({ type: Date, default: () => new Date(Date.now() + 31 * 24 * 60 * 60 * 1000), index: { expires: '31d' } }) 
   expiresAt: Date; 

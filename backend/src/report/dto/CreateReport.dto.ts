@@ -2,9 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class CreateReportDto {
-    @ApiProperty({ enum: ['user', 'post'], description: 'Loại báo cáo (user hoặc post)' })
-    @IsEnum(['user', 'post'])
-    type: 'user' | 'post';
+    @ApiProperty({ enum: ['User', 'Post'], description: 'Loại báo cáo (user hoặc post)' })
+    @IsEnum(['User', 'Post'])
+    type: 'User' | 'Post';
 
     @ApiProperty({ description: 'ID của người hoặc bài viết bị báo cáo' })
     @IsString()

@@ -8,8 +8,8 @@ export class Report extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   sender: User;
 
-  @Prop({ type: String, enum: ['user', 'post'], required: true })
-  type: 'user' | 'post';
+  @Prop({ type: String, enum: ['User', 'Post'], required: true })
+  type: 'User' | 'Post';
 
   @Prop({ type: Types.ObjectId, required: true, refPath: 'type' })
   reportedId: Types.ObjectId;
