@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import NotificationCss from "../module/cssNotification/NotificationCss";
 import imgUser from "../img/user.png"
 import { profileUserCurrent } from '../service/ProfilePersonal';
-import SideBar from "../sidebar/SideBar";
+import SideBar from "./sidebar/SideBar";
 import { ToastContainer } from 'react-toastify';
 // import Call from "../components/Call";
 import { PhoneXMarkIcon, XMarkIcon } from "@heroicons/react/16/solid";
@@ -272,7 +272,7 @@ export default function Layout() {
         socketcall.on("disconnect", () => {
             console.log("❌ [Socket] WebSocket ngắt kết nối");
             setCallStatus("disconnected");
-            alert("Mất kết nối với server, vui lòng thử lại.");
+            // alert("Mất kết nối với server, vui lòng thử lại.");
             endCall();
         });
 

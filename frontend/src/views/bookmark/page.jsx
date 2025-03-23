@@ -80,7 +80,8 @@ export default function Bookmark() {
                             className=" bg-base-100 shadow-xl  rounded-md w-full"
                         >
                             <div>
-                                {post?.img?.length > 0 ? (
+                                {(post?.img?.length > 0) || (post.gif) ? (
+
                                     <div className="relative w-full h-48 md:h-64 overflow-hidden">
                                         {post?.img?.length > 1 && (
                                             <button
@@ -92,6 +93,14 @@ export default function Bookmark() {
                                         )}
                                         <div className="carousel-item w-full h-full flex items-center justify-center">
                                             <FilePreview file={post.img} />
+                                            {post.gif && (
+                                                <div className='flex justify-center'>
+                                                    <img
+                                                        style={{ maxWidth: '100%', maxHeight: '400px' }}
+                                                        src={post.gif}
+                                                        alt="" />
+                                                </div>
+                                            )}
                                         </div>
                                         {post?.img?.length > 1 && (
                                             <button
@@ -102,6 +111,7 @@ export default function Bookmark() {
                                             </button>
                                         )}
                                     </div>
+
                                 ) : (
                                     <div className="relative w-full h-48 md:h-64 flex items-center justify-center bg-slate-400 rounded-t-md">
                                         <span className="text-slate-700">NO IMAGE/VIDEO</span>

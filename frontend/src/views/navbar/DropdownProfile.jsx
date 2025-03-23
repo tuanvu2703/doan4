@@ -9,7 +9,10 @@ export default function DropdownProfile({ user }) {
 
     function logout() {
         authToken.deleteToken();
-        window.location.reload();
+        
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000); // Redirect after 2 seconds
     }
 
 

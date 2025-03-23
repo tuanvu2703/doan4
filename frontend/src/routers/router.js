@@ -38,6 +38,11 @@ import PostManagement from "../admin/page/post-management.jsx";
 import ReportPostManagement from "../admin/page/reportpost-management.jsx";
 
 import AdminRoute from "./AdminRoute.jsx";
+import CaroGame from "../components/CaroGame.jsx";
+import MemoryGame from "../components/MemoryGame.jsx";
+import Group from "../views/group/index.jsx";
+import Layoutgr from "../views/group/layoutgr.jsx";
+import SelectGroup from "../views/group/select/SelectGroup.jsx";
 
 function routers() {
     return (
@@ -54,8 +59,9 @@ function routers() {
                         <Route path="requests" element={<FriendInvitation />} />
                     </Route>
                     <Route path="post/:id" element={<DetailPost />} />
-                    <Route path="myprofile" element={<Personal />}>
 
+
+                    <Route path="myprofile" element={<Personal />}>
                         <Route index element={<MyPosts />} />
                         <Route path="about" element={<AboutProfile />} />
                         <Route path="friends" element={<FriendProfile />} />
@@ -78,6 +84,11 @@ function routers() {
                         <Route path="content" element={<PostSearch />} />
                         <Route path="user" element={<PeopleSearch />} />
                     </Route>
+
+                    <Route path="group" element={<SelectGroup />} />
+                    <Route path="/group/detail" element={<Layoutgr />}>
+                        <Route index element={<Group />} />
+                    </Route>
                 </Route>
                 {/* Redirect to login if not authenticated */}
                 <Route path="/login" element={<Login />} />
@@ -86,8 +97,8 @@ function routers() {
                 <Route path="/forgotpass" element={<ForgotPass />} />
                 {/* <Route path="/call/:targetUserIds" element={<Call />} />
                 <Route path="/call/accept/:targetUserIds" element={<AcceptCall />} /> */}
-
-
+                <Route path="/game/caro" element={<CaroGame />} />
+                <Route path="/game/memory" element={<MemoryGame />} />
 
                 {/* Route admin được bảo vệ bởi AdminRoute */}
                 <Route path="/admin" element={

@@ -17,12 +17,12 @@ const FileViewChane = ({ file, onDelete }) => {
 
     // Render preview based on file type
     return (
-        <div className="relative max-w-[200px] border-2">
+        <div className="relative max-w-[200px] flex ">
             {fileType === 'image' && (
                 <img
                     src={URL.createObjectURL(file)}
                     alt="Selected file preview"
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full h-full border-2 "
                 />
             )}
             {fileType === 'video' && (
@@ -43,10 +43,10 @@ const FileViewChane = ({ file, onDelete }) => {
             )}
             <button
                 type="button"
-                className="absolute top-2 right-2  rounded-full p-1"
+                className="relative bg-red-500  p-3 text-white rounded-r-md"
                 onClick={onDelete}
             >
-                <XCircleIcon className='size-5 fill-red-500' />
+                ✕
             </button>
         </div>
     );

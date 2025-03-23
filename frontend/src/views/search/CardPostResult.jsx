@@ -82,7 +82,7 @@ export default function CardPostResult({ query }) {
             [post._id]: (prevIndexes[post._id] + 1) % post.img.length
         }));
     };
-
+    console.log(albums)
     return (
         <ul className='mt-5 grid gap-1'>
             {albums.map(album => (
@@ -103,6 +103,11 @@ export default function CardPostResult({ query }) {
                             {album.img.length > 0 && (
                                 <div className='flex justify-center'>
                                     <FilePreview file={album.img} />
+                                </div>
+                            )}
+                            {album.gif && (
+                                <div className='flex justify-center'>
+                                    <img src={album.gif} alt="GIF" className="w-full h-auto" />
                                 </div>
                             )}
                         </div>

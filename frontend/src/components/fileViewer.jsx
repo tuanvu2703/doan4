@@ -40,7 +40,7 @@ const FileViewer = ({ file, mh }) => {
                         onClick={() => openModal(file)}
                         src={file}
                         style={{ maxWidth: '100%', maxHeight: mh }}
-                        className='rounded-sm border cursor-pointer'
+                        className='cursor-pointer'
                         alt=""
                     />
                 );

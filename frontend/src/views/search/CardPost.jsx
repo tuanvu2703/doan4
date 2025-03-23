@@ -62,6 +62,11 @@ export default function CardPost({ post }) {
                             </div>
                         </div>
                     )}
+                    {post.gif && (
+                        <div className='flex justify-center'>
+                            <img src={post.gif} alt="GIF" className="w-full h-auto" />
+                        </div>
+                    )}
                 </div>
             </Link>
         </div>
