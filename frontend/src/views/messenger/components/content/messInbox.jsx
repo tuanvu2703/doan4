@@ -49,7 +49,22 @@ const MessengerInbox = () => {
     const [socket, setSocket] = useState(null); // Trạng thái kết nối socket
 
     //Call
-
+    const iceServers = {
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:openrelay.metered.ca:80" },
+            {
+                urls: "turn:openrelay.metered.ca:80",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+            },
+            {
+                urls: "turn:openrelay.metered.ca:443",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+            },
+        ],
+    };
     const [modalCall, setModalCall] = useState(false);
 
 
@@ -587,6 +602,8 @@ const MessengerInbox = () => {
                         }
                     }}
                     targetUserIds={iduser}
+                    status="calling"
+                    iceServers={iceServers} // Pass iceServers as a prop
                 />}
         </div >
     );

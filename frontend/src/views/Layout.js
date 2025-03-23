@@ -13,6 +13,7 @@ import SideBar from "../sidebar/SideBar";
 import { ToastContainer } from 'react-toastify';
 // import Call from "../components/Call";
 import { PhoneXMarkIcon, XMarkIcon } from "@heroicons/react/16/solid";
+import Call from "../components/Call";
 
 
 export default function Layout() {
@@ -275,12 +276,12 @@ export default function Layout() {
             endCall();
         });
 
-
         socketcall.on("incomingCall", ({ from, group }) => {
             console.log("📞 [Socket] Nhận incomingCall từ:", from, "group:", group);
             const accept = window.confirm(`📞 Cuộc gọi từ ${from}, chấp nhận?`);
             if (accept) {
                 setCallStatus("in-call");
+                setIsCallModalOpen(true)
                 acceptCall(from, group);
             } else {
                 console.log("❌ [Socket] Gửi rejectCall tới:", from);
@@ -338,12 +339,19 @@ export default function Layout() {
             console.log("📡 [Socket] Nhận answer từ:", from, "SDP:", sdp);
             try {
                 if (!peerConnections.current[from]) return;
-                await peerConnections.current[from].setRemoteDescription(new RTCSessionDescription(sdp));
+
+                const pc = peerConnections.current[from];
+                if (pc.signalingState !== "stable") {
+                    console.warn(`⚠️ [Peer] Cannot set remote answer SDP in state: ${pc.signalingState}`);
+                    return;
+                }
+
+                await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                 // Xử lý ICE candidates trong buffer
                 if (iceCandidatesBuffer.current[from]) {
                     for (const candidate of iceCandidatesBuffer.current[from]) {
                         console.log("❄️ [Socket] Xử lý ICE candidate từ buffer cho:", from, "Candidate:", candidate);
-                        await peerConnections.current[from].addIceCandidate(new RTCIceCandidate(candidate));
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
                     }
                     delete iceCandidatesBuffer.current[from];
                 }
@@ -373,8 +381,8 @@ export default function Layout() {
         });
 
         return () => {
-            console.log("🧹 [Socket] Ngắt kết nối socket");
-            socketcall.disconnect();
+            socketcall.off("connect");
+            socketcall.off("disconnect");
         };
     }, [socketcall, stream]);
 
@@ -424,7 +432,7 @@ export default function Layout() {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                        <h2 className="text-lg font-bold mb-4">📞 Cuộc gọi đến</h2>
+                        {/* <h2 className="text-lg font-bold mb-4">📞 Cuộc gọi đến</h2>
                         <p className="mb-4">Bạn có cuộc gọi từ: {incomingCallInfo?.from}</p>
                         <div className="flex justify-end space-x-4">
                             <button
@@ -446,81 +454,28 @@ export default function Layout() {
                             >
                                 Chấp nhận
                             </button>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             )}
 
             {/* Modal Call */}
             {isCallModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className=" p-6 rounded-lg shadow-lg">
-                        <div id="remote-videos"></div>
-                        {callStatus === "calling" && (
-                            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
-                                <p>Đang gọi...</p>
-                            </div>
-                        )}
-                        {callStatus === "in-call" && (
-                            <></>
-                        )}
-                        {callStatus === "idle" && (
-                            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
-                                <p>Cuộc gọi kết thúc</p>
-                            </div>
-                        )}
-
-                        <div>
-                            <video
-                                ref={localVideoRef}
-                                autoPlay
-                                playsInline
-                                muted
-                                style={{ width: "300px" }}
-                                className="absolute bottom-3 right-3 rounded-md"
-                            ></video>
-                        </div>
-                        <div>
-                            {/* <input
-                                        type="text"
-                                        placeholder="Enter target user IDs (comma-separated)"
-                                        value={targetUserIds}
-                                        onChange={(e) => setTargetUserIds(e.target.value)}
-                                        style={{ marginRight: "10px" }}
-                                    /> */}
-                            {/* <button onClick={startCall} disabled={callStatus !== "connected"}>
-                                        Start Call
-                                    </button> */}
-                            {callStatus === "calling" && (
-                                <button
-                                    className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
-                                    onClick={endCall}
-                                    disabled={callStatus === "idle"}
-                                >
-                                    <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
-                                </button>
-                            )} {callStatus === "in-call" && (
-                                <button
-                                    className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
-                                    onClick={endCall}
-                                    disabled={callStatus === "idle"}
-                                >
-                                    <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
-                                </button>
-                            )}
-                            {callStatus === "idle" && (
-                                <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2  flex gap-14">
-                                    <button
-                                        onClick={endCall}
-
-                                    >
-                                        <XMarkIcon className="h-14 w-14  bg-white cursor-pointer rounded-full text-red-600 p-1" />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <Call
+                    isOpen={isCallModalOpen}
+                    onClose={() => {
+                        setIsCallModalOpen(false);
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                                .then((stream) => {
+                                    stream.getTracks().forEach((track) => track.stop());
+                                })
+                                .catch((err) => console.error("❌ [Media] Lỗi dọn dẹp camera/micro:", err));
+                        }
+                    }}
+                    status={"in-call"}
+                    iceServers={iceServers} // Pass iceServers as a prop
+                />
             )}
         </div>
 

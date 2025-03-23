@@ -2,9 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import authToken from "../components/authToken";
 import { PhoneXMarkIcon, XMarkIcon } from "@heroicons/react/16/solid";
-import { useParams } from "react-router-dom";
 
-export default function Call({ onClose, isOpen, targetUserIds, status }) {
+export default function Call({ onClose, isOpen, targetUserIds, status, iceServers }) {
     const localVideoRef = useRef(null);
     const remoteVideoRefs = useRef({});
     const peerConnections = useRef({});
@@ -14,27 +13,11 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     const [stream, setStream] = useState(null);
     const [callStatus, setCallStatus] = useState(status);
 
-
-    const URL = `${process.env.REACT_APP_API_URL}/call`;
-    const iceServers = {
-        iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:openrelay.metered.ca:80" },
-            {
-                urls: "turn:openrelay.metered.ca:80",
-                username: "openrelayproject",
-                credential: "openrelayproject",
-            },
-            {
-                urls: "turn:openrelay.metered.ca:443",
-                username: "openrelayproject",
-                credential: "openrelayproject",
-            },
-        ],
-    };
+    const URL = `${process.env.REACT_APP_API_URL}`;
     useEffect(() => {
         if (targetUserIds) {
             connectSocket();
+            startCall();
         }
     }, [targetUserIds]);
 
@@ -152,12 +135,19 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             console.log("📡 [Socket] Nhận answer từ:", from, "SDP:", sdp);
             try {
                 if (!peerConnections.current[from]) return;
-                await peerConnections.current[from].setRemoteDescription(new RTCSessionDescription(sdp));
+
+                const pc = peerConnections.current[from];
+                if (pc.signalingState !== "stable") {
+                    console.warn(`⚠️ [Peer] Cannot set remote answer SDP in state: ${pc.signalingState}`);
+                    return;
+                }
+
+                await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                 // Xử lý ICE candidates trong buffer
                 if (iceCandidatesBuffer.current[from]) {
                     for (const candidate of iceCandidatesBuffer.current[from]) {
                         console.log("❄️ [Socket] Xử lý ICE candidate từ buffer cho:", from, "Candidate:", candidate);
-                        await peerConnections.current[from].addIceCandidate(new RTCIceCandidate(candidate));
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
                     }
                     delete iceCandidatesBuffer.current[from];
                 }
@@ -222,7 +212,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             console.log("🔌 [Socket] Kết nối thành công với:", targetUserIds);
             startCall();
         }
-    }, [targetUserIds, socket, stream]);
+    }, [socket, stream]);
 
     const createPeerConnection = (targetId) => {
         console.log("🔗 [Peer] Tạo PeerConnection với:", targetId);
@@ -268,9 +258,10 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         return pc;
     };
     const startCall = async () => {
-        if (!targetUserIds || !socket || !stream)
-            return alert("Vui lòng kết nối socket và bật camera/micro");
-
+        if (!targetUserIds || !socket || !stream) {
+            console.log(targetUserIds, socket, stream);
+            return;
+        }
         const ids = targetUserIds.split(",").map((id) => id.trim());
         if (ids.length > 5) return alert("Tối đa 5 người trong nhóm");
 
