@@ -9,11 +9,14 @@ export class Notification extends Document {
   @Prop({ required: true })
   type: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
   userId: User; // người nhận thông báo
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   ownerId: User; // người thực hiện thông báo 
+
+  @Prop({ type: [Types.ObjectId], ref:'User' ,required: false }) // Thêm targetIds nếu cần
+  targetIds?: Types.ObjectId[];
 
   @Prop({ required: true, type: Object })
   data: Record<string, any>;

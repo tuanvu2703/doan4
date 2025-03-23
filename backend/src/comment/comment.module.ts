@@ -22,6 +22,7 @@ import { EventService } from 'src/event/event.service';
     EventModule
     ],
   controllers: [CommentController],
-  providers: [CommentService, EventService]
+  providers: [CommentService, EventService],
+  exports: [MongooseModule, CommentService],
 })
 export class CommentModule {}

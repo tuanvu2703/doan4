@@ -69,6 +69,10 @@ export class User extends Document {
 
   @Prop()
   otpExpirationTime: Date
+
+  @Prop()
+  googleAccessToken?: string;
+  
 }
 
 

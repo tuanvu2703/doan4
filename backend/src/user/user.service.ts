@@ -154,6 +154,54 @@ export class UserService {
     return user;
   }
 
+  async googleLogin(req): Promise<any> {
+    if (!req.user) {
+      throw new HttpException('No user from Google', HttpStatus.UNAUTHORIZED);
+    }
+
+    const googleUser = req.user;
+    // Kiểm tra xem user đã tồn tại trong DB chưa (dựa trên email)
+    let user = await this.UserModel.findOne({ email: googleUser.email });
+
+    if (!user) {
+
+      user = await this.UserModel.create({
+        email: googleUser.email,
+        firstName: googleUser.firstName,
+        lastName: googleUser.lastName,
+        avatar: googleUser.avatar,
+        googleAccessToken: googleUser.accessToken, // Lưu nếu cần
+        isActive: true,
+      });
+    } else {
+
+      await this.UserModel.updateOne(
+        { email: googleUser.email },
+        {
+          firstName: googleUser.firstName,
+          lastName: googleUser.lastName,
+          avatar: googleUser.avatar,
+          googleAccessToken: googleUser.accessToken,
+        },
+      );
+    }
+
+
+    const tokens = await this.generateToken(user._id);
+
+    return {
+      message: 'User logged in via Google',
+      user: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+      },
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+  }
+
 
   async findById(userId: string): Promise<User> {
     const user = await this.UserModel.findById(userId)
@@ -574,6 +622,7 @@ export class UserService {
     if (!files || files.length === 0) {
       throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
     }
+
     if (files.length > 1) {
       throw new HttpException('Only one file is allowed', HttpStatus.BAD_REQUEST);
     }
@@ -588,6 +637,7 @@ export class UserService {
     }
     return await user.save();
   }
+
   async savePost(userId: string, postId: string): Promise<User> {
     const bookmarks = await this.UserModel.findById(userId);
     if (!bookmarks) {

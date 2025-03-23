@@ -10,6 +10,9 @@ import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { PostF } from './interface/PostHomeFeed.interface';
 import { Friend } from 'src/user/schemas/friend.schema';
+import { PublicGroup } from 'src/public-group/schema/plgroup.schema';
+import { MemberGroup } from 'src/public-group/schema/membergroup.schema';
+
 
 
 
@@ -18,65 +21,95 @@ export class PostService {
     constructor(
         @InjectModel(Post.name) private PostModel: Model<Post>,
         @InjectModel(User.name) private UserModel: Model<User>,
+        @InjectModel(PublicGroup.name) private PublicGroupModel : Model<PublicGroup>,
+        @InjectModel(MemberGroup.name) private MemberGroupModel: Model<MemberGroup>,
         @InjectModel(Friend.name) private FriendModel: Model<Friend>,
         private cloudinaryService: CloudinaryService,
         private jwtService: JwtService
     ) { }
 
-    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId, files?: Express.Multer.File[]): Promise<{ userPost: User, savedPost: Post }> {
-        const swageUserId = new Types.ObjectId(userId);
+    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId,files?: Express.Multer.File[]): Promise<Post> {
+
     
         let allowedUsers: Types.ObjectId[] = [];
+
+        let groupId: Types.ObjectId | undefined;
+        if (createPostDto.group) {
+          try {
+            groupId = new Types.ObjectId(createPostDto.group);
+          } catch (error) {
+            throw new HttpException('Invalid group ID', HttpStatus.BAD_REQUEST);
+          }
+        }
+    
+
+        if (groupId) {
+          const membership = await this.MemberGroupModel.findOne({
+            group: groupId,
+            member: userId,
+          }).exec();
+    
+          if (!membership) {
+            throw new HttpException('You are not a member of this group', HttpStatus.FORBIDDEN);
+          }
+          if (membership.blackList) {
+            throw new HttpException('You are in the blacklist of this group', HttpStatus.FORBIDDEN);
+          }
+          if (membership.role === 'member' && createPostDto.privacy !== 'public') {
+            throw new HttpException(
+              'Only admins or owners can set privacy for group posts',
+              HttpStatus.FORBIDDEN,
+            );
+          }
+        }
 
         if (createPostDto.privacy === 'specific') {
             if (!createPostDto.allowedUsers) {
                 throw new HttpException('Allowed users must be provided for specific privacy', HttpStatus.BAD_REQUEST);
             }
-        
-            console.log("Raw allowedUsers:", createPostDto.allowedUsers);
-        
+
             let allowedUsersRaw: string[] = [];
-        
+
             if (typeof createPostDto.allowedUsers === 'string') {
-                // Ép kiểu `allowedUsers` thành chuỗi trước khi tách
                 allowedUsersRaw = (createPostDto.allowedUsers as string).split(',').map(id => id.trim());
-                console.log("Processed allowedUsers:", allowedUsers);
             } else if (Array.isArray(createPostDto.allowedUsers)) {
                 allowedUsersRaw = createPostDto.allowedUsers as string[];
-                console.log("Processed allowedUsers:", allowedUsers);
+            } else {
+                throw new HttpException('Invalid allowedUsers format', HttpStatus.BAD_REQUEST);
             }
-        
+
             allowedUsers = allowedUsersRaw.map(id => new Types.ObjectId(id));
-            console.log("Processed allowedUsers:", allowedUsers);
         }
-        
+
+
         const newPost = new this.PostModel({
             content: createPostDto.content,
-            author: swageUserId,
+            group: groupId,
+            author: userId,
             privacy: createPostDto.privacy,
-            allowedUsers: allowedUsers, 
+            allowedUsers: allowedUsers,
             likes: [],
             dislikes: [],
             isActive: true,
         });
-    
+
+        if (createPostDto.gif) {
+            newPost.gif = createPostDto.gif;
+        }
+
         if (files && files.length > 0) {
             try {
-                const uploadedImages = await Promise.all(files.map(file => this.cloudinaryService.uploadFile(file)));
+                const uploadedImages = await Promise.all(
+                    files.map(file => this.cloudinaryService.uploadFile(file))
+                );
                 newPost.img = uploadedImages;
             } catch (error) {
                 throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-    
-        // Lưu bài viết vào database
+
         const savedPost = await newPost.save();
-        const userPost = await this.UserModel.findById(userId);
-    
-        return {
-            userPost,
-            savedPost
-        };
+        return savedPost
     }
     
     
