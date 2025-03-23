@@ -27,6 +27,7 @@ export default function ModalStatus({ user }) {
     const [formData, setFormData] = useState({
         content: '',
         files: null,
+        gif: null,
         privacy: privacy,
     });
 
@@ -92,13 +93,14 @@ export default function ModalStatus({ user }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.content && !formData.files) {
+        if (!formData.content && !formData.files && !formData.gif) {
             setNodata(true);
             return;
         }
         const data = new FormData();
         data.append('content', formData.content || '');
         data.append('files', formData.files || '');
+        data.append('gif', formData.gif || '');
         data.append('privacy', formData.privacy);
         try {
             setLoading(true);
@@ -133,7 +135,7 @@ export default function ModalStatus({ user }) {
     const handleGifSelect = (gifUrl) => {
         setFormData({
             ...formData,
-            files: gifUrl
+            gif: gifUrl
         });
         setFilePreview(null); // Remove image preview if a GIF is selected
         setShowGifDropdown(false); // Close the GIF dropdown after selecting a GIF
