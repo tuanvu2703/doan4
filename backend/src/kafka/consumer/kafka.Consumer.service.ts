@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { Kafka, Consumer, logLevel, EachMessagePayload, } from 'kafkajs';
+import { Kafka, Consumer, logLevel, EachMessagePayload } from 'kafkajs';
 import { EventService } from '../../event/event.service';
 import { NotificationService } from '../notification/notification.service';
 
@@ -25,43 +25,51 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         username: process.env.REDPANDA_USERNAME,
         password: process.env.REDPANDA_PASSWORD,
       },
-      connectionTimeout: 10000, 
+      connectionTimeout: 10000,
+      retry: {
+        initialRetryTime: 1000,
+        retries: 10,
+      },
       logLevel: logLevel.INFO,
     });
 
-    this.consumer = this.kafka.consumer({ groupId: 'GRnotification' });
+    this.consumer = this.kafka.consumer({
+      groupId: 'GRnotification',
+      sessionTimeout: 30000,
+      heartbeatInterval: 3000,
+    });
   }
 
   async onModuleInit() {
     try {
-        console.log('🔄 Connecting Kafka Consumer...');
-        await this.consumer.connect(); 
-        console.log('✅ Kafka Consumer connected!');
-         
+      console.log('🔄 Connecting Kafka Consumer...');
+      await this.consumer.connect();
+      console.log('✅ Kafka Consumer connected!');
 
-        await this.consumer.subscribe({ topic: 'notification', fromBeginning: false, });
-        await this.consumer.subscribe({ topic: 'group', fromBeginning: false });
-        await this.consumer.subscribe({ topic: 'mypost', fromBeginning: false });
+      await this.consumer.subscribe({ topic: 'notification', fromBeginning: false });
+      await this.consumer.subscribe({ topic: 'group', fromBeginning: false });
+      await this.consumer.subscribe({ topic: 'mypost', fromBeginning: false });
 
-        // từ đoạn này là xử lý các message từ Kafka
-        // nó không liên quan đến ScyllaDB, nhưng nó cũng là một service
-        // và không liên quan đến connnect ở trên đây là 1 phần riêng
-
-        await this.consumer.run({
-          eachMessage: async ({ topic, partition, message }: EachMessagePayload) => {
+      await this.consumer.run({
+        autoCommit: false,
+        eachMessage: async ({ topic, partition, message }: EachMessagePayload) => {
+          try {
             await this.notificationService.handleKafkaEvent(topic, message);
-            
-          },
-        });
-        
-  
+            await this.consumer.commitOffsets([
+              { topic, partition, offset: (parseInt(message.offset) + 1).toString() },
+            ]);
+          } catch (error) {
+            console.error(`❌ Error processing message from ${topic}:`, error);
+            throw error; // Để lỗi được catch bên ngoài, không commit offset
+          }
+        },
+      });
     } catch (error) {
-        console.error('❌ Kafka Consumer connection failed:', error);
-        setTimeout(() => this.onModuleInit(), 5000);
+      console.error('❌ Kafka Consumer error:', error);
+      await this.consumer.disconnect();
+      setTimeout(() => this.onModuleInit(), 5000);
     }
-}
-
-  
+  }
 
   async onModuleDestroy() {
     console.log('🔌 Disconnecting Kafka Consumer...');

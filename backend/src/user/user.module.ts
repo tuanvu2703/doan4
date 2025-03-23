@@ -14,6 +14,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { FriendSchema } from './schemas/friend.schema';
 import { EventModule } from '../event/event.module';
 import { EventService } from '../event/event.service';
+import { GoogleStrategy } from './google.strategy';
 
 @Global()
 @Module({
@@ -41,7 +42,7 @@ import { EventService } from '../event/event.service';
 
   ],
   controllers: [UserController],
-  providers: [UserService, OtpService, CloudinaryService, EventService],
-  exports:[UserService,JwtModule,UserModule, MongooseModule]
+  providers: [UserService, OtpService, CloudinaryService, EventService, GoogleStrategy],
+  exports:[UserService,JwtModule, MongooseModule]
 })
 export class UserModule {}

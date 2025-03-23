@@ -22,6 +22,9 @@ import { Types } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { APIS } from 'googleapis/build/src/apis';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+
+
 
 
 
@@ -38,6 +41,21 @@ export class UserController {
   signUp(@Body() registerDto: RegisterDto): Promise<User> {
     return this.userService.register(registerDto);
   }
+
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Req() req) {
+
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req) {
+    return this.userService.googleLogin(req);
+  }
+
+
 
   @Post('login')
   async login(

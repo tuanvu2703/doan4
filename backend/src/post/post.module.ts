@@ -10,6 +10,7 @@ import { EventService } from 'src/event/event.service';
 import { EventModule } from 'src/event/event.module';
 import { ProducerModule } from '../kafka/producer/producer.module';
 import { PublicGroupModule } from 'src/public-group/public-group.module';
+import { UserService } from 'src/user/user.service';
 
 
 @Global()

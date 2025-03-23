@@ -12,6 +12,7 @@ import { Types } from 'mongoose';
 import { ProducerService } from 'src/kafka/producer/kafka.Producer.service';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { timeStamp } from 'console';
+import { UserService } from 'src/user/user.service';
 
 @ApiTags('post')
 @Controller('post')
@@ -21,14 +22,13 @@ export class PostController {
         private postService: PostService,
         private eventService: EventService,
         private producerService: ProducerService,
+        private userService: UserService,
     ) { }
-
-
 
     @Post('createPost')
     @UseGuards(AuthGuardD)
-    @ApiBearerAuth() 
-    @ApiConsumes('multipart/form-data') 
+    @ApiBearerAuth()
+    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Upload your image' })
     @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 10 }]))
     async createPost(
@@ -36,12 +36,39 @@ export class PostController {
         @Body() createPostDto: CreatePostDto,
         @UploadedFiles() files: { files: Express.Multer.File[] }
     ) {
-        // nội dung cần làm: thông báo đến bạn bè của người dùng về bài viết mới(1 số người thôiz)
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-        const swageUserId = new Types.ObjectId(currentUser._id.toString());
-        return this.postService.createPost(createPostDto, swageUserId  ,files.files);
+    
+        const userId = new Types.ObjectId(currentUser._id.toString());
+        const newPost = await this.postService.createPost(createPostDto, userId, files.files);
+        const friendList = await this.userService.getMyFriend(userId);
+        const maxFriendsToNotify = Math.min(5, friendList.length);
+        const randomFriends = friendList
+            .sort(() => 0.5 - Math.random())
+            .slice(0, Math.max(4, maxFriendsToNotify));
+    
+        // Lấy danh sách targetIds
+        const targetIds = randomFriends
+            .map(friend => friend.sender?._id || friend.receiver?._id)
+            .filter(id => id); 
+    
+
+        const notification = {
+            type: 'post',
+            ownerId: userId,
+            targetIds: targetIds, 
+            data: {
+                postId: newPost._id,
+                message: `New post from ${currentUser.firstName} ${currentUser.lastName}`,
+                avatar: currentUser.avatar,
+                timestamp: new Date(),
+            },
+        };
+
+        await this.producerService.sendMessage('mypost', notification);
+    
+        return newPost;
     }
 
     @Get('testOptionalGuard')

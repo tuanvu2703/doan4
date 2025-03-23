@@ -22,9 +22,6 @@ export class CommentService {
   ) { }
 
 
-
-
-  //tạo cmt lần đầu
   async create(
     userId: Types.ObjectId,
     postId: Types.ObjectId,
@@ -75,9 +72,6 @@ export class CommentService {
   }
   
   
-
-
-  //tìm tất cả cmt có trên web
   async findAll(): Promise<Comment[]> {
     return this.commentModel.find().populate('author', 'firstName lastName').exec();
   }
@@ -179,8 +173,7 @@ export class CommentService {
     if (!comment) {
       throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
     }
-  
-    // Kiểm tra nếu user đã thích bình luận này
+
     if (comment.likes.includes(userId)) {
       throw new HttpException('Bạn đã thích bình luận này', HttpStatus.BAD_REQUEST);
     }
@@ -190,7 +183,7 @@ export class CommentService {
     const updatedComment = await comment.save();
   
     // Lấy ID của người đã viết bình luận
-    const authorId = comment.author.toString(); // Giả sử 'author' lưu trữ ID của người viết
+    const authorId = comment.author.toString();
   
     return { comment: updatedComment, authorId };
   }
@@ -208,4 +201,3 @@ export class CommentService {
     return await comment.save();
   }
 }
-

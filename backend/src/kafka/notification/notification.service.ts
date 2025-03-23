@@ -33,65 +33,92 @@ export class NotificationService {
   // 🔹 Xử lý bình luận bài viết
 
   async handlePostEvent(payload) {
-    const { postId, userId, ownerId, message, timestamp } = payload;
-    
-    if (userId !== ownerId) {
-      this.eventService.notificationToUser(ownerId, 'newpostevent', {
-        postId,
-        userId,
-        message,
-        timestamp,
-      });
+    const { targetIds, ownerId, data } = payload; 
+    const { postId, message, timestamp } = data;
+
+
+    for (const userId of targetIds) {
+        if (userId.toString() !== ownerId.toString()) {
+            this.eventService.notificationToUser(userId.toString(), 'new post', {
+                postId,
+                userId: ownerId,
+                message,
+                timestamp,
+            });
+        }
     }
-  }
+}
     
   async handleNotification(payload: any) {
     console.log("📨 Notification received:", payload);
 }
 
 
-  async handleKafkaMessage(message: any, shouldSave = true, skipSaveForTopics: string[] = []) {
-    try {
+async handleKafkaMessage(message: any, shouldSave = true, skipSaveForTopics: string[] = []) {
+  try {
       const parsedMessage = JSON.parse(message.value);
-  
-      // Chuyển đổi ObjectId nếu có
+
+      // Chuyển đổi ObjectId cho các trường đơn
       ['userId', 'ownerId', 'sender', 'reportedId'].forEach((field) => {
-        if (parsedMessage[field] && Types.ObjectId.isValid(parsedMessage[field])) {
-          parsedMessage[field] = new Types.ObjectId(parsedMessage[field]);
-        }
+          if (parsedMessage[field] && Types.ObjectId.isValid(parsedMessage[field])) {
+              parsedMessage[field] = new Types.ObjectId(parsedMessage[field]);
+          }
       });
-  
+
+      // Chuyển đổi postId trong data
       if (parsedMessage.data?.postId && Types.ObjectId.isValid(parsedMessage.data.postId)) {
-        parsedMessage.data.postId = new Types.ObjectId(parsedMessage.data.postId);
+          parsedMessage.data.postId = new Types.ObjectId(parsedMessage.data.postId);
       }
-  
-      // Nếu topic nằm trong danh sách bỏ qua => Không lưu vào DB
+
+      // Chuyển đổi targetIds thành ObjectId
+      if (parsedMessage.targetIds && Array.isArray(parsedMessage.targetIds)) {
+          parsedMessage.targetIds = parsedMessage.targetIds.map((id: string) => {
+              if (Types.ObjectId.isValid(id)) {
+                  return new Types.ObjectId(id);
+              }
+              console.warn(`Invalid ObjectId in targetIds: ${id}`);
+              return id; // Giữ nguyên nếu không hợp lệ
+          });
+      }
+
       if (skipSaveForTopics.includes(parsedMessage.topic)) {
-        console.log(`🛑 Skipping save for topic: ${parsedMessage.topic}`);
-        return;
+          console.log(`🛑 Skipping save for topic: ${parsedMessage.topic}`);
+          return;
       }
-  
-      // Kiểm tra xem có cần lưu không
+
       if (!shouldSave) {
-        console.log('🚀 Processing message without saving:', parsedMessage);
-        return;
+          console.log('🚀 Processing message without saving:', parsedMessage);
+          return;
       }
-  
-      // Lưu vào MongoDB nếu chưa có
+
+      const timeThreshold = 5 * 60 * 1000;
+      const timestamp = parsedMessage.data?.timestamp ? new Date(parsedMessage.data.timestamp) : new Date();
+      if (isNaN(timestamp.getTime())) {
+          console.warn('Invalid timestamp, using current time:', parsedMessage);
+          timestamp.setTime(new Date().getTime());
+      }
+
+      // Kiểm tra trùng lặp dựa trên postId, ownerId, type và timestamp
       const existingNotification = await this.notificationModel.findOne({
-        messageId: parsedMessage.messageId,
+          'data.postId': parsedMessage.data?.postId,
+          ownerId: parsedMessage.ownerId,
+          type: parsedMessage.type || 'post',
+          'data.timestamp': {
+              $gte: new Date(timestamp.getTime() - timeThreshold),
+              $lte: timestamp,
+          },
       });
-  
+
       if (!existingNotification) {
-        await this.notificationModel.create(parsedMessage);
-        console.log('✅ Notification saved:', parsedMessage);
+          await this.notificationModel.create(parsedMessage);
+          console.log('✅ Notification saved:', parsedMessage);
       } else {
-        console.log('⚠️ Duplicate message detected, skipping:', parsedMessage);
+          console.log('⚠️ Duplicate message detected within 5 minutes, skipping:', parsedMessage);
       }
-    } catch (error) {
+  } catch (error) {
       console.error('❌ Error handling Kafka message:', error);
-    }
   }
+}
   
   
   async handleKafkaEvent(topic: string, message: any) {
