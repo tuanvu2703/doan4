@@ -1,13 +1,6 @@
-import {
-    ArchiveBoxXMarkIcon,
-    ChevronDownIcon,
-    PencilIcon,
-    Square2StackIcon,
-    TrashIcon,
-    BellIcon
-} from '@heroicons/react/16/solid'
-import { Link } from 'react-router-dom'
+
 import AVTUser from '../post/AVTUser'
+import { useState,useEffect } from 'react'
 
 export default function Notification() {
     return (

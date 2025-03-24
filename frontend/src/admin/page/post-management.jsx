@@ -7,15 +7,15 @@ import Loading from '../../components/Loading'
 export default function PostManagement() {
   const [query, setQuery] = useState('')
   return (
-    <div className="overflow-x-auto mx-5 my-5 border-white border-2">
+    <div className="overflow-x-auto mx-5 my-5 border-white border-2 rounded-sm">
       {/* <label>
                 Search albums:
                 <input value={query} onChange={e => setQuery(e.target.value)} />
             </label> */}
-      <label className="input input-bordered flex items-center gap-2 rounded-none">
+      <label className="input input-bordered flex items-center gap-2 rounded-none bg-[#292929]">
         <input
           type="text"
-          className="grow text-black"
+          className="grow"
           placeholder="Search"
           value={query}
           onChange={e => setQuery(e.target.value)}
@@ -23,8 +23,8 @@ export default function PostManagement() {
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 16 16"
-          fill="black"
-          className="h-4 w-4 opacity-70 ">
+          fill="white"
+          className="h-6 w-6 opacity-70 ">
           <path
             fillRule="evenodd"
             d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
@@ -35,11 +35,11 @@ export default function PostManagement() {
         {/* head */}
         <thead className=' text-[#EEEEEE]'>
           <tr>
-            <th>
-              {/* <label>
-                                <input type="checkbox" className="checkbox border-white" />
-                            </label> */}
-            </th>
+            {/* <th>
+              <label>
+                <input type="checkbox" className="checkbox border-white" />
+              </label>
+            </th> */}
             <th>Image/video </th>
             <th>Content</th>
             <th>createdAt</th>

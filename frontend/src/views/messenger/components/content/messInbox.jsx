@@ -8,7 +8,7 @@ import { PaperAirplaneIcon, ArrowDownIcon } from '@heroicons/react/16/solid';
 import { useLocation } from 'react-router-dom';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Box, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { ChevronRightIcon, ChevronLeftIcon, ArrowUturnLeftIcon, PhotoIcon } from "@heroicons/react/24/solid";
+import { ChevronRightIcon, ChevronLeftIcon, ArrowUturnLeftIcon, PhotoIcon, PhoneIcon, VideoCameraIcon } from "@heroicons/react/24/solid";
 
 import imgUser from '../../../../img/user.png';
 import user from '../../../../service/user';
@@ -20,7 +20,8 @@ import { MessengerContext } from '../../layoutMessenger';
 import NotificationCss from '../../../../module/cssNotification/NotificationCss';
 import FileViewChane from '../../../../components/fileViewChane';
 import { FaceSmileIcon } from '@heroicons/react/24/outline';
-import Emoji from '../../../../components/Emoji';
+import DropdownEmoji from '../../../../components/DropdownEmoji';
+import Call from '../../../../components/Call';
 
 const MessengerInbox = () => {
     const { userContext } = useUser();
@@ -46,6 +47,27 @@ const MessengerInbox = () => {
     const [messageToRevoke, setMessageToRevoke] = useState(null); // Store message to be revoked
     const { setShowZom } = useUser();
     const [socket, setSocket] = useState(null); // Trạng thái kết nối socket
+
+    //Call
+    const iceServers = {
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:openrelay.metered.ca:80" },
+            {
+                urls: "turn:openrelay.metered.ca:80",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+            },
+            {
+                urls: "turn:openrelay.metered.ca:443",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+            },
+        ],
+    };
+    const [modalCall, setModalCall] = useState(false);
+
+
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const userId = queryParams.get('iduser');
@@ -66,7 +88,11 @@ const MessengerInbox = () => {
             const res = await messenger.revokedMesage(messageToRevoke); // API call to revoke the message
             if (res.success) {
                 setMessengerdata((prevMessages) =>
-                    prevMessages.filter((message) => message._id !== messageToRevoke)
+                    prevMessages.map((message) =>
+                        message._id === messageToRevoke
+                            ? { ...message, content: 'The message has been revoked' }
+                            : message
+                    )
                 );
                 toast.success(res?.message || 'Bạn vừa thu hồi tin nhắn thành công', NotificationCss.Success);
             } else {
@@ -77,7 +103,7 @@ const MessengerInbox = () => {
             console.log("Error revoking message:", error);
         } finally {
             setOpenDialog(false); // Close the dialog
-            setMessageToRevoke(null); // Clear the message ID
+            // Clear the message ID
         }
     };
     const cancelRevokeMessage = () => {
@@ -234,7 +260,7 @@ const MessengerInbox = () => {
 
     const handleSendMessenger = useCallback(async () => {
 
-        if (!message.trim() && !file || sending) return; // Prevent sending if already in progress
+        if ((!message.trim() && !file) || sending) return; // Prevent sending if already in progress
         // console.log('aaa')
         setSending(true); // Set sending state
         try {
@@ -290,7 +316,9 @@ const MessengerInbox = () => {
         acc[date].push(message);
         return acc;
     }, {});
-    console.log(groupedMessages)
+
+    //Call
+
     return (
         <div className="flex flex-col h-full ">
             <div className="p-2 flex border-b h-14 bg-white shadow-sm">
@@ -313,12 +341,18 @@ const MessengerInbox = () => {
 
 
                 </div>
-                <div className=" flex justify-end">
+                <div className=" flex justify-end  items-center gap-1">
+                    <button>
+                        <PhoneIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
+                    </button>
+                    <button onClick={() => setModalCall(true)}>
+                        <VideoCameraIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
+                    </button>
                     <button onClick={handleHiddenRight} >
                         {
-                            RightShow ? <ChevronRightIcon className="h-8 w-8 text-gray-700" />
+                            RightShow ? <ChevronRightIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                                 :
-                                <ChevronLeftIcon className="h-8 w-8 text-gray-700" />
+                                <ChevronLeftIcon className="h-8 w-8 text-gray-700  p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                         }
                     </button>
                 </div>
@@ -328,7 +362,7 @@ const MessengerInbox = () => {
                     <div key={date} className="">
                         <div className="mb-4 pb-2 px-3 ">
                             <div className="text-center text-gray-500 text-sm my-2">
-                                {format(new Date(date), 'MMMM dd, yyyy')}
+                                {format(new Date(date), ' dd')} <span>tháng</span> {format(new Date(date), 'MM')} <span>năm</span> {format(new Date(date), 'yyyy')}
                             </div>
                             {
                                 groupedMessages[date].map((mess, index) => (
@@ -337,17 +371,17 @@ const MessengerInbox = () => {
                                             className={`flex 
 
                                                 ${mess?.author?._id ? (
-                                                    mess?.author?._id == userContext._id ?
+                                                    mess?.author?._id === userContext._id ?
                                                         'justify-end pl-16' : 'pr-16'
                                                 ) : (
-                                                    mess?.sender == userContext._id ?
+                                                    mess?.sender === userContext._id ?
                                                         'justify-end pl-16' : 'pr-16'
                                                 )
                                                 }
                                               `}
 
                                             onMouseEnter={() => {
-                                                if ((mess?.author?._id == userContext._id) || (mess?.sender == userContext._id)) {
+                                                if ((mess?.author?._id === userContext._id) || (mess?.sender === userContext._id)) {
                                                     setHoveredMessageId(mess._id);
                                                 }
                                             }} // Set the hovered message
@@ -355,7 +389,7 @@ const MessengerInbox = () => {
                                         >
 
                                             <div className='flex flex-row '>
-                                                {hoveredMessageId === mess._id && (
+                                                {(hoveredMessageId === mess._id && mess.content !== 'The message has been revoked') && (
                                                     <div className='h-full flex p-2 items-center'>
                                                         <button onClick={() => handleRevokedClick(mess._id)}>
                                                             <ArrowUturnLeftIcon className="h-6 w-7 text-gray-500 bg-gray-100 rounded-sm " />
@@ -375,10 +409,10 @@ const MessengerInbox = () => {
                                                         //             mess?.author?._id == mess?.sender && mess?.sender != userContext._id &&
                                                         //             'bg-white 4'
                                                         mess?.author?._id ? (
-                                                            mess?.author?._id == userContext._id ?
+                                                            mess?.author?._id === userContext._id ?
                                                                 'bg-blue-100' : 'bg-white'
                                                         ) : (
-                                                            mess?.sender == userContext._id ?
+                                                            mess?.sender === userContext._id ?
                                                                 'bg-blue-100' : 'bg-white'
                                                         )
                                                     )}
@@ -411,9 +445,9 @@ const MessengerInbox = () => {
                                                         );
                                                     })}
 
-                                                    <p className="text-black p-2 break-words max-w-prose">{mess.content}</p>
+                                                    <p className="text-black p-2 break-words max-w-prose">{mess.content === 'The message has been revoked' ? ('Tin nhắn đã được thu hồi') : (`${mess.content}`)}</p>
                                                     <p className="text-xs text-gray-400 text-left pl-2">
-                                                        {format(new Date(mess.createdAt), 'hh:mm a')}
+                                                        {format(new Date(mess.createdAt), 'hh:mm')}
                                                     </p>
                                                 </div>
 
@@ -525,7 +559,7 @@ const MessengerInbox = () => {
                             <div className="dropdown dropdown-top dropdown-end ">
                                 <FaceSmileIcon tabIndex={0} role="button" className='size-7 fill-yellow-500 text-white' />
                                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <Emoji onEmojiClick={handleEmojiClick} />
+                                    <DropdownEmoji onEmojiClick={handleEmojiClick} />
                                 </ul>
                             </div>
                             <button onClick={handleSendMessenger} className="ml-2" disabled={sending}>
@@ -554,6 +588,23 @@ const MessengerInbox = () => {
                     </DialogActions>
                 </Dialog>
             </div>
+            {modalCall &&
+                <Call
+                    isOpen={modalCall}
+                    onClose={() => {
+                        setModalCall(false);
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                                .then((stream) => {
+                                    stream.getTracks().forEach((track) => track.stop());
+                                })
+                                .catch((err) => console.error("❌ [Media] Lỗi dọn dẹp camera/micro:", err));
+                        }
+                    }}
+                    targetUserIds={iduser}
+                    status="calling"
+                    iceServers={iceServers} // Pass iceServers as a prop
+                />}
         </div >
     );
 };

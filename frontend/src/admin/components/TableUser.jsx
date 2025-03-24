@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getAllUser } from "../../service/admin";
+import { activeUser, getAllUser } from "../../service/admin";
 import Loading from "../../components/Loading";
-import Skeleton from "../../components/Skeleton";
 
 export default function TableUser({ query }) {
     const [users, setUsers] = useState([]);
@@ -38,6 +37,19 @@ export default function TableUser({ query }) {
             (user.email && user.email.toLowerCase().includes(query.toLowerCase()));
     });
 
+
+    const handleActiveUser = async (userId) => {
+        try {
+            const response = await activeUser(userId);
+            if (response) {
+                setUsers(prevUsers => prevUsers.map(user =>
+                    user._id === userId ? { ...user, isActive: !user.isActive } : user
+                ));
+            }
+        } catch (error) {
+            console.error("Error active user:", error);
+        }
+    }
     return (
         <tbody>
             {filteredUsers.length === 0 ? (
@@ -72,9 +84,13 @@ export default function TableUser({ query }) {
                         <td>
                             <span className="badge badge-ghost badge-sm">{user.numberPhone}</span>
                         </td>
-                        <td>{user.email}</td>
+                        <td>{user.email} </td>
                         <th>
-                            <button className="btn btn-error btn-xs">Unactive</button>
+                            {user.isActive ? (
+                                <button className="btn btn-error btn-xs" onClick={(e) => handleActiveUser(user._id)}>Unactive</button>
+                            ) : (
+                                <button className="btn btn-success btn-xs" onClick={(e) => handleActiveUser(user._id)}>Active</button>
+                            )}
                         </th>
                     </tr>
                 ))

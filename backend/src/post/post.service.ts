@@ -295,7 +295,7 @@ export class PostService {
             }
 
             if(!post.isActive){
-                throw new UnauthorizedException('Post is not active');
+                return null;
             }
     
             if (post.privacy === 'friends') {

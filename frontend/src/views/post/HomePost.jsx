@@ -9,10 +9,8 @@ import DropdownOtherPost from './components/DropdownOtherPost';
 import DropdownPostPersonal from './components/DropdownPostPersonal';
 import Loading from '../../components/Loading';
 import { profileUserCurrent } from '../../service/ProfilePersonal';
-
-import { useUser } from '../../service/UserContext';
 import FileViewer from '../../components/fileViewer';
-import { ToastContainer } from 'react-toastify';
+
 
 export default function HomePost() {
     const [posts, setPosts] = useState([]);
@@ -43,6 +41,17 @@ export default function HomePost() {
     useEffect(() => {
         setDisplayedPosts(posts.slice(0, postsToShow));
     }, [posts, postsToShow]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                loadMorePosts();
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [postsToShow, posts]);
 
     const loadMorePosts = () => {
         setPostsToShow((prev) => prev + 10); // Increment by 5
@@ -151,10 +160,7 @@ export default function HomePost() {
                 return <span>{privacy}</span>;
         }
     };
-    const { setShowZom } = useUser();
-    const openModal = (file) => {
-        setShowZom({ file: file, show: true });
-    };
+
     return (
         <>
             {loading ? (
@@ -167,7 +173,7 @@ export default function HomePost() {
                             return (
                                 <div
                                     key={post._id}
-                                    className="grid p-4 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3"
+                                    className="grid p-4 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3 bg-white"
                                 >
                                     <div className="flex items-start gap-3">
                                         <AVTUser user={post.author} />
@@ -209,7 +215,7 @@ export default function HomePost() {
                                                 </button>
                                             )}
                                             <div className="carousel-item w-full flex justify-center">
-                                                <FileViewer file={post.img[0]} />
+                                                <FileViewer file={post.img[0]} mh={400} />
                                             </div>
                                             {post.img.length > 1 && (
                                                 <button
@@ -220,6 +226,15 @@ export default function HomePost() {
                                                 </button>
                                             )}
                                         </div>
+                                    )}
+                                    {post.gif && (
+                                        <div className='flex justify-center'>
+                                            <img
+                                                style={{ maxWidth: '100%', maxHeight: '400px' }}
+                                                src={post.gif}
+                                                alt="" />
+                                        </div>
+
                                     )}
                                     {/* Các nút like, comment, share */}
                                     <div className="flex justify-between flex-wrap gap-2">
@@ -261,16 +276,10 @@ export default function HomePost() {
                     ) : (
                         <div>No posts available</div>
                     )}
-                    {postsToShow < posts.length && (
-                        <button
-                            onClick={loadMorePosts}
-                            className="mt-5 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 w-full sm:w-auto"
-                        >
-                            Tải thêm bài viết
-                        </button>
-                    )}
+
                 </>
-            )}
+            )
+            }
 
         </>
     );

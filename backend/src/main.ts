@@ -27,12 +27,12 @@ async function bootstrap() {
   );
   // app.use(helmet());
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://nemo-mocha.vercel.app/'],
+    origin: ['http://localhost:3000', 'https://nemo-mocha.vercel.app'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
     credentials: true,
   });
-  
+
 
   const config = new DocumentBuilder()
     .setTitle('Function API social network')

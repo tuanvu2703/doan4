@@ -1,8 +1,8 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { getAllEmoji } from '../service/emoji'
+import { getAllEmoji } from '../service/emojiService';
 
-export default function Emoji({ onEmojiClick }) {
+export default function DropdownEmoji({ onEmojiClick }) {
     const [emoji, setEmoji] = useState([])
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,7 +34,7 @@ export default function Emoji({ onEmojiClick }) {
         <div>
             <ul className='overflow-y-auto h-64 grid grid-cols-4'>
                 {emoji.map((emoji) => (
-                    <li key={emoji.slug}>
+                    <li key={emoji.code}>
                         <button type='button' onClick={() => onEmojiClick(emoji.character)}>
                             {emoji.character}
                         </button>

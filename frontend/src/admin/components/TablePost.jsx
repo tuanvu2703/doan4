@@ -29,7 +29,6 @@ export default function TablePost({ query }) {
     if (loading) {
         return (
             <Loading />
-
         )
 
     }
@@ -48,11 +47,11 @@ export default function TablePost({ query }) {
             ) : (
                 filteredPosts.map((post) => (
                     <tr key={post._id}>
-                        <th>
+                        {/* <th>
                             <label>
                                 <input type="checkbox" className="checkbox border-white" />
                             </label>
-                        </th>
+                        </th> */}
                         <td>
                             {post.img.length > 0 ? (
                                 <UserProvider>
@@ -77,7 +76,7 @@ export default function TablePost({ query }) {
                             })}
                         </td>
                         <th>
-                            <button className="btn btn-error btn-xs">Delete</button>
+                            <button className="btn btn-error btn-xs">Hidden</button>
                         </th>
                     </tr>
                 ))

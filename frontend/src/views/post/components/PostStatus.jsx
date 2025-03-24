@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import ModalStatus from './ModalStatus';
 
 export default function PostStatus({ user }) {
-  if (!user) return
+  if (!user) return;
   return (
-    <div className='border border-gray-300 rounded-lg shadow-sm shadow-zinc-300 p-4'>
+    <div className='border border-gray-300 bg-white rounded-lg shadow-sm shadow-zinc-300 p-4'>
       <div className="flex column items-center" >
         <div className='pr-3'>
           <img

@@ -134,7 +134,7 @@ export default function PostPersonal({ user }) {
             ) : (
                 posts.length > 0 ? (
                     posts.map((post) => (
-                        <div key={post._id} className='grid p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3 w-full max-w-3xl mx-auto'>
+                        <div key={post._id} className='grid p-6 border bg-white border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3 w-full max-w-3xl mx-auto'>
                             <div className='flex items-start gap-3'>
                                 <AVTUser user={user} />
                                 <div className='grid gap-2 w-full'>
@@ -159,6 +159,15 @@ export default function PostPersonal({ user }) {
                                 <div className='flex justify-center'>
                                     <FilePreview file={post.img} />
                                 </div>
+                            )}
+                            {post.gif && (
+                                <div className='flex justify-center'>
+                                    <img
+                                        style={{ maxWidth: '100%', maxHeight: '300px' }}
+                                        src={post.gif}
+                                        alt="" />
+                                </div>
+
                             )}
                             {/* like, comment, share */}
                             <div className='flex justify-between flex-wrap gap-3'>

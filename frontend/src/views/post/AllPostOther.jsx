@@ -19,12 +19,17 @@ export default function AllPostOther({ user }) {
     const { setShowZom } = useUser()
     useEffect(() => {
         const fetchdata = async () => {
-            const response = await getAllOtherPosts(id)
-            if (response) {
-                const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                setPosts(sortedPosts)
-                const responseUserPersonal = await profileUserCurrent()
-                setUserLogin(responseUserPersonal.data)
+            try {
+                const response = await getAllOtherPosts(id)
+                if (response) {
+                    const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    setPosts(sortedPosts)
+                    const responseUserPersonal = await profileUserCurrent()
+                    setUserLogin(responseUserPersonal.data)
+                }
+            }
+            catch (error) {
+                console.error("Error fetching users:", error);
             }
         }
         fetchdata()
@@ -149,7 +154,7 @@ export default function AllPostOther({ user }) {
             {posts.map((post) => (
                 <div
                     key={post._id}
-                    className="grid gap-4 p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300"
+                    className="grid gap-4 bg-white p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300"
                 >
                     {/* Header: AVT + thông tin người dùng và Dropdown */}
                     <div className="flex flex-col md:flex-row items-start gap-3">
@@ -182,7 +187,15 @@ export default function AllPostOther({ user }) {
                             <FilePreview file={post.img} />
                         </div>
                     )}
+                    {post.gif && (
+                        <div className='flex justify-center'>
+                            <img
+                                style={{ maxWidth: '100%', maxHeight: '300px' }}
+                                src={post.gif}
+                                alt="" />
+                        </div>
 
+                    )}
                     {/* Footer: Like, Dislike, Comment và Share */}
                     <div className="flex flex-wrap justify-between items-center gap-2">
                         <div className="flex gap-2">

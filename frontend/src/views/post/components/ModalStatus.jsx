@@ -9,11 +9,11 @@ import authToken from '../../../components/authToken';
 import { PhotoIcon, FaceSmileIcon, GifIcon } from '@heroicons/react/24/solid';
 import Loading from '../../../components/Loading';
 import FileViewChane from '../../../components/fileViewChane';
-import Emoji from '../../../components/Emoji';
+import DropdownEmoji from '../../../components/DropdownEmoji';
 import Gif from './Gif';
 
 
-export default function ModalStatus({ user }) {
+export default function ModalStatus({ user, onCloseModal }) {
     const [open, setOpen] = useState(true);
     const [rows, setRows] = useState(3);
     const [visibility, setVisibility] = useState('Tất cả mọi người');
@@ -22,11 +22,13 @@ export default function ModalStatus({ user }) {
     const [showGifDropdown, setShowGifDropdown] = useState(false); // State to control GIF dropdown visibility
     const [alertVisible, setAlertVisible] = useState(false);
     const [filePreview, setFilePreview] = useState(null);
+    const [gifPreview, setGifPreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const [nodata, setNodata] = useState(false);
     const [formData, setFormData] = useState({
         content: '',
         files: null,
+        gif: null,
         privacy: privacy,
     });
 
@@ -62,8 +64,9 @@ export default function ModalStatus({ user }) {
         const file = e.target.files[0];
         if (file) {
             setFilePreview(URL.createObjectURL(file));
+            setGifPreview(null); // Remove GIF preview if an image is selected
         }
-        setFormData({ ...formData, files: file });
+        setFormData({ ...formData, files: file, gif: null }); // Clear GIF from formData
         setShowGifDropdown(false); // Close the GIF dropdown if an image is selected
     };
     const handleVisibilityChange = (newVisibility, valuePrivacy) => {
@@ -90,15 +93,21 @@ export default function ModalStatus({ user }) {
         setFormData({ ...formData, files: null });
     };
 
+    const handleGifRemove = () => {
+        setGifPreview(null);
+        setFormData({ ...formData, gif: null });
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.content && !formData.files) {
+        if (!formData.content && !formData.files && !formData.gif) {
             setNodata(true);
             return;
         }
         const data = new FormData();
         data.append('content', formData.content || '');
         data.append('files', formData.files || '');
+        data.append('gif', formData.gif || '');
         data.append('privacy', formData.privacy);
         try {
             setLoading(true);
@@ -126,15 +135,15 @@ export default function ModalStatus({ user }) {
     const handleEmojiClick = (emoji) => {
         setFormData({
             ...formData,
-            content: formData.content + emoji
+            content: (formData.content || '') + emoji // Đảm bảo content luôn là chuỗi
         });
     };
-
 
     const handleGifSelect = (gifUrl) => {
         setFormData({
             ...formData,
-            files: gifUrl
+            gif: gifUrl,
+            files: null // Clear image from formData
         });
         setFilePreview(null); // Remove image preview if a GIF is selected
         setShowGifDropdown(false); // Close the GIF dropdown after selecting a GIF
@@ -151,11 +160,11 @@ export default function ModalStatus({ user }) {
                     </div>
                 )}
                 <div className="border-b border-gray-300 py-3 px-4 flex justify-center">
-                    <strong className="text-black text-xl" style={{ animation: 'colorWave 1s linear infinite', fontWeight: 'bold' }}>
+                    <strong className="text-black text-xl" style={{ fontWeight: 'bold' }}>
                         Tạo bài đăng
                     </strong>
                     <form method="dialog">
-                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        <button onClick={() => setFormData('')} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                     </form>
                 </div>
                 <div className="p-4 space-y-4">
@@ -221,19 +230,23 @@ export default function ModalStatus({ user }) {
                             onChange={handleInputChange}
                             style={{ lineHeight: '1.5rem' }}
                         />
-                        {nodata && (<div className="text-red-500">Vui lòng nhập nội dung hoặc chọn ảnh</div>)}
-                        {filePreview && (
-                            <div className="mt-4">
-                                <FileViewChane file={formData?.files} onDelete={handleFileRemove} />
-                            </div>
-                        )}
-                        {formData.files && (
-                            <div className="mt-4 relative">
-                                <img src={formData.files} alt="Selected GIF" />
+                        {nodata && (<div className="text-red-500">Vui lòng nhập nội dung/hình ảnh/gif </div>)}
+                        <div className='w-full flex justify-center'>
+                            {filePreview && (
+                                <div className="flex justify-center">
+                                    <FileViewChane file={formData?.files} onDelete={handleFileRemove} />
+                                </div>
+                            )}
+                        </div>
+                        {formData.gif && (
+                            <div className="mt-4 flex justify-center">
+                                <img src={formData.gif} alt=""
+                                    style={{ maxWidth: '100%', maxHeight: '200px' }}
+                                />
                                 <button
                                     type="button"
-                                    className="absolute top-0 right-0  text-white rounded-full p-2"
-                                    onClick={() => setFormData({ ...formData, files: null })}
+                                    className="relative bg-red-500  p-3 text-white rounded-r-md"
+                                    onClick={() => setFormData({ ...formData, gif: null })}
                                 >
                                     ✕
                                 </button>
@@ -258,7 +271,7 @@ export default function ModalStatus({ user }) {
                             <div className="dropdown dropdown-top dropdown-end ">
                                 <FaceSmileIcon tabIndex={0} className='size-8 fill-yellow-500 ' />
                                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <Emoji onEmojiClick={handleEmojiClick} />
+                                    <DropdownEmoji onEmojiClick={handleEmojiClick} />
                                 </ul>
                             </div>
                             <div className="dropdown dropdown-top dropdown-end ">
@@ -276,7 +289,9 @@ export default function ModalStatus({ user }) {
                     {loading ? <p><Loading /></p> :
                         <div className='flex gap-3'>
                             <form method="dialog">
-                                <button className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-150">Hủy đăng bài</button>
+                                <button
+                                    onClick={() => setFormData('')}
+                                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-150">Hủy đăng bài</button>
                             </form>
                             <button
                                 type="submit"

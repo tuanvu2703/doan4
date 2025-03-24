@@ -9,7 +9,7 @@ import group from "../../../../../service/group";
 import { toast } from "react-toastify";
 import NotificationCss from "../../../../../module/cssNotification/NotificationCss";
 import { useUser } from "../../../../../service/UserContext";
-import { Key, MarginTwoTone } from "@mui/icons-material"; // You can use any icon you'd like
+import { Key } from "@mui/icons-material"; // You can use any icon you'd like
 const CardFriendGroup = ({ iduser, datagroup }) => {
     const { userContext } = useUser();
     const [userdata, setUserdata] = useState({});
@@ -25,7 +25,7 @@ const CardFriendGroup = ({ iduser, datagroup }) => {
         const fetchdata = async () => {
             if (iduser) { // Check if iduser is valid
                 try {
-                //   console.log('Fetching data for id:', iduser);
+                    //   console.log('Fetching data for id:', iduser);
                     const res = await user.getProfileUser(iduser);
                     if (res.success) {
                         setUserdata(res.data);

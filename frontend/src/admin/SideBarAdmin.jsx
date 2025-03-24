@@ -58,33 +58,33 @@ export default function SideBarAdmin() {
             <div className="drawer-side">
                 <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
 
-                <ul className="menu bg-[#393E46] min-h-full w-72 p-4">
+                <ul className="menu bg-[#050709] min-h-full w-72 p-4 border-r-[1px]">
                     {/* Sidebar content here */}
                     <div className='text-center'>
-                        <div className='py-7 mx-7 font-semibold text-[#00ADB5] text-2xl border-b-2 border-[#EEEEEE]'>
-                            ADMINISTRATOR
+                        <div className='py-7  font-semibold text-[#FFFFFF] text-2xl border-b-2 border-[#FFFFFF]'>
+                            Administrator
                         </div>
                     </div>
-                    <div className={`py-3 px-7 my-2 hover:bg-[#222831] rounded-md ${isActiveTab('/admin') ? 'text-[#00ADB5]' : ''}`}>
+                    <div className={`py-3 px-7 my-2 hover:bg-[#353535] rounded-md ${isActiveTab('/admin') ? 'bg-[#1D1D1D]' : ''}`}>
                         <Link className='flex items-center gap-4' to={'/admin'}>
                             <Squares2X2Icon className='size-7 fill-current' />
                             <span >Dashboard</span>
                         </Link>
                     </div>
-                    <div className={`py-3 px-7 my-2 hover:bg-[#222831] rounded-md ${isActiveTab('/admin/user') ? 'text-sky-600' : ''}`}>
+                    <div className={`py-3 px-7 my-2 hover:bg-[#353535] rounded-md ${isActiveTab('/admin/user') ? 'bg-[#1D1D1D]' : ''}`}>
                         <Link className='flex items-center gap-4' to={'/admin/user'}>
                             <IdentificationIcon className='size-7 fill-current ' />
                             <span>User Management</span>
                         </Link>
                     </div>
-                    <div className={`py-3 px-7 my-2 hover:bg-[#222831] rounded-md ${isActiveTab('/admin/post') ? 'text-green-600' : ''}`}>
+                    <div className={`py-3 px-7 my-2 hover:bg-[#353535] rounded-md ${isActiveTab('/admin/post') ? 'bg-[#1D1D1D]' : ''}`}>
                         <Link className='flex items-center gap-4' to={'/admin/post'}>
                             <CubeIcon className='size-7 fill-current ' />
                             <span>Post Management</span>
                         </Link>
                     </div>
-                    
-                    <div className={`py-3 px-7 my-2 hover:bg-[#222831] rounded-md ${isActiveTab('/admin/report/post') ? 'text-red-600' : ''}`}>
+
+                    <div className={`py-3 px-7 my-2 hover:bg-[#353535] rounded-md ${isActiveTab('/admin/report/post') ? 'bg-[#1D1D1D]' : ''}`}>
                         <Link className='flex items-center gap-4' to={'/admin/report/post'}>
                             <FlagIcon className='size-7 fill-current ' />
                             <span>Report Post Management</span>

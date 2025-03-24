@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import bg from './background_auth.jpg';
+import bg from './forgot.jpg';
 import { forgotPassword, resetPassword, verifyOTP } from '../service/ForgotPassword';
 import { toast, ToastContainer } from 'react-toastify';
 import NotificationCss from '../module/cssNotification/NotificationCss';
+import { Link } from 'react-router-dom';
+
 export default function ForgotPass() {
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
@@ -203,6 +205,30 @@ export default function ForgotPass() {
                         </button>
                     )}
                 </form>
+                <div className="flex items-center justify-between mt-3 mb-4 text-nowrap ">
+                    <label htmlFor="donotaccount" className="block text-gray-600 text-sm font-medium mr-1">
+                        <span className="text-sm text-gray-400">
+                            Chưa có tài khoản?
+                        </span>
+                    </label>
+                    <label htmlFor="register" className="block text-gray-600 text-sm font-medium">
+                        <Link to="/register" className="text-sm text-blue-500 hover:underline">
+                            Đăng ký ngay
+                        </Link>
+                    </label>
+                </div>
+                <div className="flex items-center justify-between mt-4 mb-4 text-nowrap ">
+                    <label className="block text-gray-600 text-sm font-medium mr-1">
+                        <span className="text-sm text-gray-400 ">
+                            Bạn đã nhớ lại mật khẩu?
+                        </span>
+                    </label>
+                    <label className="block text-gray-600 text-sm font-medium">
+                        <Link to="/login" className="text-sm text-blue-500 hover:underline">
+                            Đăng nhập ngay
+                        </Link>
+                    </label>
+                </div>
             </div>
             <ToastContainer position="top-right" autoClose={3000} />
         </div>
