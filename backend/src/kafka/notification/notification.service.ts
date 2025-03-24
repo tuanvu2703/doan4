@@ -3,6 +3,7 @@ import { EventService } from '../../event/event.service';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Notification } from './schema/notification.schema';
+import { User } from 'src/user/schemas/user.schemas';
 
 @Injectable()
 export class NotificationService {
@@ -250,35 +251,66 @@ export class NotificationService {
         $or: [
           { targetUserId: userId },
           { targetUserIds: userId },
-        ],
-        readBy: { $ne: userId },
+        ], 
       })
+      .select('_id type ownerId data createdAt') 
+      .populate('ownerId', 'firstName lastName avatar') 
       .sort({ createdAt: -1 })
-      .populate('ownerId')
-      .populate('targetUserId')
-      .populate('targetUserIds')
       .exec();
   }
 
-  async markAsRead(notificationId: Types.ObjectId, user: any) {
-    const userId = user?.userId;
-    if (!userId || !Types.ObjectId.isValid(userId)) {
-      throw new UnauthorizedException('Invalid user ID from token');
-    }
+  async getUnreadNotifications(userId: Types.ObjectId) {
+    const notifications = await this.notificationModel
+      .find({
+        $or: [
+          { targetUserId: userId },
+          { targetUserIds: userId },
+        ],
+        readBy: { $ne: userId },
+      })
+      .select('_id type ownerId data createdAt')
+      .populate('ownerId', 'firstName lastName avatar')
+      .sort({ createdAt: -1 })
+      .exec();
+      return notifications;
+  }
 
+  async getNotificationIsRead(userId: Types.ObjectId) {
+    const notifications = await this.notificationModel
+      .find({
+        $or: [
+          { targetUserId: userId },
+          { targetUserIds: userId },
+        ],
+        readBy: userId,
+      })
+      .select('_id type ownerId data createdAt')
+      .populate('ownerId', 'firstName lastName avatar')
+      .sort({ createdAt: -1 })
+      .exec();
+      return notifications;
+  }
+
+
+  async markAsRead(notificationId: Types.ObjectId, userId: Types.ObjectId) {
+
+  
+    // Tìm thông báo
     const notification = await this.notificationModel.findById(notificationId);
     if (!notification) {
       throw new Error('Notification not found');
     }
-
+  
+    // Kiểm tra xem user có phải là người nhận thông báo không
     const isRecipient =
-      (notification.targetUserId && notification.targetUserId.toString() === userId) ||
-      (notification.targetUserIds && notification.targetUserIds.some((id) => id.toString() === userId));
-
+      (notification.targetUserId && notification.targetUserId.toString() === userId.toString()) ||
+      (notification.targetUserIds && notification.targetUserIds.some((id) => id.toString() === userId.toString()));
+  
     if (!isRecipient) {
       throw new UnauthorizedException('You are not a recipient of this notification');
     }
-
+  
+    // Cập nhật trường readBy để đánh dấu thông báo là đã đọc
     return await this.notificationModel.findByIdAndUpdate(
       notificationId,
       { $addToSet: { readBy: new Types.ObjectId(userId) } },
