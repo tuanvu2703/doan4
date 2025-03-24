@@ -51,8 +51,16 @@ export class UserController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req) {
-    return this.userService.googleLogin(req);
+  async googleAuthRedirect(@Req() req, @Res() res) {
+    const result = await this.userService.googleLogin(req);
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NEST_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/user/refresh-token',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+    return res.redirect(`${process.env.FRONTEND_URL}?accessToken=${result.accessToken}`);
   }
 
 
@@ -67,7 +75,7 @@ export class UserController {
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: false, 
+      secure: process.env.NEST_ENV === 'production', 
       sameSite: 'Lax',
       path: '/user/refresh-token',
       maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -87,6 +95,19 @@ export class UserController {
   
     return this.userService.refreshToken(refreshToken);
   }
+
+  @Post('logout')
+  async logout(@Res() res) {
+  res.cookie('refreshToken', '', {
+    httpOnly: true,
+    secure: process.env.NEST_ENV === 'production',
+    sameSite: 'Lax',
+    path: '/user/refresh-token', 
+    expires: new Date(0),
+  });
+
+  return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
+}
   
  
   @ApiBearerAuth()

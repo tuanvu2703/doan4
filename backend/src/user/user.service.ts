@@ -160,11 +160,9 @@ export class UserService {
     }
   
     const googleUser = req.user;
-    // Kiểm tra xem user đã tồn tại trong DB chưa (dựa trên email)
     let user = await this.UserModel.findOne({ email: googleUser.email });
   
     if (!user) {
-     
       user = await this.UserModel.create({
         email: googleUser.email,
         firstName: googleUser.firstName,
@@ -174,7 +172,6 @@ export class UserService {
         isActive: true,
       });
     } else {
-
       await this.UserModel.updateOne(
         { email: googleUser.email },
         {
@@ -184,21 +181,14 @@ export class UserService {
           googleAccessToken: googleUser.accessToken,
         },
       );
+      user = await this.UserModel.findOne({ email: googleUser.email }); // Cập nhật user sau update
     }
   
-
     const tokens = await this.generateToken(user._id);
   
     return {
-      message: 'User logged in via Google',
-      user: {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatar: user.avatar,
-      },
       accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
+      refreshToken: tokens.refreshToken, // Trả về để controller đặt cookie
     };
   }
 
