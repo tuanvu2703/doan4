@@ -20,11 +20,12 @@ import { ResetPasswordDto } from './dto/resetPassword.dto';
 import { UploadAvatarDto } from './dto/uploadAvartar.dto';
 import { UploadCoverImgDto } from './dto/uploadCoverImg.dto';
 import { OptionalAuthGuard } from './guard/optional.guard';
-import { Types } from 'mongoose';
+import { Types, Model } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { APIS } from 'googleapis/build/src/apis';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { InjectModel } from '@nestjs/mongoose';
 
 
 
@@ -37,6 +38,7 @@ export class UserController {
     private userService: UserService,
     private otpService: OtpService,
     private eventService: EventService,
+    @InjectModel(User.name) private UserModel: Model<User>,
   ) { }
 
   @Post('register')
@@ -59,10 +61,18 @@ export class UserController {
       httpOnly: true,
       secure: process.env.NEST_ENV === 'production',
       sameSite: 'Lax',
-      path: '/user/refresh-token',
+      path: '/user',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
-    return res.redirect(`${process.env.FRONTEND_URL}?accessToken=${result.accessToken}`);
+    res.cookie('TokenDoan3', result.accessToken, {
+      httpOnly: false,
+      secure: process.env.NEST_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: 60 * 60 * 1000,
+    });
+    //${process.env.FRONTEND_URL}
+    return res.redirect(`http://localhost:3000`);
   }
 
 
@@ -79,7 +89,7 @@ export class UserController {
       httpOnly: true,
       secure: process.env.NEST_ENV === 'production', 
       sameSite: 'Lax',
-      path: '/user/refresh-token',
+      path: '/user',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -90,26 +100,33 @@ export class UserController {
   @Post('refresh-token')
   async refreshToken(@Request() req) {
     const refreshToken = req.cookies.refreshToken;
-
     if (!refreshToken) {
       throw new HttpException('No refresh token provided', HttpStatus.UNAUTHORIZED);
     }
-
     return this.userService.refreshToken(refreshToken);
   }
 
   @Post('logout')
-  async logout(@Res() res) {
-  res.cookie('refreshToken', '', {
-    httpOnly: true,
-    secure: process.env.NEST_ENV === 'production',
-    sameSite: 'Lax',
-    path: '/user/refresh-token', 
-    expires: new Date(0),
-  });
+  async logout(@Req() req, @Res() res) {
 
-  return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
-}
+  const refreshToken = req.cookies.refreshToken;
+  console.log('refreshToken from cookie:', refreshToken);
+  
+    await this.userService.logout(refreshToken);
+  
+
+    const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); 
+    res.cookie('refreshToken', '', {
+      httpOnly: true,
+      secure: process.env.NEST_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/user',
+      maxAge: 0,
+      expires: pastDate,
+    });
+
+    return res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
+  }
   
  
   @ApiBearerAuth()

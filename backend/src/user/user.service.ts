@@ -110,7 +110,32 @@ export class UserService {
     }
   }
 
+  async logout(refreshToken: string): Promise<void> {
+    if (!refreshToken) {
+      console.log('No refresh token provided, skipping database update');
+      return;
+    }
 
+    console.log('Attempting to remove refreshToken:', refreshToken);
+
+    const user = await this.UserModel.findOne({ refreshToken });
+    if (!user) {
+      console.log('No user found with this refreshToken:', refreshToken);
+      return;
+    }
+
+    console.log('User found:', user._id);
+
+    const result = await this.UserModel.updateOne(
+      { refreshToken },
+      { $unset: { refreshToken: 1 } }
+    );
+
+    console.log('Update result:', result);
+    if (result.modifiedCount === 0) {
+      console.log('No user was updated. refreshToken may not match.');
+    }
+  }
 
 
   async login(loginDto: LoginDto) {

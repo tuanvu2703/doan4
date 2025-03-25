@@ -12,7 +12,7 @@ export default function DropdownProfile({ user }) {
         
         setTimeout(() => {
             window.location.href = '/login';
-        }, 2000); // Redirect after 2 seconds
+        }, 10); 
     }
 
 
