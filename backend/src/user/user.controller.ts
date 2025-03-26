@@ -113,7 +113,6 @@ export class UserController {
   console.log('refreshToken from cookie:', refreshToken);
   
     await this.userService.logout(refreshToken);
-  
 
     const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); 
     res.cookie('refreshToken', '', {
