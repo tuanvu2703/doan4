@@ -30,12 +30,12 @@ export default function ModalReportUser({ userId }) {
                 <div className="grid gap-3">
                     <Link to={`/user/${userId}`}>
                         <span className="font-bold text-lg hover:underline">
-                            {user.lastName} {user.firstName}
+                            {user?.lastName} {user?.firstName}
                         </span>
                     </Link>
-                    <span>Email: {user.email}</span>
-                    <span>Phone: {user.numberPhone}</span>
-                    <span>Birthday: {user.birthday}</span>
+                    <span>Email: {user?.email}</span>
+                    <span>Phone: {user?.numberPhone}</span>
+                    <span>Birthday: {user?.birthday}</span>
 
                 </div>
                 <form method="dialog" className="modal-backdrop">

@@ -7,7 +7,7 @@ import NotificationCss from '../../../module/cssNotification/NotificationCss';
 export default function ReportForm({ postId }) {
     const [loading, setLoading] = useState(false);
     const [report, setReport] = useState({
-        type: 'post',
+        type: 'Post',
         reportedId: postId,
         reason: '',
     });
