@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { HomeIcon, UserGroupIcon, ChatBubbleLeftIcon, BookmarkIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, UserGroupIcon, ChatBubbleLeftIcon, BookmarkIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
@@ -80,7 +80,7 @@ export default function SideBar() {
                             to="/group"
                             className={`hover:bg-red-100  flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? 'text-red-500' : 'text-gray-500'} `}
                         >
-                            <BookmarkIcon className='size-11' />
+                            <GlobeAltIcon className='size-11' />
                             <span className="text-sm font-medium">Nhóm</span>
                         </Link>
                     </ul>

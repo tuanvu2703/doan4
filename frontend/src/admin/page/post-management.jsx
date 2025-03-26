@@ -43,6 +43,7 @@ export default function PostManagement() {
             <th>Image/video </th>
             <th>Content</th>
             <th>createdAt</th>
+            <th>Status</th>
             <th></th>
           </tr>
         </thead>

@@ -37,8 +37,8 @@ export default function TableReport({ query }) {
       }).includes(query) ||
       report.status.toLowerCase().includes(query.toLowerCase()) ||
       report.type.toLowerCase().includes(query.toLowerCase()) ||
-      report.reportedId.toLowerCase().includes(query.toLowerCase()) ||
-      report.sender.toLowerCase().includes(query.toLowerCase());
+      report.reportedId._id.toLowerCase().includes(query.toLowerCase()) ||
+      report.sender.email.toLowerCase().includes(query.toLowerCase());
   });
 
   const handleApproval = async (reportId) => {
