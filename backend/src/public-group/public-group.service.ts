@@ -7,6 +7,8 @@ import { PublicGroup } from './schema/plgroup.schema';
 import { MemberGroup } from './schema/membergroup.schema';
 import { CreatePublicGroupDto, RuleDto } from './dto/createpublicgroup.dto';
 import { RequestJoinGroup } from './schema/requestJoinGroup.schema';
+import { PostSchema, Post } from 'src/post/schemas/post.schema';
+import { User } from 'src/user/schemas/user.schemas';
 
 
 @Injectable()
@@ -15,6 +17,8 @@ export class PublicGroupService {
         @InjectModel(PublicGroup.name) private readonly PublicGroupModel: Model<PublicGroup>,
         @InjectModel(MemberGroup.name) private readonly MemberGroupModel: Model<MemberGroup>,
         @InjectModel(RequestJoinGroup.name) private readonly RequestJoinGroupModel: Model<RequestJoinGroup>,
+        @InjectModel(Post.name) private readonly PostModel: Model<Post>,
+        @InjectModel(User.name) private readonly UserModel: Model<User>,
         private readonly cloudinaryService: CloudinaryService,
         private readonly userService: UserService,
     ) {}
@@ -76,7 +80,7 @@ export class PublicGroupService {
     }
 
     async getPublicGroupById(groupId: string): Promise<PublicGroup> {
-        const group = await this.PublicGroupModel.findById(groupId);
+        const group = await this.PublicGroupModel.findById(groupId)
         if (!group) {
           throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
         }
@@ -186,5 +190,56 @@ export class PublicGroupService {
       await this.RequestJoinGroupModel.findByIdAndDelete(requestJoinGroupId);
       return requestJoinGroup;
     }
+
+    async getmemberGroup(groupId: Types.ObjectId): Promise<MemberGroup[]> {
+      const memberGroup = await this.MemberGroupModel.find({ group: groupId })
+      .populate({
+        path : 'member',
+        select: 'firstName lastName avatar'
+      });
+      return memberGroup;
+    }
+
+    async getPostInGroup(groupId: Types.ObjectId): Promise<Post[]> {
+      const group = await this.PublicGroupModel.findById(groupId)
+      const posts = await this.PostModel.find({ group : groupId })
+      .populate({
+        path : 'author',
+        select : 'firstName lastName avatar'
+      })
+
+      .populate({
+        path : 'group',
+        select : 'groupName avatargroup'
+      })
+      .exec()
+      if (!group) {
+        throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+      }
+      return posts 
+    }
+
+    async empowerMember(groupId: Types.ObjectId, userIds: Types.ObjectId[]): Promise<any> {
+
+      const group = await this.PublicGroupModel.findById(groupId);
+      if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+  
+      const users = await this.UserModel.find({ _id: { $in: userIds } });
+      if (users.length !== userIds.length) throw new HttpException('One or more users not found', HttpStatus.NOT_FOUND);
+  
+      const members = await this.MemberGroupModel.find({ group: groupId, member: { $in: userIds } });
+      if (members.length !== userIds.length) throw new HttpException('One or more members not found in group', HttpStatus.NOT_FOUND);
+  
+      for (const member of members) {
+          if (member.role === 'owner') throw new HttpException(`Member ${member.member} is owner`, HttpStatus.BAD_REQUEST);
+          if (member.role === 'admin') throw new HttpException(`Member ${member.member} is already admin`, HttpStatus.BAD_REQUEST);
+          member.role = 'admin';
+      }
+  
+      await Promise.all(members.map(member => member.save()));
+      return members;
+  
+  }
+
 
 }
