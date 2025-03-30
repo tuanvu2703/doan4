@@ -177,7 +177,7 @@ export class PostService {
         }
     
         // Lấy authorId từ bài viết
-        const authorId = post.author.toString(); // Giả sử 'author' là ObjectId
+        const authorId = post.author.toString();
     
         return { post, authorId };
     }
