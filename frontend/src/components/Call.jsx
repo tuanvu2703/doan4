@@ -154,6 +154,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         socket.on("callRejected", ({ from }) => {
             console.log("❌ [Socket] Nhận callRejected từ:", from);
             cleanupPeer(from);
+            cleanupPeer(userId); // Dọn dẹp PeerConnection của chính mình
             setCallStatus("idle");
         });
 
@@ -400,7 +401,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             delete peerConnections.current[targetId];
         }
         if (remoteVideoRefs.current[targetId]) {
-            // remoteVideoRefs.current[targetId].srcObject = null;
+            remoteVideoRefs.current[targetId].srcObject = null;
             remoteVideoRefs.current[targetId].parentElement.remove();
             delete remoteVideoRefs.current[targetId];
         }
