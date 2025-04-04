@@ -217,8 +217,14 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     return;
                 }
                 const pc = peerConnections.current[from];
+
+                // Nếu đã có remote answer, hoặc trạng thái signaling là "stable", bỏ qua answer mới
+                if (pc.remoteDescription && pc.remoteDescription.type === "answer") {
+                    console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
+                    return;
+                }
                 if (pc.signalingState === "stable") {
-                    console.warn("⚠️ [Peer] Already in stable state, ignoring answer from:", from);
+                    console.warn("⚠️ [Peer] Đã ở trạng thái stable, bỏ qua answer từ:", from);
                     return;
                 }
                 if (pc.signalingState !== "have-local-offer") {
@@ -341,9 +347,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 remoteVideoRefs.current[targetId] = video;
             }
             remoteVideoRefs.current[targetId].srcObject = e.streams[0];
-            remoteVideoRefs.current[targetId].play().catch((err) => {
-                console.error(`❌ [Render] Lỗi phát video cho user ${targetId}:`, err);
-            });
+            // remoteVideoRefs.current[targetId].play().catch((err) => {
+            //     console.error(`❌ [Render] Lỗi phát video cho user ${targetId}:`, err);
+            // });
         };
         pc.oniceconnectionstatechange = () => {
             if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
@@ -394,7 +400,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             delete peerConnections.current[targetId];
         }
         if (remoteVideoRefs.current[targetId]) {
-            remoteVideoRefs.current[targetId].srcObject = null;
+            // remoteVideoRefs.current[targetId].srcObject = null;
             remoteVideoRefs.current[targetId].parentElement.remove();
             delete remoteVideoRefs.current[targetId];
         }
