@@ -161,6 +161,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         socket.on("callEnded", ({ from }) => {
             console.log("🚫 [Socket] Nhận callEnded từ:", from);
             cleanupPeer(from);
+            cleanupPeer(userId);
             setCallStatus("idle");
         });
 
