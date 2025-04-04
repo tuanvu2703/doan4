@@ -86,19 +86,16 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     useEffect(() => {
         const remoteVideosContainer = document.getElementById("remote-videos");
         if (remoteVideosContainer && Object.keys(pendingStreams.current).length > 0) {
-            console.log("📊 [Render] Xử lý các stream đang chờ...");
+            //console.log("📊 [Render] Xử lý các stream đang chờ...");
             Object.entries(pendingStreams.current).forEach(([targetId, stream]) => {
                 if (!remoteVideoRefs.current[targetId]) {
                     const container = document.createElement("div");
                     const video = document.createElement("video");
-                    const label = document.createElement("p");
-                    label.textContent = `User: ${targetId}`;
                     video.autoplay = true;
                     video.playsInline = true;
                     video.style.width = "200px";
                     video.style.border = "1px solid #ccc";
                     container.appendChild(video);
-                    container.appendChild(label);
                     remoteVideosContainer.appendChild(container);
                     remoteVideoRefs.current[targetId] = video;
                     video.srcObject = stream;
@@ -168,10 +165,10 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
 
         socket.on("offer", async ({ from, sdp }) => {
             if (!isStreamReady) {
-                console.log("⏳ [Socket] Chưa có stream, chờ stream sẵn sàng...");
+                //console.log("⏳ [Socket] Chưa có stream, chờ stream sẵn sàng...");
                 return;
             }
-            console.log("📡 [Socket] Nhận offer từ:", from);
+            // console.log("📡 [Socket] Nhận offer từ:", from);
             try {
                 if (peerConnections.current[from]) {
                     const pc = peerConnections.current[from];
@@ -184,9 +181,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     peerConnections.current[from] = createPeerConnection(from);
                 }
                 const pc = peerConnections.current[from];
-                console.log("📡 [Peer] Đang đặt remote description...");
+                //        console.log("📡 [Peer] Đang đặt remote description...");
                 await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                console.log("✅ [Peer] Đã đặt remote description cho:", from);
+                //console.log("✅ [Peer] Đã đặt remote description cho:", from);
 
                 console.log("📡 [Peer] Đang tạo answer...");
                 const answer = await pc.createAnswer();
@@ -210,7 +207,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         });
 
         socket.on("answer", async ({ from, sdp }) => {
-            console.log("📡 [Socket] Nhận answer từ:", from);
+            //     console.log("📡 [Socket] Nhận answer từ:", from);
             try {
                 if (!peerConnections.current[from]) {
                     console.warn("⚠️ [Peer] PeerConnection không tồn tại cho:", from);
@@ -242,7 +239,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         });
 
         socket.on("ice-candidate", async ({ from, candidate }) => {
-            console.log("❄️ [Socket] Nhận ICE candidate từ:", from);
+            //    console.log("❄️ [Socket] Nhận ICE candidate từ:", from);
             try {
                 if (!peerConnections.current[from]) {
                     console.log("⏳ [Socket] PeerConnection chưa tồn tại, lưu ICE candidate vào buffer cho:", from);
@@ -252,13 +249,13 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 }
                 const pc = peerConnections.current[from];
                 if (!pc.remoteDescription) {
-                    console.log("⏳ [Socket] Chưa có remoteDescription, lưu ICE candidate vào buffer cho:", from);
+                    //              console.log("⏳ [Socket] Chưa có remoteDescription, lưu ICE candidate vào buffer cho:", from);
                     if (!iceCandidatesBuffer.current[from]) iceCandidatesBuffer.current[from] = [];
                     iceCandidatesBuffer.current[from].push(candidate);
                     return;
                 }
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
-                console.log("✅ [Peer] ICE candidate added successfully for:", from);
+                //    console.log("✅ [Peer] ICE candidate added successfully for:", from);
             } catch (error) {
                 console.error("❌ [Socket] Lỗi xử lý ICE candidate:", error);
             }
@@ -319,9 +316,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             }
         };
         pc.ontrack = (e) => {
-            console.log("📹 [Peer] Nhận stream từ:", targetId, "Tracks:", e.streams[0].getTracks());
+            //         console.log("📹 [Peer] Nhận stream từ:", targetId, "Tracks:", e.streams[0].getTracks());
             e.streams[0].getTracks().forEach((track) => {
-                console.log(`🔊 [Track] Track type: ${track.kind}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
+                //         console.log(`🔊 [Track] Track type: ${track.kind}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
             });
             const remoteVideosContainer = document.getElementById("remote-videos");
             if (!remoteVideosContainer) {
@@ -331,14 +328,11 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             }
             if (!remoteVideoRefs.current[targetId]) {
                 console.log(`🎥 [Render] Tạo video element cho user ${targetId}`);
-                const container = document.createElement("div");
                 const video = document.createElement("video");
-                const label = document.createElement("p");
                 video.autoplay = true;
                 video.playsInline = true;
-                container.appendChild(video);
-                container.appendChild(label);
-                remoteVideosContainer.appendChild(container);
+                remoteVideosContainer.appendChild(video);
+                console.log(`🎥 [Render] Đã thêm video element cho user ${targetId}`);
                 remoteVideoRefs.current[targetId] = video;
             }
             remoteVideoRefs.current[targetId].srcObject = e.streams[0];
@@ -347,12 +341,11 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             });
         };
         pc.oniceconnectionstatechange = () => {
-            console.log("🌐 [Peer] Trạng thái ICE của", targetId, ":", pc.iceConnectionState);
             if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
                 console.log("❌ [Peer] Kết nối ICE thất bại với:", targetId);
                 cleanupPeer(targetId);
             } else if (pc.iceConnectionState === "connected") {
-                console.log("✅ [Peer] Kết nối ICE thành công với:", targetId);
+                // console.log("✅ [Peer] Kết nối ICE thành công với:", targetId);
             }
         };
         return pc;
@@ -434,20 +427,20 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="p-6 rounded-lg shadow-lg">
-                {callStatus === "calling" && (
+                {/* {callStatus === "calling" && (
                     <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
                         <p>Đang gọi...</p>
                     </div>
-                )}
+                )} */}
                 <div
                     id="remote-videos"
-                    className="w-screen"
+                    className="flex justify-center items-center h-screen w-screen"
                 />
-                {callStatus === "idle" && (
+                {/* {callStatus === "idle" && (
                     <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
                         <p>Cuộc gọi kết thúc</p>
                     </div>
-                )}
+                )} */}
 
                 <div>
                     <video
