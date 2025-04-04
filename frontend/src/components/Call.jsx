@@ -112,6 +112,15 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     }, [callStatus]);
 
     useEffect(() => {
+        if (isStreamReady && targetUserIds && socket && !hasStartedCall) {
+            if (status === 'calling') {
+                startCall();
+            }
+            setHasStartedCall(true); // Mark startCall as called
+        }
+    }, [isStreamReady, targetUserIds, socket, hasStartedCall, status]);
+
+    useEffect(() => {
         if (!socket) return;
 
         socket.on("connect", () => {
@@ -325,11 +334,8 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 const container = document.createElement("div");
                 const video = document.createElement("video");
                 const label = document.createElement("p");
-                label.textContent = `User: ${targetId}`;
                 video.autoplay = true;
                 video.playsInline = true;
-                video.style.width = "200px";
-                video.style.border = "1px solid #ccc";
                 container.appendChild(video);
                 container.appendChild(label);
                 remoteVideosContainer.appendChild(container);
@@ -435,13 +441,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 )}
                 <div
                     id="remote-videos"
-                    style={{
-                        display: callStatus === "in-call" ? "grid" : "none",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                        gap: "10px",
-                        width: "100%",
-                        height: "100%",
-                    }}
+                    className="w-screen"
                 />
                 {callStatus === "idle" && (
                     <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
