@@ -220,15 +220,12 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 }
                 const pc = peerConnections.current[from];
 
-                // Nếu đã có remote answer, hoặc trạng thái signaling là "stable", bỏ qua answer mới
+                // Nếu đã có remote answer, bỏ qua answer mới
                 if (pc.remoteDescription && pc.remoteDescription.type === "answer") {
                     console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
                     return;
                 }
-                if (pc.signalingState === "stable") {
-                    console.warn("⚠️ [Peer] Đã ở trạng thái stable, bỏ qua answer từ:", from);
-                    return;
-                }
+                // Chỉ cho phép xử lý answer khi trạng thái là "have-local-offer"
                 if (pc.signalingState !== "have-local-offer") {
                     console.warn(`⚠️ [Peer] Invalid state for answer: ${pc.signalingState}`);
                     return;
@@ -248,6 +245,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 cleanupPeer(from);
             }
         });
+
 
         socket.on("ice-candidate", async ({ from, candidate }) => {
             try {
