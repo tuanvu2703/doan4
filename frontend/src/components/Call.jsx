@@ -220,16 +220,12 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 }
                 const pc = peerConnections.current[from];
 
-                // Nếu đã có remote answer, bỏ qua answer mới
-                if (pc.remoteDescription && pc.remoteDescription.type === "answer") {
+                // Nếu remote description đã được thiết lập, ta bỏ qua answer mới
+                if (pc.remoteDescription) {
                     console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
                     return;
                 }
-                // Chỉ cho phép xử lý answer khi trạng thái là "have-local-offer"
-                if (pc.signalingState !== "have-local-offer") {
-                    console.warn(`⚠️ [Peer] Invalid state for answer: ${pc.signalingState}`);
-                    return;
-                }
+
                 await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                 console.log("✅ [Peer] Remote answer SDP set successfully for:", from);
 
@@ -245,6 +241,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 cleanupPeer(from);
             }
         });
+
 
 
         socket.on("ice-candidate", async ({ from, candidate }) => {
@@ -358,6 +355,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             } else if (pc.iceConnectionState === "connected") {
             }
         };
+
         return pc;
     };
 
