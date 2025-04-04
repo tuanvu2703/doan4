@@ -341,9 +341,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 remoteVideoRefs.current[targetId] = video;
             }
             remoteVideoRefs.current[targetId].srcObject = e.streams[0];
-            remoteVideoRefs.current[targetId].play().catch((err) => {
-                console.error(`❌ [Render] Lỗi phát video cho user ${targetId}:`, err);
-            });
+            // remoteVideoRefs.current[targetId].play().catch((err) => {
+            //     console.error(`❌ [Render] Lỗi phát video cho user ${targetId}:`, err);
+            // });
         };
         pc.oniceconnectionstatechange = () => {
             if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
