@@ -323,7 +323,7 @@ const MessengerInbox = () => {
 
                 </div>
                 <div className=" flex justify-end  items-center gap-1">
-                    <button onClick={() => startCall(iduser)}>
+                    <button onClick={() => startCall(iduser, "calling")}>
                         <PhoneIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                     </button>
                     <button>

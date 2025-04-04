@@ -3,18 +3,19 @@ import React, { createContext, useState, useContext } from 'react';
 const CallContext = createContext();
 
 export const CallProvider = ({ children }) => {
+
   const [callState, setCallState] = useState({
     isOpen: false,
     targetUserIds: null,
     status: 'idle',
   });
-  
 
-  const startCall = (targetId) => {
+
+  const startCall = (targetId, sta) => {
     setCallState({
       isOpen: true,
       targetUserIds: targetId,
-      status: 'calling'
+      status: sta
     });
   };
 
@@ -22,8 +23,10 @@ export const CallProvider = ({ children }) => {
     setCallState({
       isOpen: true,
       targetUserIds: group ? group.join(',') : callerId,
-      status: 'in-call'
+      status: 'in-call' // Status is set to 'in-call' for the receiver
     });
+
+    // The caller's status will be updated through socket events in the Call component
   };
 
   const endCall = () => {
@@ -33,10 +36,17 @@ export const CallProvider = ({ children }) => {
       status: 'idle'
     });
   };
-  
+
+  // Add a function to update just the call status
+  const updateCallStatus = (newStatus) => {
+    setCallState(prevState => ({
+      ...prevState,
+      status: newStatus
+    }));
+  };
 
   return (
-    <CallContext.Provider value={{ callState, startCall, acceptIncomingCall, endCall }}>
+    <CallContext.Provider value={{ callState, startCall, acceptIncomingCall, endCall, updateCallStatus }}>
       {children}
     </CallContext.Provider>
   );

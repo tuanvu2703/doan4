@@ -29,7 +29,7 @@ function LayoutContent() {
   const navigate = useNavigate();
   const [userCurrent, setUserCurrent] = useState({});
   const [disconnect, setDisconnect] = useState(true);
-  const { callState, startCall, acceptIncomingCall, endCall } = useCall();
+  const { callState, acceptIncomingCall, endCall } = useCall();
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState(null);
 
