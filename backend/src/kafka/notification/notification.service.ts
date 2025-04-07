@@ -108,7 +108,7 @@ export class NotificationService {
     await this.handleKafkaMessage({ value: JSON.stringify(notificationData) });
   }
 
-  // 🔹 Xử lý tin nhắn Kafka
+
   async handleKafkaMessage(message: any, shouldSave = true, skipSaveForTopics: string[] = []) {
     try {
       const parsedMessage = JSON.parse(message.value);

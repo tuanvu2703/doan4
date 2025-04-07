@@ -2,17 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { AuththenticationSoket } from '../user/guard/authSocket.guard';
 import { WsException } from '@nestjs/websockets';
-import { EventGeteWay } from './event.geteway';
+
+interface CallGroup {
+  roomId: string;
+  users: Set<string>;
+}
 
 @Injectable()
 export class WebRTCService {
   private server: Server;
-  private activeCalls = new Map<string, Set<string>>(); 
+  private activeCalls = new Map<string, CallGroup>(); 
 
-  constructor(
-
-    private readonly authenticationSoket: AuththenticationSoket,
-  ) {}
+  constructor(private readonly authenticationSoket: AuththenticationSoket) {}
 
   setServer(server: Server) {
     this.server = server;
@@ -25,6 +26,7 @@ export class WebRTCService {
     }
     return this.server;
   }
+
   async startCall(client: Socket, data: { targetUserIds: string[] }) {
     const user = await this.authenticationSoket.authenticate(client);
     if (!user) throw new WsException('Unauthorized');
@@ -32,11 +34,11 @@ export class WebRTCService {
     const callerId = user._id.toString();
     const { targetUserIds } = data;
 
-    if (this.activeCalls.has(callerId) && this.activeCalls.get(callerId).size > 0) {
+    if (this.activeCalls.has(callerId)) {
       return client.emit('callUnavailable', { message: 'Bạn đang trong một cuộc gọi khác' });
     }
 
-    if (this.activeCalls.size > 100) { // Giới hạn 100 cuộc gọi đồng thời
+    if (this.activeCalls.size > 100) {
       return client.emit('callUnavailable', { message: 'Server quá tải' });
     }
 
@@ -50,16 +52,19 @@ export class WebRTCService {
       return client.emit('callUnavailable', { message: `Users offline: ${offlineUsers.join(', ')}` });
     }
 
-    if (!this.activeCalls.has(callerId)) this.activeCalls.set(callerId, new Set());
-    targetUserIds.forEach(id => this.activeCalls.get(callerId).add(id));
+    const roomId = Math.random().toString(36).substr(2, 8);
+    const callUsers = new Set([callerId, ...targetUserIds]);
 
-    client.join('call'); // Join room 'call' khi bắt đầu cuộc gọi
+    const callGroup: CallGroup = { roomId, users: callUsers };
+    callUsers.forEach(id => this.activeCalls.set(id, callGroup));
+
+    client.join(roomId);
     targetUserIds.forEach(targetUserId => {
-      if (!this.activeCalls.has(targetUserId)) this.activeCalls.set(targetUserId, new Set());
-      this.activeCalls.get(targetUserId).add(callerId);
-      console.log(`📞 ${callerId} gọi ${targetUserId}`);
-      server.to(`user:${targetUserId}`).emit('incomingCall', { from: callerId, group: targetUserIds });
+      server.to(`user:${targetUserId}`).emit('incomingCall', { from: callerId, roomId, group: Array.from(callUsers) });
     });
+
+    console.log(`📞 Cuộc gọi nhóm ${roomId} giữa ${Array.from(callUsers).join(', ')}`);
+    this.logActiveCalls();
   }
 
   async rejectCall(client: Socket, data: { callerId: string }) {
@@ -71,8 +76,8 @@ export class WebRTCService {
 
     const server = this.getServer();
     server.to(`user:${data.callerId}`).emit('callRejected', { from: userId });
-    this.activeCalls.get(data.callerId)?.delete(userId);
-    this.activeCalls.get(userId)?.delete(data.callerId);
+
+    this.activeCalls.delete(userId);
   }
 
   async endCall(client: Socket) {
@@ -80,25 +85,24 @@ export class WebRTCService {
     if (!user) throw new WsException('Unauthorized');
 
     const userId = user._id.toString();
-    console.log(`🚫 ${userId} kết thúc cuộc gọi`);
+    if (!this.activeCalls.has(userId)) return;
 
+    const callGroup = this.activeCalls.get(userId);
     const server = this.getServer();
-    if (this.activeCalls.has(userId)) {
-      const connectedUsers = this.activeCalls.get(userId);
-      connectedUsers.forEach(targetUserId => {
-        server.to(`user:${targetUserId}`).emit('callEnded', { from: userId });
-        this.activeCalls.get(targetUserId)?.delete(userId);
-      });
-      this.activeCalls.delete(userId);
-      client.leave('call'); // Rời room 'call' khi kết thúc
-    }
+
+    callGroup.users.forEach(targetUserId => {
+      server.to(`user:${targetUserId}`).emit('callEnded', { from: userId });
+      this.activeCalls.delete(targetUserId);
+    });
+
+    console.log(`🚫 Cuộc gọi nhóm ${callGroup.roomId} kết thúc`);
+    this.logActiveCalls();
   }
 
   async handleOffer(client: Socket, { targetUserId, sdp }) {
     const user = await this.authenticationSoket.authenticate(client);
     if (!user) throw new WsException('Unauthorized');
 
-    console.log(`📡 ${user._id} gửi OFFER đến ${targetUserId}`);
     this.getServer().to(`user:${targetUserId}`).emit('offer', { from: user._id, sdp });
   }
 
@@ -106,7 +110,6 @@ export class WebRTCService {
     const user = await this.authenticationSoket.authenticate(client);
     if (!user) throw new WsException('Unauthorized');
 
-    console.log(`📡 ${user._id} gửi ANSWER đến ${targetUserId}`);
     this.getServer().to(`user:${targetUserId}`).emit('answer', { from: user._id, sdp });
   }
 
@@ -114,19 +117,32 @@ export class WebRTCService {
     const user = await this.authenticationSoket.authenticate(client);
     if (!user) throw new WsException('Unauthorized');
 
-    console.log(`❄️ ICE Candidate từ ${user._id} gửi đến ${targetUserId}`);
     this.getServer().to(`user:${targetUserId}`).emit('ice-candidate', { from: user._id, candidate });
   }
 
   private cleanupUser(userId: string) {
-    if (this.activeCalls.has(userId)) {
-      const connectedUsers = this.activeCalls.get(userId);
-      connectedUsers.forEach(targetUserId => {
-        this.getServer().to(`user:${targetUserId}`).emit('callEnded', { from: userId });
-        this.activeCalls.get(targetUserId)?.delete(userId);
-      });
-      this.activeCalls.delete(userId);
-      console.log(`🧹 Cleaned up active calls for user ${userId}`);
-    }
+    if (!this.activeCalls.has(userId)) return;
+
+    const callGroup = this.activeCalls.get(userId);
+    const server = this.getServer();
+
+    callGroup.users.forEach(targetUserId => {
+      server.to(`user:${targetUserId}`).emit('callEnded', { from: userId });
+      this.activeCalls.delete(targetUserId);
+    });
+
+    console.log(`🧹 Cleaned up active calls for user ${userId}`);
+    this.logActiveCalls();
+  }
+
+  private logActiveCalls() {
+    console.log('📞 Danh sách các cuộc gọi đang diễn ra:');
+    const loggedRooms = new Set();
+    this.activeCalls.forEach(call => {
+      if (!loggedRooms.has(call.roomId)) {
+        loggedRooms.add(call.roomId);
+        console.log(`Room: ${call.roomId} [${Array.from(call.users).join(', ')}]`);
+      }
+    });
   }
 }

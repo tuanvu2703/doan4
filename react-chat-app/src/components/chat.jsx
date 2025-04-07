@@ -1,152 +1,171 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import useWebSocket from "./useWebsocket";
 import axios from "axios";
-import { io } from "socket.io-client"; // Import socket.io client
 
-const GroupChat = ({ groupId, token }) => {
-  const [message, setMessage] = useState(""); // Tin nhắn người dùng đang nhập
-  const [messages, setMessages] = useState([]); // Tin nhắn trong group
-  const [socket, setSocket] = useState(null); // Trạng thái kết nối socket
-  const userCache = {}; // Cache thông tin người dùng
+const GroupChat = ({ userId }) => {
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [isGroupLoaded, setIsGroupLoaded] = useState(false);
+  const [groupId, setGroupId] = useState("");
+  const [groupInfo, setGroupInfo] = useState(null); 
+  const token = localStorage.getItem("token");
 
-  // Hàm lấy thông tin người gửi (author)
-  const fetchAuthor = async (authorId) => {
-    // Nếu đã có trong cache, trả về ngay
-    if (userCache[authorId]) {
-      return userCache[authorId];
-    }
+  const fileInput = useRef(null);
 
+  const fetchCurrentUser = async () => {
     try {
-      // Gọi API để lấy thông tin người gửi
-      const response = await axios.get(
-        `http://localhost:3001/user/${authorId}`, // API để lấy thông tin user
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const user = response.data;
-      userCache[authorId] = user; // Lưu vào cache
-      return user;
+      const response = await axios.get("https://social-network-jbtx.onrender.com/user/current", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
     } catch (error) {
-      console.error("Error fetching author:", error);
-      return { firstName: "Unknown", lastName: "" }; // Fallback nếu API lỗi
+      console.error("Error fetching current user:", error);
+      return { firstName: "Unknown", lastName: "" };
     }
   };
 
-  // Callback để nhận tin nhắn mới
   const onMessageReceived = async (newMessage) => {
-    // Nếu thiếu `author`, lấy thông tin từ server
     if (!newMessage.author && newMessage.authorId) {
-      newMessage.author = await fetchAuthor(newMessage.authorId);
+      newMessage.author = await fetchCurrentUser();
     }
-
-    // Cập nhật danh sách tin nhắn
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
-  // Fetch tin nhắn khi component mount
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (!groupId || !token) return; // Nếu groupId hoặc token chưa có thì không thực hiện fetch
+  const { sendMessage, socket } = useWebSocket(onMessageReceived);
 
+  useEffect(() => {
+    if (!groupId) return;
+
+    const fetchGroupInfo = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3001/chat/getmessagegroup/${groupId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setMessages(response.data.messages); // Cập nhật tin nhắn từ server
+        const response = await axios.get(`https://social-network-jbtx.onrender.com/chat/getmessagegroup/${groupId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data && response.data.group) {
+          setGroupInfo(response.data.group);
+        }
+      } catch (error) {
+        console.error("Error fetching group info:", error);
+      }
+    };
+
+    const fetchMessages = async () => {
+      if (!groupId || !token) return;
+      try {
+        const response = await axios.get(`https://social-network-jbtx.onrender.com/chat/getmessagegroup/${groupId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data && response.data.messages) {
+          setMessages(response.data.messages);
+        }
+        setIsGroupLoaded(true);
       } catch (error) {
         console.error("Error fetching messages:", error);
       }
     };
 
+    fetchGroupInfo();
     fetchMessages();
-  }, [groupId, token]); // Chỉ fetch lại khi groupId hoặc token thay đổi
+  }, [groupId, token]);
 
-  // Kết nối WebSocket khi cả groupId và token đều có giá trị
   useEffect(() => {
-    if (groupId && token) {
-      const URL = "http://localhost:3001"; // Địa chỉ WebSocket server
-      const socketConnection = io(URL, {
-        extraHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-   
-      socketConnection.on("connect", () => {
-        console.log("Connected to WebSocket with ID:", socketConnection.id);
-        console.log(groupId)
-        // Tham gia nhóm khi kết nối
-        socketConnection.emit("joinGroup", groupId);
-        
-      });
-
-      // Lắng nghe sự kiện nhận tin nhắn mới
-      socketConnection.on("newmessagetogroup", (data) => {
-        console.log("New message received:", data);
-        onMessageReceived(data); // Cập nhật giao diện
-      });
-
-      // Lưu socket để sử dụng sau
-      setSocket(socketConnection);
-
-      // Cleanup khi component bị unmount
-      return () => {
-        socketConnection.disconnect();
-      };
+    if (socket) {
+      console.log("WebSocket connected with ID:", socket.id);
     }
-  }, [groupId, token]); // Kết nối lại nếu groupId hoặc token thay đổi
+  }, [socket]);
 
-  // Gửi tin nhắn
-  const handleSendMessage = () => {
-    if (socket && message.trim()) {
-      socket.emit("sendMessage", { groupId, content: message });
-      setMessage(""); // Reset input
+  const handleSendMessage = async () => {
+    if (message.trim() || fileInput.current.files.length > 0) { // Kiểm tra nếu có nội dung hoặc file
+      try {
+        const formData = new FormData();
+        formData.append("content", message); // Chỉ gửi nội dung văn bản nếu có
+  
+        if (fileInput.current && fileInput.current.files.length > 0) {
+          // Sử dụng trường "files" thay vì "mediaURL"
+          formData.append("files", fileInput.current.files[0]); // Nếu có file, gửi đi
+        }
+  
+        // Gửi dữ liệu tới API
+        const response = await axios.post(
+          `https://social-network-jbtx.onrender.com/chat/sendmessagetogroup/${groupId}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`, // Gửi token để lấy sender từ backend
+            },
+          }
+        );
+  
+        console.log("Message sent successfully:", response.data);
+        // Sau khi gửi tin nhắn qua API, gửi tin nhắn qua WebSocket
+        sendMessage(groupId, message);
+        setMessage(""); // Clear message input
+      } catch (error) {
+        console.error("Failed to send message", error);
+      }
     }
   };
 
   return (
-    <div>
-      <h2>Group Chat: {groupId}</h2>
+    <div className="chat-container">
+      <h2>Group Chat</h2>
 
-      {/* Danh sách tin nhắn */}
-      <div
-        style={{
-          maxHeight: "300px",
-          overflowY: "auto",
-          border: "1px solid #ddd",
-          padding: "10px",
-          marginBottom: "10px",
-        }}
-      >
-        {messages.map((msg, index) => (
-          <div key={index} style={{ marginBottom: "8px" }}>
-            <strong>
-              {msg.author?.firstName || "Unknown"} {msg.author?.lastName || ""}:
-            </strong>{" "}
-            {msg.content}
-          </div>
-        ))}
-      </div>
-
-      {/* Form gửi tin nhắn */}
       <div>
         <input
           type="text"
-          placeholder="Type a message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          style={{ width: "80%", padding: "10px" }}
+          placeholder="Enter Group ID"
+          value={groupId}
+          onChange={(e) => setGroupId(e.target.value)}
         />
-        <button
-          onClick={handleSendMessage}
-          style={{ padding: "10px 15px", marginLeft: "10px" }}
-        >
-          Send
-        </button>
       </div>
+
+      {isGroupLoaded && groupId && groupInfo ? (
+        <div>
+          <div className="group-info">
+            <h3>{groupInfo.name}</h3>
+            <img src={groupInfo.avatarGroup[0]} alt="Group Avatar" width={50} height={50} />
+          </div>
+
+          <div className="chat-box">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`message ${msg.sender._id === userId ? "own-message" : "other-message"}`}
+              >
+                <div className="message-header">
+                  <strong>{msg.sender.firstName} {msg.sender.lastName}</strong>
+                  {msg.sender.avatar && (
+                    <img
+                      src={msg.sender.avatar}
+                      alt={`${msg.sender.firstName}'s Avatar`}
+                      width={30}
+                      height={30}
+                    />
+                  )}
+                </div>
+                <div className="message-content">
+                  {msg.content}
+                  {msg.mediaURL && <img src={msg.mediaURL} alt="Media" width={100} height={100} />}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="input-area">
+            <input
+              type="text"
+              placeholder="Type a message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <input type="file" ref={fileInput} />
+            <button onClick={handleSendMessage}>Send</button>
+          </div>
+        </div>
+      ) : (
+        <div>Please enter a valid Group ID to see the messages.</div>
+      )}
     </div>
   );
 };
