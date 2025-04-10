@@ -8,13 +8,13 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     const remoteVideoRefs = useRef({});
     const peerConnections = useRef({});
     const iceCandidatesBuffer = useRef({});
-    const pendingStreams = useRef({}); // Buffer để lưu stream nếu container chưa sẵn sàng
+    const pendingStreams = useRef({});
     const [userId, setUserId] = useState(null);
     const [socket, setSocket] = useState(null);
     const [stream, setStream] = useState(null);
     const [callStatus, setCallStatus] = useState(status);
-    const [isStreamReady, setIsStreamReady] = useState(false); // Theo dõi trạng thái stream
-    const [hasStartedCall, setHasStartedCall] = useState(false); // Theo dõi xem startCall đã được gọi chưa
+    const [isStreamReady, setIsStreamReady] = useState(false);
+    const [hasStartedCall, setHasStartedCall] = useState(false);
 
     const URL = `${process.env.REACT_APP_API_URL}`;
 
@@ -35,7 +35,6 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         ],
     };
 
-    // Lấy stream ngay khi component mở
     useEffect(() => {
         if (isOpen && !stream) {
             const getMediaDevices = async () => {
@@ -46,7 +45,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     });
                     console.log("✅ [Media] Đã lấy stream thành công");
                     setStream(userStream);
-                    setIsStreamReady(true); // Đánh dấu stream đã sẵn sàng
+                    setIsStreamReady(true);
                     if (localVideoRef.current) {
                         localVideoRef.current.srcObject = userStream;
                     }
@@ -62,14 +61,13 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         }
     }, [isOpen]);
 
-    // Kết nối socket và bắt đầu cuộc gọi khi stream sẵn sàng
     useEffect(() => {
         if (isStreamReady && targetUserIds && !socket) {
             connectSocket();
         }
         if (isStreamReady && targetUserIds && socket && !hasStartedCall) {
             startCall();
-            setHasStartedCall(true); // Đánh dấu startCall đã được gọi
+            setHasStartedCall(true);
         }
     }, [isStreamReady, targetUserIds, socket, hasStartedCall]);
 
@@ -82,23 +80,24 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         }
     };
 
-    // Xử lý các stream đang chờ khi container sẵn sàng
     useEffect(() => {
         const remoteVideosContainer = document.getElementById("remote-videos");
         if (remoteVideosContainer && Object.keys(pendingStreams.current).length > 0) {
             Object.entries(pendingStreams.current).forEach(([targetId, stream]) => {
-                if (!remoteVideoRefs.current[targetId]) {
-                    // Create container div for the video
+                // Check if video element already exists before creating a new one
+                if (!remoteVideoRefs.current[targetId] || !document.getElementById(`video-${targetId}`)) {
+                    console.log(`🎥 [Render] Processing pending stream for: ${targetId}`);
+
                     const videoContainer = document.createElement("div");
                     videoContainer.className = "absolute inset-0 flex items-center justify-center";
+                    videoContainer.id = `video-container-${targetId}`;
 
-                    // Create and setup the video element
                     const video = document.createElement("video");
                     video.autoplay = true;
                     video.playsInline = true;
                     video.className = "w-full h-full object-cover";
+                    video.id = `video-${targetId}`;
 
-                    // Append video to its container, then container to main container
                     videoContainer.appendChild(video);
                     remoteVideosContainer.appendChild(videoContainer);
 
@@ -109,7 +108,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     });
                 }
             });
-            pendingStreams.current = {};
+            // Don't clear pending streams here, as they might be needed for re-rendering
         }
     }, [callStatus]);
 
@@ -118,32 +117,20 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             if (status === 'calling') {
                 startCall();
             } else if (status === 'in-call') {
-                // If we're joining a call that's already in progress
                 console.log("✅ [Call] Joining ongoing call");
                 setCallStatus("in-call");
             }
-            setHasStartedCall(true); // Mark startCall as called
+            setHasStartedCall(true);
         }
     }, [isStreamReady, targetUserIds, socket, hasStartedCall, status]);
 
     useEffect(() => {
         if (!socket) return;
 
-        socket.on("connect", () => {
-            console.log("✅ [Socket] Kết nối WebSocket thành công");
-
-        });
-
-        socket.on("disconnect", () => {
-            console.log("❌ [Socket] WebSocket ngắt kết nối");
-            setCallStatus("disconnected");
-            alert("Mất kết nối với server, vui lòng thử lại.");
-            endCall();
-        });
-
-        socket.on("userId", ({ userId }) => {
-            console.log("🆔 [Socket] Nhận userId:", userId);
-            setUserId(userId);
+        // Set user ID when received from server
+        socket.on("userId", (id) => {
+            console.log("✅ [Socket] Received userId:", id);
+            setUserId(id);
         });
 
         socket.on("callAccepted", ({ from }) => {
@@ -154,7 +141,8 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         socket.on("callRejected", ({ from }) => {
             console.log("❌ [Socket] Nhận callRejected từ:", from);
             cleanupPeer(from);
-            cleanupPeer(userId); // Dọn dẹp PeerConnection của chính mình
+            cleanupPeer(userId);
+            cleanupPeer(targetUserIds);
             setCallStatus("idle");
         });
 
@@ -162,105 +150,98 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             console.log("🚫 [Socket] Nhận callEnded từ:", from);
             cleanupPeer(from);
             cleanupPeer(userId);
+            cleanupPeer(targetUserIds);
             setCallStatus("idle");
         });
 
         socket.on("offer", async ({ from, sdp }) => {
-            if (!isStreamReady) {
-                return;
-            }
             try {
-                if (peerConnections.current[from]) {
-                    const pc = peerConnections.current[from];
-                    if (pc.signalingState === "stable") {
-                        console.log("⚠️ [Peer] Đã ở trạng thái stable, bỏ qua offer từ:", from);
-                        return;
-                    }
-                } else {
-                    console.log("🔗 [Peer] Tạo PeerConnection mới vì chưa tồn tại cho:", from);
+                console.log(`📥 [Socket] Received offer from: ${from}`);
+
+                // Create peer connection if it doesn't exist
+                if (!peerConnections.current[from]) {
                     peerConnections.current[from] = createPeerConnection(from);
                 }
+
                 const pc = peerConnections.current[from];
+
+                // Set remote description first
                 await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                console.log("✅ [Peer] Đã đặt remote description cho:", from);
+                console.log(`✅ [Peer] Remote offer set for: ${from}`);
 
-                console.log("📡 [Peer] Đang tạo answer...");
+                // Create and set local answer
                 const answer = await pc.createAnswer();
-                console.log("📡 [Peer] Đang đặt local description...");
                 await pc.setLocalDescription(answer);
-                console.log("📡 [Socket] Gửi answer tới:", from);
+                console.log(`📤 [Socket] Sending answer to: ${from}`);
+
+                // Send answer to peer
                 socket.emit("answer", { targetUserId: from, sdp: answer });
-                console.log("✅ [Socket] Đã gửi answer thành công tới:", from);
 
-                if (iceCandidatesBuffer.current[from]) {
-                    for (const candidate of iceCandidatesBuffer.current[from]) {
-                        console.log("❄️ [Socket] Xử lý ICE candidate từ buffer cho:", from);
-                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-                    }
-                    delete iceCandidatesBuffer.current[from];
-                }
+                // Process any buffered ICE candidates for this peer
+                await processBufferedIceCandidates(from);
 
-                // When receiving an offer and we're the one being called
-                if (status === 'incoming') {
-                    // Let the caller know we've accepted
-                    socket.emit("callAccepted", { targetUserId: from });
-                    setCallStatus("in-call");
-                }
+                setCallStatus("in-call");
             } catch (error) {
-                console.error("❌ [Socket] Lỗi xử lý offer:", error);
-                cleanupPeer(from);
+                console.error(`❌ [Peer] Error handling offer from ${from}:`, error);
             }
         });
 
         socket.on("answer", async ({ from, sdp }) => {
             try {
-                if (!peerConnections.current[from]) {
-                    console.warn("⚠️ [Peer] PeerConnection không tồn tại cho:", from);
-                    return;
-                }
+                console.log(`📥 [Socket] Received answer from: ${from}`);
+
                 const pc = peerConnections.current[from];
-
-                // Nếu remote description đã được thiết lập, ta bỏ qua answer mới
-                if (pc.remoteDescription) {
-                    console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
+                if (!pc) {
+                    console.warn(`⚠️ [Peer] PeerConnection doesn't exist for: ${from}`);
                     return;
                 }
 
-                await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                console.log("✅ [Peer] Remote answer SDP set successfully for:", from);
-
-                if (iceCandidatesBuffer.current[from]) {
-                    for (const candidate of iceCandidatesBuffer.current[from]) {
-                        console.log("❄️ [Socket] Xử lý ICE candidate từ buffer cho:", from);
-                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-                    }
-                    delete iceCandidatesBuffer.current[from];
+                // Check connection state to avoid errors
+                if (pc.signalingState === "stable") {
+                    console.warn(`⚠️ [Peer] Connection already in stable state for: ${from}`);
+                    return;
                 }
+
+                // Set the remote description
+                await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+                console.log(`✅ [Peer] Remote answer set for: ${from}`);
+
+                // Process any buffered ICE candidates
+                await processBufferedIceCandidates(from);
+
+                setCallStatus("in-call");
             } catch (error) {
-                console.error("❌ [Socket] Lỗi xử lý answer:", error);
-                cleanupPeer(from);
+                console.error(`❌ [Peer] Error handling answer from ${from}:`, error);
             }
         });
 
-
-
         socket.on("ice-candidate", async ({ from, candidate }) => {
             try {
+                console.log(`📥 [Socket] Received ICE candidate from: ${from}`);
+
+                // If peer connection doesn't exist yet, create it
                 if (!peerConnections.current[from]) {
-                    console.log("⏳ [Socket] PeerConnection chưa tồn tại, lưu ICE candidate vào buffer cho:", from);
-                    if (!iceCandidatesBuffer.current[from]) iceCandidatesBuffer.current[from] = [];
-                    iceCandidatesBuffer.current[from].push(candidate);
-                    return;
+                    console.log(`⏳ [Peer] Creating peer connection for: ${from} due to ICE candidate`);
+                    peerConnections.current[from] = createPeerConnection(from);
                 }
+
                 const pc = peerConnections.current[from];
+
+                // Buffer the candidate if remote description isn't set yet
                 if (!pc.remoteDescription) {
-                    if (!iceCandidatesBuffer.current[from]) iceCandidatesBuffer.current[from] = [];
+                    console.log(`⏳ [Socket] Buffering ICE candidate for: ${from}`);
+                    if (!iceCandidatesBuffer.current[from]) {
+                        iceCandidatesBuffer.current[from] = [];
+                    }
                     iceCandidatesBuffer.current[from].push(candidate);
                     return;
                 }
+
+                // Otherwise add it directly
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log(`❄️ [Peer] Added ICE candidate for: ${from}`);
             } catch (error) {
-                console.error("❌ [Socket] Lỗi xử lý ICE candidate:", error);
+                console.error(`❌ [Socket] Error processing ICE candidate from ${from}:`, error);
             }
         });
 
@@ -278,6 +259,28 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         };
     }, [socket, isStreamReady, status]);
 
+    // Process buffered ICE candidates
+    const processBufferedIceCandidates = async (peerId) => {
+        const pc = peerConnections.current[peerId];
+        const candidates = iceCandidatesBuffer.current[peerId] || [];
+
+        if (pc && pc.remoteDescription && candidates.length > 0) {
+            console.log(`🔄 [Peer] Processing ${candidates.length} buffered ICE candidates for: ${peerId}`);
+
+            for (const candidate of candidates) {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                    console.log(`✅ [Peer] Added buffered ICE candidate for: ${peerId}`);
+                } catch (error) {
+                    console.error(`❌ [Peer] Failed to add buffered ICE candidate for ${peerId}:`, error);
+                }
+            }
+
+            // Clear processed candidates
+            iceCandidatesBuffer.current[peerId] = [];
+        }
+    };
+
     const connectSocket = () => {
         const token = authToken.getToken();
         if (!token) {
@@ -290,6 +293,10 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         try {
             const newSocket = io(URL, {
                 extraHeaders: { Authorization: `Bearer ${token}` },
+            });
+
+            newSocket.on("connect", () => {
+                console.log("✅ [Socket] Kết nối thành công");
             });
 
             newSocket.on("connect_error", (err) => {
@@ -307,53 +314,81 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     const createPeerConnection = (targetId) => {
         console.log("🔗 [Peer] Tạo PeerConnection với:", targetId);
         const pc = new RTCPeerConnection(iceServers);
+
+        // Add local tracks to the connection
         if (stream) {
             stream.getTracks().forEach((track) => {
                 console.log("➕ [Peer] Thêm track vào PeerConnection:", track.kind);
                 pc.addTrack(track, stream);
             });
         }
+
+        // Handle ICE candidates
         pc.onicecandidate = (e) => {
             if (e.candidate && socket) {
                 console.log("❄️ [Peer] Gửi ICE candidate tới:", targetId);
                 socket.emit("ice-candidate", { targetUserId: targetId, candidate: e.candidate });
             }
         };
+
+        // Handle incoming tracks/streams
         pc.ontrack = (e) => {
-            const remoteVideosContainer = document.getElementById("remote-videos");
-            if (!remoteVideosContainer) {
-                console.error("❌ [Render] Không tìm thấy container remote-videos trong DOM, lưu stream vào buffer...");
+            console.log(`✅ [Peer] Received track from: ${targetId}, kind: ${e.track.kind}`);
+
+            // Store the stream for later rendering if not already stored
+            if (!pendingStreams.current[targetId]) {
                 pendingStreams.current[targetId] = e.streams[0];
-                return;
+
+                const remoteVideosContainer = document.getElementById("remote-videos");
+                if (!remoteVideosContainer) {
+                    console.error("❌ [Render] Không tìm thấy container remote-videos trong DOM");
+                    return;
+                }
+
+                // Only create video element if it doesn't already exist
+                if (!remoteVideoRefs.current[targetId]) {
+                    console.log(`🎥 [Render] Creating new video element for: ${targetId}`);
+                    const videoContainer = document.createElement("div");
+                    videoContainer.className = "absolute inset-0 flex items-center justify-center";
+                    videoContainer.id = `video-container-${targetId}`;
+
+                    const video = document.createElement("video");
+                    video.autoplay = true;
+                    video.playsInline = true;
+                    video.className = "w-full h-full object-cover";
+                    video.id = `video-${targetId}`;
+
+                    videoContainer.appendChild(video);
+                    remoteVideosContainer.appendChild(videoContainer);
+
+                    remoteVideoRefs.current[targetId] = video;
+                }
+
+                // Set the stream to the video element
+                if (remoteVideoRefs.current[targetId]) {
+                    remoteVideoRefs.current[targetId].srcObject = e.streams[0];
+                    remoteVideoRefs.current[targetId].play().catch(err => {
+                        console.error(`❌ [Render] Error playing video: ${err}`);
+                    });
+                }
             }
-            if (!remoteVideoRefs.current[targetId]) {
-                // Create container div for the video
-                const videoContainer = document.createElement("div");
-                videoContainer.className = "absolute inset-0 flex items-center justify-center";
-
-                // Create and setup the video element
-                const video = document.createElement("video");
-                video.autoplay = true;
-                video.playsInline = true;
-                video.className = "w-full h-full object-cover"; // Apply proper styling
-
-                // Append video to its container, then container to main container
-                videoContainer.appendChild(video);
-                remoteVideosContainer.appendChild(videoContainer);
-
-                remoteVideoRefs.current[targetId] = video;
-            }
-            remoteVideoRefs.current[targetId].srcObject = e.streams[0];
-            // remoteVideoRefs.current[targetId].play().catch((err) => {
-            //     console.error(`❌ [Render] Lỗi phát video cho user ${targetId}:`, err);
-            // });
         };
+
+        // Monitor connection state
         pc.oniceconnectionstatechange = () => {
+            console.log(`ℹ️ [Peer] ICE connection state for ${targetId}: ${pc.iceConnectionState}`);
+
             if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
                 console.log("❌ [Peer] Kết nối ICE thất bại với:", targetId);
                 cleanupPeer(targetId);
             } else if (pc.iceConnectionState === "connected") {
+                console.log(`✅ [Peer] ICE connected with: ${targetId}`);
             }
+        };
+
+        // Monitor signaling state
+        pc.onsignalingstatechange = () => {
+            console.log(`ℹ️ [Peer] Signaling state for ${targetId}: ${pc.signalingState}`);
         };
 
         return pc;
@@ -364,56 +399,91 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             console.log("⚠️ [Call] Thiếu điều kiện để bắt đầu cuộc gọi:", { targetUserIds, socket, stream });
             return;
         }
+        if (peerConnections.current[targetUserIds]) {
+            console.log(`🧹 [Peer] Đã tồn tại, xóa PeerConnection cũ cho: ${targetUserIds}`);
+            cleanupPeer(targetUserIds);
+        }
+        peerConnections.current[targetUserIds] = createPeerConnection(targetUserIds);
+
+
         const ids = targetUserIds.split(",").map((id) => id.trim());
         if (ids.length > 5) return alert("Tối đa 5 người trong nhóm");
 
         console.log("📞 [Socket] Gửi startCall tới:", ids);
         socket.emit("startCall", { targetUserIds: ids });
+        setCallStatus("calling");
 
+        // Create offer for each target user
         for (const targetId of ids) {
-            if (!peerConnections.current[targetId]) {
-                peerConnections.current[targetId] = createPeerConnection(targetId);
-                const offer = await peerConnections.current[targetId].createOffer();
-                await peerConnections.current[targetId].setLocalDescription(offer);
-                console.log("📡 [Socket] Gửi offer tới:", targetId);
+            try {
+                // Create peer connection if it doesn't exist yet
+                if (!peerConnections.current[targetId]) {
+                    peerConnections.current[targetId] = createPeerConnection(targetId);
+                }
+
+                const pc = peerConnections.current[targetId];
+
+                // Create and set local offer
+                const offer = await pc.createOffer({
+                    offerToReceiveAudio: true,
+                    offerToReceiveVideo: true
+                });
+
+                await pc.setLocalDescription(offer);
+                console.log("📤 [Socket] Gửi offer tới:", targetId);
+
+                // Send offer to peer
                 socket.emit("offer", { targetUserId: targetId, sdp: offer });
+            } catch (error) {
+                console.error(`❌ [Peer] Error creating offer for ${targetId}:`, error);
             }
         }
     };
 
     const endCall = () => {
         console.log("🚫 [Socket] Gửi endCall");
+
+        // Clean up all peer connections
         Object.keys(peerConnections.current).forEach((targetId) => cleanupPeer(targetId));
+
+        // Send end call signal
         if (socket) socket.emit("endCall");
+
+        // Clean up local resources
         cleanupMediaStream();
+        if (userId) cleanupPeer(userId);
+
+        // Update UI state
         setCallStatus("idle");
-        setHasStartedCall(false); // Reset để có thể gọi lại
+        setHasStartedCall(false);
+
+        // Call onClose callback
         if (onClose) onClose();
     };
 
-    const cleanupPeer = (targetId) => {
-        console.log("🧹 [Peer] Dọn dẹp PeerConnection với:", targetId);
-        if (peerConnections.current[targetId]) {
-            peerConnections.current[targetId].close();
-            delete peerConnections.current[targetId];
+    function cleanupPeer(peerId) {
+        if (peerConnections.current[peerId]) {
+            peerConnections.current[peerId].close();
+            delete peerConnections.current[peerId];
+
+            // Also clean up video element if exists
+            if (remoteVideoRefs.current[peerId]) {
+                const videoElement = remoteVideoRefs.current[peerId];
+                if (videoElement.srcObject) {
+                    const tracks = videoElement.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                    videoElement.srcObject = null;
+                }
+                delete remoteVideoRefs.current[peerId];
+            }
+
+            console.log(`🧹 [Peer] Đã dọn dẹp PeerConnection cho: ${peerId}`);
         }
-        if (remoteVideoRefs.current[targetId]) {
-            remoteVideoRefs.current[targetId].srcObject = null;
-            remoteVideoRefs.current[targetId].parentElement.remove();
-            delete remoteVideoRefs.current[targetId];
-        }
-        if (iceCandidatesBuffer.current[targetId]) {
-            delete iceCandidatesBuffer.current[targetId];
-        }
-        if (pendingStreams.current[targetId]) {
-            delete pendingStreams.current[targetId];
-        }
-    };
+    }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="relative w-full h-full p-6 rounded-lg shadow-lg">
-                {/* Hiển thị trạng thái cuộc gọi */}
                 {callStatus === "calling" && (
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md shadow-md">
                         <p className="text-gray-800 font-medium">Đang gọi...</p>
@@ -426,15 +496,12 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     </div>
                 )}
 
-                {/* Container video từ xa */}
                 <div
                     id="remote-videos"
                     className="absolute inset-0 w-full h-full"
                 >
-                    {/* Các phần tử video từ xa sẽ được render tại đây */}
                 </div>
 
-                {/* Video cục bộ */}
                 <div className="absolute bottom-3 right-3 z-10">
                     <video
                         ref={localVideoRef}
@@ -445,7 +512,6 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     />
                 </div>
 
-                {/* Nút điều khiển cuộc gọi */}
                 <div className="absolute bottom-3 left-0 right-0 flex justify-center">
                     {(callStatus === "calling" || callStatus === "in-call") && (
                         <button
@@ -470,6 +536,5 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 </div>
             </div>
         </div>
-
     );
 }
