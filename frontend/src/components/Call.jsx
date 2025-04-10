@@ -19,20 +19,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     const URL = `${process.env.REACT_APP_API_URL}`;
 
     const iceServers = {
-        iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:openrelay.metered.ca:80" },
-            {
-                urls: "turn:openrelay.metered.ca:80",
-                username: "openrelayproject",
-                credential: "openrelayproject",
-            },
-            {
-                urls: "turn:openrelay.metered.ca:443",
-                username: "openrelayproject",
-                credential: "openrelayproject",
-            },
-        ],
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     };
 
     useEffect(() => {
