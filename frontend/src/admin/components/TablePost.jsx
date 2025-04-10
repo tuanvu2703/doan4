@@ -75,6 +75,7 @@ export default function TablePost({ query }) {
                                 year: 'numeric'
                             })}
                         </td>
+                        <td>{post.isActive ? "true" : "false"}</td>
                         <th>
                             <button className="btn btn-error btn-xs">Hidden</button>
                         </th>

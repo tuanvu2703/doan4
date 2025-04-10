@@ -202,7 +202,7 @@ export default function HomePost() {
                                         </div>
                                     </div>
                                     {/* Nội dung bài viết */}
-                                    <p className="break-words w-full">{post.content}</p>
+                                    <p className="break-words w-dvw max-w-2xl">{post.content}</p>
                                     {/* Hình ảnh/video */}
                                     {post.img.length > 0 && (
                                         <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto">

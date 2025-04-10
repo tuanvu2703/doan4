@@ -37,6 +37,13 @@ const useWebSocket = (onMessageReceived) => {
       console.log("Disconnected from WebSocket server");
     });
 
+    //=================================================================================================================================eventcall========================================================================================================================================
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from WebSocket server");
+    });
+
+
     // Cleanup function khi component bị hủy
     return () => {
       socket.off("connect");

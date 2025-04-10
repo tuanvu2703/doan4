@@ -1,5 +1,4 @@
 import axios from 'axios';
-import authToken from '../components/authToken';
 
 const API_EMOJI_KEY = process.env.REACT_APP_EMOJI_KEY;
 async function getAllEmoji() {

@@ -5,7 +5,7 @@ import GroupChat from "./components/chat";
 import LoginPage from "./components/login";
 
 function App() {
-  const [token, setToken] = useState(null); // Declare the token state
+  const [token, setToken] = useState(null);
 
   return (
     <Routes>

@@ -62,9 +62,9 @@ export default function TableUser({ query }) {
                 filteredUsers.map((user) => (
                     <tr key={user._id}>
                         <th>
-                            <label>
+                            {/* <label>
                                 <input type="checkbox" className="checkbox border-white" />
-                            </label>
+                            </label> */}
                         </th>
                         <td>
                             <div className="flex items-center gap-3">

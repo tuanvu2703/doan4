@@ -21,8 +21,7 @@ import NotificationCss from '../../../../module/cssNotification/NotificationCss'
 import FileViewChane from '../../../../components/fileViewChane';
 import { FaceSmileIcon } from '@heroicons/react/24/outline';
 import DropdownEmoji from '../../../../components/DropdownEmoji';
-import Call from '../../../../components/Call';
-
+import { useCall } from '../../../../components/CallContext';
 const MessengerInbox = () => {
     const { userContext } = useUser();
     const { RightShow, handleHiddenRight, setContent, setInboxData } = useContext(MessengerContext);
@@ -47,25 +46,8 @@ const MessengerInbox = () => {
     const [messageToRevoke, setMessageToRevoke] = useState(null); // Store message to be revoked
     const { setShowZom } = useUser();
     const [socket, setSocket] = useState(null); // Trạng thái kết nối socket
-
-    //Call
-    const iceServers = {
-        iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:openrelay.metered.ca:80" },
-            {
-                urls: "turn:openrelay.metered.ca:80",
-                username: "openrelayproject",
-                credential: "openrelayproject",
-            },
-            {
-                urls: "turn:openrelay.metered.ca:443",
-                username: "openrelayproject",
-                credential: "openrelayproject",
-            },
-        ],
-    };
-    const [modalCall, setModalCall] = useState(false);
+    // Call
+    const { startCall } = useCall();
 
 
     useEffect(() => {
@@ -317,7 +299,6 @@ const MessengerInbox = () => {
         return acc;
     }, {});
 
-    //Call
 
     return (
         <div className="flex flex-col h-full ">
@@ -342,10 +323,10 @@ const MessengerInbox = () => {
 
                 </div>
                 <div className=" flex justify-end  items-center gap-1">
-                    <button>
+                    <button onClick={() => startCall(iduser, "calling")}>
                         <PhoneIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                     </button>
-                    <button onClick={() => setModalCall(true)}>
+                    <button>
                         <VideoCameraIcon className="h-8 w-8 text-gray-700 p-1 hover:bg-gray-300 hover:scale-110 hover:duration-1000 rounded-full aspect-square" />
                     </button>
                     <button onClick={handleHiddenRight} >
@@ -588,23 +569,6 @@ const MessengerInbox = () => {
                     </DialogActions>
                 </Dialog>
             </div>
-            {modalCall &&
-                <Call
-                    isOpen={modalCall}
-                    onClose={() => {
-                        setModalCall(false);
-                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                                .then((stream) => {
-                                    stream.getTracks().forEach((track) => track.stop());
-                                })
-                                .catch((err) => console.error("❌ [Media] Lỗi dọn dẹp camera/micro:", err));
-                        }
-                    }}
-                    targetUserIds={iduser}
-                    status="calling"
-                    iceServers={iceServers} // Pass iceServers as a prop
-                />}
         </div >
     );
 };

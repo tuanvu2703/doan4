@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from '../views/home/home.jsx';
 import Myfriend from "../views/friend/myfriend.jsx";
-import Layout from "../views/Layout.js";
+import Layout from "../views/Layout.jsx";
 import Personal from "../views/profile/personal/index.jsx";
 import AboutProfile from "../views/profile/components/AboutProfile.jsx";
 import MyPosts from "../views/profile/components/MyPosts.jsx";

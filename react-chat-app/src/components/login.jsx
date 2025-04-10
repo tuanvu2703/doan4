@@ -9,7 +9,7 @@ const LoginPage = ({ setToken }) => {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("https://social-network-jbtx.onrender.com/user/login", {
+      const res = await axios.post("http://localhost:3001/user/login", {
         email,
         password,
       });

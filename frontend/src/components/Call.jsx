@@ -52,7 +52,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     }
                 } catch (err) {
                     console.error("❌ [Media] Lỗi lấy thiết bị media:", err);
-                    alert("Không thể truy cập camera hoặc micro!");
+                    alert("Không thể truy cập camera hoặc micro! vui lòng kiểm tra lại.");
                     setIsStreamReady(false);
                 }
             };
@@ -86,20 +86,22 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     useEffect(() => {
         const remoteVideosContainer = document.getElementById("remote-videos");
         if (remoteVideosContainer && Object.keys(pendingStreams.current).length > 0) {
-            console.log("📊 [Render] Xử lý các stream đang chờ...");
             Object.entries(pendingStreams.current).forEach(([targetId, stream]) => {
                 if (!remoteVideoRefs.current[targetId]) {
-                    const container = document.createElement("div");
+                    // Create container div for the video
+                    const videoContainer = document.createElement("div");
+                    videoContainer.className = "absolute inset-0 flex items-center justify-center";
+
+                    // Create and setup the video element
                     const video = document.createElement("video");
-                    const label = document.createElement("p");
-                    label.textContent = `User: ${targetId}`;
                     video.autoplay = true;
                     video.playsInline = true;
-                    video.style.width = "200px";
-                    video.style.border = "1px solid #ccc";
-                    container.appendChild(video);
-                    container.appendChild(label);
-                    remoteVideosContainer.appendChild(container);
+                    video.className = "w-full h-full object-cover";
+
+                    // Append video to its container, then container to main container
+                    videoContainer.appendChild(video);
+                    remoteVideosContainer.appendChild(videoContainer);
+
                     remoteVideoRefs.current[targetId] = video;
                     video.srcObject = stream;
                     video.play().catch((err) => {
@@ -112,11 +114,24 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     }, [callStatus]);
 
     useEffect(() => {
+        if (isStreamReady && targetUserIds && socket && !hasStartedCall) {
+            if (status === 'calling') {
+                startCall();
+            } else if (status === 'in-call') {
+                // If we're joining a call that's already in progress
+                console.log("✅ [Call] Joining ongoing call");
+                setCallStatus("in-call");
+            }
+            setHasStartedCall(true); // Mark startCall as called
+        }
+    }, [isStreamReady, targetUserIds, socket, hasStartedCall, status]);
+
+    useEffect(() => {
         if (!socket) return;
 
         socket.on("connect", () => {
             console.log("✅ [Socket] Kết nối WebSocket thành công");
-            setCallStatus("calling");
+
         });
 
         socket.on("disconnect", () => {
@@ -131,38 +146,29 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             setUserId(userId);
         });
 
-        socket.on("incomingCall", ({ from, group }) => {
-            console.log("📞 [Socket] Nhận incomingCall từ:", from, "group:", group);
-            const accept = window.confirm(`📞 Cuộc gọi từ ${from}, chấp nhận?`);
-            if (accept) {
-                setCallStatus("in-call");
-                acceptCall(from, group);
-            } else {
-                console.log("❌ [Socket] Gửi rejectCall tới:", from);
-                socket.emit("rejectCall", { callerId: from });
-            }
+        socket.on("callAccepted", ({ from }) => {
+            console.log("✅ [Socket] Call accepted by:", from);
+            setCallStatus("in-call");
         });
 
         socket.on("callRejected", ({ from }) => {
             console.log("❌ [Socket] Nhận callRejected từ:", from);
-            alert(`❌ Cuộc gọi từ ${from} đã bị từ chối`);
             cleanupPeer(from);
+            cleanupPeer(userId); // Dọn dẹp PeerConnection của chính mình
             setCallStatus("idle");
         });
 
         socket.on("callEnded", ({ from }) => {
             console.log("🚫 [Socket] Nhận callEnded từ:", from);
-            alert(`🚫 Cuộc gọi kết thúc bởi ${from}`);
             cleanupPeer(from);
+            cleanupPeer(userId);
             setCallStatus("idle");
         });
 
         socket.on("offer", async ({ from, sdp }) => {
             if (!isStreamReady) {
-                console.log("⏳ [Socket] Chưa có stream, chờ stream sẵn sàng...");
                 return;
             }
-            console.log("📡 [Socket] Nhận offer từ:", from);
             try {
                 if (peerConnections.current[from]) {
                     const pc = peerConnections.current[from];
@@ -175,7 +181,6 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     peerConnections.current[from] = createPeerConnection(from);
                 }
                 const pc = peerConnections.current[from];
-                console.log("📡 [Peer] Đang đặt remote description...");
                 await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                 console.log("✅ [Peer] Đã đặt remote description cho:", from);
 
@@ -194,6 +199,13 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     }
                     delete iceCandidatesBuffer.current[from];
                 }
+
+                // When receiving an offer and we're the one being called
+                if (status === 'incoming') {
+                    // Let the caller know we've accepted
+                    socket.emit("callAccepted", { targetUserId: from });
+                    setCallStatus("in-call");
+                }
             } catch (error) {
                 console.error("❌ [Socket] Lỗi xử lý offer:", error);
                 cleanupPeer(from);
@@ -201,21 +213,19 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         });
 
         socket.on("answer", async ({ from, sdp }) => {
-            console.log("📡 [Socket] Nhận answer từ:", from);
             try {
                 if (!peerConnections.current[from]) {
                     console.warn("⚠️ [Peer] PeerConnection không tồn tại cho:", from);
                     return;
                 }
                 const pc = peerConnections.current[from];
-                if (pc.signalingState === "stable") {
-                    console.warn("⚠️ [Peer] Already in stable state, ignoring answer from:", from);
+
+                // Nếu remote description đã được thiết lập, ta bỏ qua answer mới
+                if (pc.remoteDescription) {
+                    console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
                     return;
                 }
-                if (pc.signalingState !== "have-local-offer") {
-                    console.warn(`⚠️ [Peer] Invalid state for answer: ${pc.signalingState}`);
-                    return;
-                }
+
                 await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                 console.log("✅ [Peer] Remote answer SDP set successfully for:", from);
 
@@ -232,8 +242,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             }
         });
 
+
+
         socket.on("ice-candidate", async ({ from, candidate }) => {
-            console.log("❄️ [Socket] Nhận ICE candidate từ:", from);
             try {
                 if (!peerConnections.current[from]) {
                     console.log("⏳ [Socket] PeerConnection chưa tồn tại, lưu ICE candidate vào buffer cho:", from);
@@ -243,13 +254,11 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 }
                 const pc = peerConnections.current[from];
                 if (!pc.remoteDescription) {
-                    console.log("⏳ [Socket] Chưa có remoteDescription, lưu ICE candidate vào buffer cho:", from);
                     if (!iceCandidatesBuffer.current[from]) iceCandidatesBuffer.current[from] = [];
                     iceCandidatesBuffer.current[from].push(candidate);
                     return;
                 }
                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
-                console.log("✅ [Peer] ICE candidate added successfully for:", from);
             } catch (error) {
                 console.error("❌ [Socket] Lỗi xử lý ICE candidate:", error);
             }
@@ -265,8 +274,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             socket.off("offer");
             socket.off("answer");
             socket.off("ice-candidate");
+            socket.off("callAccepted");
         };
-    }, [socket, isStreamReady]);
+    }, [socket, isStreamReady, status]);
 
     const connectSocket = () => {
         const token = authToken.getToken();
@@ -310,10 +320,6 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             }
         };
         pc.ontrack = (e) => {
-            console.log("📹 [Peer] Nhận stream từ:", targetId, "Tracks:", e.streams[0].getTracks());
-            e.streams[0].getTracks().forEach((track) => {
-                console.log(`🔊 [Track] Track type: ${track.kind}, enabled: ${track.enabled}, readyState: ${track.readyState}`);
-            });
             const remoteVideosContainer = document.getElementById("remote-videos");
             if (!remoteVideosContainer) {
                 console.error("❌ [Render] Không tìm thấy container remote-videos trong DOM, lưu stream vào buffer...");
@@ -321,34 +327,35 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 return;
             }
             if (!remoteVideoRefs.current[targetId]) {
-                console.log(`🎥 [Render] Tạo video element cho user ${targetId}`);
-                const container = document.createElement("div");
+                // Create container div for the video
+                const videoContainer = document.createElement("div");
+                videoContainer.className = "absolute inset-0 flex items-center justify-center";
+
+                // Create and setup the video element
                 const video = document.createElement("video");
-                const label = document.createElement("p");
-                label.textContent = `User: ${targetId}`;
                 video.autoplay = true;
                 video.playsInline = true;
-                video.style.width = "200px";
-                video.style.border = "1px solid #ccc";
-                container.appendChild(video);
-                container.appendChild(label);
-                remoteVideosContainer.appendChild(container);
+                video.className = "w-full h-full object-cover"; // Apply proper styling
+
+                // Append video to its container, then container to main container
+                videoContainer.appendChild(video);
+                remoteVideosContainer.appendChild(videoContainer);
+
                 remoteVideoRefs.current[targetId] = video;
             }
             remoteVideoRefs.current[targetId].srcObject = e.streams[0];
-            remoteVideoRefs.current[targetId].play().catch((err) => {
-                console.error(`❌ [Render] Lỗi phát video cho user ${targetId}:`, err);
-            });
+            // remoteVideoRefs.current[targetId].play().catch((err) => {
+            //     console.error(`❌ [Render] Lỗi phát video cho user ${targetId}:`, err);
+            // });
         };
         pc.oniceconnectionstatechange = () => {
-            console.log("🌐 [Peer] Trạng thái ICE của", targetId, ":", pc.iceConnectionState);
             if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
                 console.log("❌ [Peer] Kết nối ICE thất bại với:", targetId);
                 cleanupPeer(targetId);
             } else if (pc.iceConnectionState === "connected") {
-                console.log("✅ [Peer] Kết nối ICE thành công với:", targetId);
             }
         };
+
         return pc;
     };
 
@@ -371,28 +378,6 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 console.log("📡 [Socket] Gửi offer tới:", targetId);
                 socket.emit("offer", { targetUserId: targetId, sdp: offer });
             }
-        }
-    };
-
-    const acceptCall = async (callerId, group) => {
-        console.log("✅ [Call] Chấp nhận cuộc gọi từ:", callerId, "group:", group);
-        if (!isStreamReady) {
-            console.log("⏳ [Call] Chưa có stream, chờ stream sẵn sàng...");
-            return;
-        }
-        try {
-            group.forEach((id) => {
-                if (id !== userId && !peerConnections.current[id]) {
-                    peerConnections.current[id] = createPeerConnection(id);
-                    stream.getTracks().forEach((track) => {
-                        console.log("➕ [Peer] Thêm track vào PeerConnection trong acceptCall:", track.kind);
-                        peerConnections.current[id].addTrack(track, stream);
-                    });
-                }
-            });
-        } catch (error) {
-            console.error("❌ [Call] Lỗi khi chấp nhận cuộc gọi:", error);
-            alert("Không thể chấp nhận cuộc gọi do lỗi media!");
         }
     };
 
@@ -427,66 +412,64 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="p-6 rounded-lg shadow-lg">
+            <div className="relative w-full h-full p-6 rounded-lg shadow-lg">
+                {/* Hiển thị trạng thái cuộc gọi */}
                 {callStatus === "calling" && (
-                    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
-                        <p>Đang gọi...</p>
-                    </div>
-                )}
-                <div
-                    id="remote-videos"
-                    style={{
-                        display: callStatus === "in-call" ? "grid" : "none",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                        gap: "10px",
-                        width: "100%",
-                        height: "100%",
-                    }}
-                />
-                {callStatus === "idle" && (
-                    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md">
-                        <p>Cuộc gọi kết thúc</p>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md shadow-md">
+                        <p className="text-gray-800 font-medium">Đang gọi...</p>
                     </div>
                 )}
 
-                <div>
+                {callStatus === "idle" && (
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md shadow-md">
+                        <p className="text-gray-800 font-medium">Cuộc gọi kết thúc</p>
+                    </div>
+                )}
+
+                {/* Container video từ xa */}
+                <div
+                    id="remote-videos"
+                    className="absolute inset-0 w-full h-full"
+                >
+                    {/* Các phần tử video từ xa sẽ được render tại đây */}
+                </div>
+
+                {/* Video cục bộ */}
+                <div className="absolute bottom-3 right-3 z-10">
                     <video
                         ref={localVideoRef}
                         autoPlay
                         playsInline
                         muted
-                        style={{ width: "300px" }}
-                        className="absolute bottom-3 right-3 rounded-md border border-gray-300"
+                        className="w-72 rounded-md border border-gray-300 shadow-md"
                     />
                 </div>
-                <div>
-                    {callStatus === "calling" && (
+
+                {/* Nút điều khiển cuộc gọi */}
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                    {(callStatus === "calling" || callStatus === "in-call") && (
                         <button
-                            className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
                             onClick={endCall}
+                            className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                            aria-label="End call"
                             disabled={callStatus === "idle"}
                         >
                             <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
                         </button>
                     )}
-                    {callStatus === "in-call" && (
-                        <button
-                            className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white rounded-full p-2"
-                            onClick={endCall}
-                            disabled={callStatus === "idle"}
-                        >
-                            <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
-                        </button>
-                    )}
+
                     {callStatus === "idle" && (
-                        <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex gap-14">
-                            <button onClick={endCall}>
-                                <XMarkIcon className="h-14 w-14 bg-white cursor-pointer rounded-full text-red-600 p-1" />
-                            </button>
-                        </div>
+                        <button
+                            onClick={endCall}
+                            className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                            aria-label="Close"
+                        >
+                            <XMarkIcon className="h-14 w-14 bg-white cursor-pointer rounded-full text-red-600 p-1 shadow-lg" />
+                        </button>
                     )}
                 </div>
             </div>
         </div>
+
     );
 }

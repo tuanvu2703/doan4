@@ -37,8 +37,8 @@ export default function TableReport({ query }) {
       }).includes(query) ||
       report.status.toLowerCase().includes(query.toLowerCase()) ||
       report.type.toLowerCase().includes(query.toLowerCase()) ||
-      report.reportedId.toLowerCase().includes(query.toLowerCase()) ||
-      report.sender.toLowerCase().includes(query.toLowerCase());
+      report.reportedId._id.toLowerCase().includes(query.toLowerCase()) ||
+      report.sender.email.toLowerCase().includes(query.toLowerCase());
   });
 
   const handleApproval = async (reportId) => {
@@ -89,13 +89,13 @@ export default function TableReport({ query }) {
               {rp.type}
             </td>
             <td>
-              <button className='hover:underline' onClick={() => document.getElementById(`my_modal_report_post_${rp.reportedId}`).showModal()}>{rp.reportedId}</button>
+              <button className='hover:underline' onClick={() => document.getElementById(`my_modal_report_post_${rp?.reportedId._id}`).showModal()}>{rp.reportedId._id}</button>
             </td>
             <td>
-              {rp.reason}
+              {rp?.reason}
             </td>
             <td>
-              <button className='hover:underline' onClick={() => document.getElementById(`my_modal_report_user_${rp.sender}`).showModal()}>{rp.sender}</button>
+              <button className='hover:underline' onClick={() => document.getElementById(`my_modal_report_user_${rp?.sender._id}`).showModal()}>{rp.sender.email}</button>
             </td>
             <td>
               {new Date(rp.createdAt).toLocaleDateString('en-GB', {
@@ -117,8 +117,8 @@ export default function TableReport({ query }) {
                 </div>
               )}
             </th>
-            <ModalReportPost postId={rp.reportedId} />
-            <ModalReportUser userId={rp.sender} />
+            <ModalReportPost postId={rp?.reportedId._id} />
+            <ModalReportUser userId={rp?.sender._id} />
           </tr>
         ))
       )}
