@@ -366,10 +366,20 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
 
                 // Set the stream to the video element
                 if (remoteVideoRefs.current[targetId]) {
-                    remoteVideoRefs.current[targetId].srcObject = e.streams[0];
-                    remoteVideoRefs.current[targetId].play().catch(err => {
-                        console.error(`❌ [Render] Error playing video: ${err}`);
-                    });
+                    const videoElement = remoteVideoRefs.current[targetId];
+                    videoElement.srcObject = e.streams[0];
+
+                    // Play when metadata is loaded instead of immediately
+                    videoElement.onloadedmetadata = () => {
+                        console.log(`✅ [Render] Video ready to play for: ${targetId}`);
+                        videoElement.play().catch(err => {
+                            console.error(`❌ [Render] Error playing video: ${err}`);
+                            // Retry play with user interaction if needed
+                            if (err.name === "NotAllowedError") {
+                                console.log("⚠️ [Render] Autoplay prevented, waiting for user interaction");
+                            }
+                        });
+                    };
                 }
             }
         };
