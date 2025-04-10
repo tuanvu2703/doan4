@@ -276,14 +276,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         }
         if (socket) return;
 
-        console.log("🔌 [Socket] Bắt đầu kết nối với token:", token);
         try {
             const newSocket = io(URL, {
                 extraHeaders: { Authorization: `Bearer ${token}` },
-            });
-
-            newSocket.on("connect", () => {
-                console.log("✅ [Socket] Kết nối thành công");
             });
 
             newSocket.on("connect_error", (err) => {
