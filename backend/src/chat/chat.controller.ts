@@ -153,12 +153,6 @@ export class ChatController {
   ) {
 
     try {
-      // const checkTypeReceiver = userId;
-      // if (Types.ObjectId.isValid(userId)) {
-
-      // } else {
-
-      // }
 
       const currentUserOBJ = new Types.ObjectId(currentUser._id.toString());
       const UserOBJ = new Types.ObjectId(userId.toString());

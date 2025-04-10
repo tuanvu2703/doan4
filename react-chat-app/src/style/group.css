@@ -1,0 +1,110 @@
+.chat-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .chat-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+  
+  .message {
+    display: flex;
+    flex-direction: column;
+    max-width: 60%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    word-wrap: break-word;
+  }
+  
+  .own-message {
+    align-self: flex-end;
+    background-color: #dcf8c6; /* Light green for own messages */
+    text-align: right;
+  }
+  
+  .other-message {
+    align-self: flex-start;
+    background-color: #fff; /* White for other messages */
+    border: 1px solid #e0e0e0;
+    text-align: left;
+  }
+  
+  .message-header {
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .message-content img {
+    margin-top: 5px;
+    border-radius: 5px;
+    max-width: 100px;
+    max-height: 100px;
+  }
+  .message-content {
+    display: grid;
+  }
+  
+  .content-right {
+    justify-content: right;
+    text-align: right;
+  }
+  
+  .content-left {
+    justify-content: left;
+    text-align: left;
+  }
+  
+  .input-area {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .input-area input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .input-area input[type="file"] {
+    border: none;
+  }
+  
+  .input-area button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .input-area button:hover {
+    background-color: #0056b3;
+  }
+  
+  .group-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .group-info h3 {
+    margin: 0;
+  }

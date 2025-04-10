@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import { Post } from './schemas/post.schema';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/schemas/user.schemas';
@@ -12,8 +12,8 @@ import { PostF } from './interface/PostHomeFeed.interface';
 import { Friend } from 'src/user/schemas/friend.schema';
 import { PublicGroup } from 'src/public-group/schema/plgroup.schema';
 import { MemberGroup } from 'src/public-group/schema/membergroup.schema';
-
-
+import { FeedCursor, PaginatedFeedResult, ProjectedPost } from './interface/FeedcurSord.interface';
+import { ProjectedPostDto } from './dto/projected-post.dto';
 
 
 @Injectable()
@@ -405,6 +405,228 @@ export class PostService {
         }
     }
     
+    //ok thì cái này không còn phù hợp nữa
+    //sửa logic lại
+    // chỉa thành 4 giai đoạn cho đễ pảo chì
+    //1 match 1 lược để lấy full post hợp lệ
+    //2 lookup để lấy thông tin
+    //3 tính điểm
+    // match 1 lân nữa dựa theo cursor
+    // muống sài cursor thì tạo vài cái interface
+
+    async getHomeFeedtest(
+        userId: Types.ObjectId,
+        limit = 10,
+        // cursor giờ sẽ là object { lastPriorityLevel, lastSortTime, lastId } do Pipe mới xử lý
+        cursor?: FeedCursor
+    ): Promise<PaginatedFeedResult<ProjectedPost, string | null>> {
+        try {
+            const user = await this.UserModel.findById(userId);
+            if (!user) throw new NotFoundException('User not found');
+
+            const userIdObject = new Types.ObjectId(userId);
+
+            // 1. Lấy thông tin friend và group (Giữ nguyên)
+            const friends = await this.FriendModel.find({ $or: [{ sender: userIdObject, status: 'friend' }, { receiver: userIdObject, status: 'friend' }] }).select('sender receiver').lean();
+            const friendIds = friends.map(f => userIdObject.equals(f.sender.toString()) ? f.receiver : f.sender);
+            const memberships = await this.MemberGroupModel.find({ member: userIdObject, blackList: false }).select('group').lean();
+            const memberGroupIds = memberships.map(m => m.group);
+
+            // Định nghĩa ngưỡng thời gian "Mới" và "Gần đây" (ví dụ: 48 giờ)
+            const timeThreshold = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+            // 3. Pipeline Aggregation
+            const pipeline: PipelineStage[] = [];
+
+            // ----- Giai đoạn 1: $match ban đầu (Mở rộng để bao gồm Public từ người lạ) -----
+            pipeline.push({
+                $match: {
+                    isActive: true,
+                    $or: [
+                        // Own posts
+                        { author: userIdObject },
+                        // Friend's posts (viewable)
+                        { author: { $in: friendIds }, $or: [{ privacy: 'friends' }, { privacy: 'public' }, { privacy: 'specific', allowedUsers: userIdObject }] },
+                        // Group posts (member)
+                        { group: { $in: memberGroupIds } },
+                        // Public posts from others (not self, not friend, not group post)
+                        { author: { $nin: [userIdObject, ...friendIds] }, group: { $in: [null, undefined] }, privacy: 'public' },
+                        // Specific posts from others allowed for user
+                        { author: { $nin: [userIdObject, ...friendIds] }, privacy: 'specific', allowedUsers: userIdObject }
+                    ]
+                }
+            });
+
+            // ----- Giai đoạn 2: $lookup (Giữ nguyên) -----
+            pipeline.push(
+                { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'authorInfo' } },
+                { $unwind: { path: '$authorInfo', preserveNullAndEmptyArrays: false } },
+                { $lookup: { from: 'publicgroups', localField: 'group', foreignField: '_id', as: 'groupInfo' } },
+                // Lookup comments để lấy latestCommentTime
+                { $lookup: { from: 'comments', localField: 'comments', foreignField: '_id', as: 'commentObjects', pipeline: [{ $project: { createdAt: 1 } }] } }
+            );
+
+             // ----- Giai đoạn 3: $addFields - Tính toán các yếu tố trung gian -----
+             pipeline.push({
+                $addFields: {
+                    latestCommentTime: { $ifNull: [{ $max: '$commentObjects.createdAt' }, '$createdAt'] }, // Thời gian tương tác cuối (comment hoặc post)
+                    isFriendPost: { $in: ['$author', friendIds] },
+                    isGroupPost: { $cond: { if: '$group', then: true, else: false } }, // Check group field exists
+                    isOwnPost: { $eq: ['$author', userIdObject] },
+                }
+            });
+            // Tách riêng $addFields để tránh phụ thuộc vòng tròn tiềm ẩn
+             pipeline.push({
+                $addFields: {
+                    isPublicFromOther: { $and: [
+                        { $eq: ['$privacy', 'public'] },
+                        { $eq: ['$isOwnPost', false] },
+                        { $eq: ['$isFriendPost', false] },
+                        { $eq: ['$isGroupPost', false] }
+                    ]},
+                    isNewPost: { $gte: ['$createdAt', timeThreshold] }, // Bài viết mới (trong 48h)
+                    hasRecentComment: { // Có tương tác gần đây (trong 48h) VÀ khác thời gian tạo bài
+                        $and: [
+                            { $ne: ['$latestCommentTime', '$createdAt'] }, // Phải là comment mới, không phải lúc tạo bài
+                            { $gte: ['$latestCommentTime', timeThreshold] }
+                        ]
+                    }
+                }
+            });
+
+             // ----- Giai đoạn 4: $addFields - Gán Mức Ưu Tiên (priorityLevel) -----
+             pipeline.push({
+                $addFields: {
+                    priorityLevel: {
+                        $switch: {
+                            branches: [
+                                // Ưu tiên cao nhất: Bài mới của bạn bè
+                                { case: { $and: ['$isFriendPost', '$isNewPost'] }, then: 6 },
+                                // Ưu tiên 5: Bài mới trong group
+                                { case: { $and: ['$isGroupPost', '$isNewPost'] }, then: 5 },
+                                // Ưu tiên 4: Bài cũ bạn bè có tương tác mới
+                                { case: { $and: ['$isFriendPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 4 },
+                                // Ưu tiên 3: Bài cũ group có tương tác mới
+                                { case: { $and: ['$isGroupPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 3 },
+                                // Ưu tiên 2: Bài mới của chính mình
+                                { case: { $and: ['$isOwnPost', '$isNewPost'] }, then: 2 },
+                            ],
+                            default: 1 // Mức ưu tiên thấp nhất cho các trường hợp còn lại
+                        }
+                    }
+                }
+            });
+
+             // ----- Giai đoạn 5: $addFields - Xác định Khóa Sắp xếp Phụ (sortTime) -----
+            pipeline.push({
+                $addFields: {
+                    sortTime: { // Dùng latestCommentTime cho bài cũ có tương tác mới, còn lại dùng createdAt
+                        $cond: {
+                            if: { $in: ['$priorityLevel', [4, 3]] }, // Mức 4 và 3
+                            then: '$latestCommentTime',
+                            else: '$createdAt'
+                        }
+                    }
+                }
+            });
+
+            // ----- Giai đoạn 6: $match dựa trên Cursor Input (LOGIC MỚI) -----
+            if (cursor) {
+                // Pipe đã giải mã cursor thành { lastPriorityLevel, lastSortTime, lastId }
+                // lastSortTime là Date object, lastId là ObjectId object
+                pipeline.push({
+                    $match: {
+                        $or: [
+                            // 1. Ưu tiên THẤP hơn hẳn (vì sort priorityLevel DESC)
+                            { priorityLevel: { $lt: cursor.lastPriorityLevel } },
+                            // 2. Cùng ưu tiên, thời gian sort CŨ hơn hẳn (vì sort sortTime DESC)
+                            {
+                                priorityLevel: cursor.lastPriorityLevel,
+                                sortTime: { $lt: cursor.lastSortTime }
+                            },
+                            // 3. Cùng ưu tiên, cùng thời gian sort, _id NHỎ hơn (vì sort _id DESC)
+                            {
+                                priorityLevel: cursor.lastPriorityLevel,
+                                sortTime: cursor.lastSortTime,
+                                _id: { $lt: cursor.lastId }
+                            }
+                        ]
+                    }
+                });
+            }
+
+            // ----- Giai đoạn 7: $sort (THEO LOGIC MỚI) -----
+            pipeline.push({
+                $sort: { priorityLevel: -1, sortTime: -1, _id: -1 }
+            });
+
+            // ----- Giai đoạn 8: $limit (Lấy limit + 1) -----
+            const queryLimit = limit + 1;
+            pipeline.push({ $limit: queryLimit });
+
+            // ----- Giai đoạn 9: $project (Định hình kết quả và giữ lại trường cho cursor) -----
+            pipeline.push({
+                 $project: {
+                     // Các trường trả về cho client
+                     _id: 1, content: 1, img: 1, gif: 1, privacy: 1, createdAt: 1, likesCount: 1, commentsCount: 1,
+                     author: { _id: '$authorInfo._id', firstName: '$authorInfo.firstName', lastName: '$authorInfo.lastName', avatar: '$authorInfo.avatar' },
+                     group: { // Xử lý group an toàn
+                         $let: {
+                             vars: { groupDoc: { $ifNull: [ { $arrayElemAt: [ '$groupInfo', 0 ] }, null ] } },
+                             in: { $cond: { if: '$$groupDoc', then: { _id: '$$groupDoc._id', groupName: '$$groupDoc.groupName', avatargroup: '$$groupDoc.avatargroup', typegroup: '$$groupDoc.typegroup'}, else: null } }
+                         }
+                     },
+                     // Các trường dùng để tạo cursor (tên tạm) - LƯU Ý TÊN MỚI
+                     _priorityLevelForCursor: '$priorityLevel',
+                     _sortTimeForCursor: '$sortTime',
+                     // _id đã có sẵn
+                 }
+            });
+
+            // 4. Thực thi Pipeline
+            const aggregatedResults: any[] = await this.PostModel.aggregate(pipeline);
+
+            // 5. Xác định và Mã hóa Next Cursor (LOGIC MỚI với 3 thành phần)
+            let nextCursorString: string | null = null;
+            const hasMore = aggregatedResults.length > limit;
+
+            if (hasMore) {
+                const lastPostForCursor = aggregatedResults[limit]; // Lấy bản ghi thừa
+
+                // Tạo đối tượng dữ liệu cursor MỚI
+                const cursorData = {
+                    lastPriorityLevel: lastPostForCursor._priorityLevelForCursor,
+                    // Chuyển Date thành chuỗi ISO 8601
+                    lastSortTime: lastPostForCursor._sortTimeForCursor.toISOString(),
+                    // Chuyển ObjectId thành chuỗi
+                    lastId: lastPostForCursor._id.toString(),
+                };
+
+                const jsonString = JSON.stringify(cursorData);
+                nextCursorString = Buffer.from(jsonString).toString('base64url');
+                aggregatedResults.pop(); // Bỏ bản ghi thừa
+            }
+
+            // 6. Dọn dẹp và Trả về kết quả
+            const postsForClient = aggregatedResults.map(p => {
+                // Loại bỏ các trường tạm
+                const { _priorityLevelForCursor, _sortTimeForCursor, ...rest } = p;
+                return rest;
+            }) as ProjectedPost[];
+
+            return {
+                posts: postsForClient,
+                nextCursor: nextCursorString,
+            };
+
+        } catch (error) {
+            console.error('Error in getHomeFeed (Priority Logic):', error);
+            if (error instanceof NotFoundException) { throw error; }
+            if (error.name === 'MongoServerError' || error.code) { console.error('MongoDB Aggregation Error:', JSON.stringify(error, null, 2)); }
+            throw new HttpException('Error fetching home feed', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     async getHomeFeed(userId: Types.ObjectId): Promise<Post[]> {
         try {
@@ -413,16 +635,13 @@ export class PostService {
             if (!user) {
                 throw new NotFoundException('User not found');
             } //ok
-    
             const friends = await this.FriendModel.find({
                 $or: [
                     { sender: userId.toString() }, 
                     { receiver: userId.toString() }, 
                 ],
-                
             }).exec(); //bug ở đây 
             
-    
             const friendIds = friends.map(friend => {
                 return friend.sender.toString() === userId.toString() ? friend.receiver : friend.sender;
             });
@@ -433,7 +652,6 @@ export class PostService {
                 { privacy: 'specific', allowedUsers: userId },// ok
                 { privacy: 'friends', author: { $in: [...friendIds, useridSting] } }, 
             ];
-    
             // Lấy tất cả bài viết dựa trên điều kiện
             const posts = await this.PostModel.find({
                 $and: [

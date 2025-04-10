@@ -11,7 +11,7 @@ import { EventModule } from 'src/event/event.module';
 import { ProducerModule } from '../kafka/producer/producer.module';
 import { PublicGroupModule } from 'src/public-group/public-group.module';
 import { UserService } from 'src/user/user.service';
-
+import { ParseCursorPipe } from './pipes/parse-cursor.pipe';
 
 @Global()
 @Module({
@@ -24,7 +24,7 @@ import { UserService } from 'src/user/user.service';
     PublicGroupModule,
   ],
   controllers: [PostController],
-  providers: [PostService, EventService],
+  providers: [PostService, EventService, ParseCursorPipe],
   exports: [MongooseModule, PostService],
 })
 export class PostModule {}
