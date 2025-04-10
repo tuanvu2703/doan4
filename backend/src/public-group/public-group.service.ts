@@ -241,5 +241,14 @@ export class PublicGroupService {
   
   }
 
+  async unEmpoverMember(groupId :Types.ObjectId, userId : Types.ObjectId): Promise<MemberGroup>{
+
+    const user = this.UserModel.findById(userId)
+    if(!user){
+    }
+
+    return
+  }
+
 
 }

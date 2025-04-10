@@ -19,7 +19,7 @@ export class Post extends Document {
   @Prop()
   content: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true,})
   author: Types.ObjectId;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }],  })
@@ -43,17 +43,13 @@ export class Post extends Document {
   @Prop({ type: String })
   gif: string;
 
-  @Prop({ default: true }) 
+  @Prop({ default: true, index: true }) 
   isActive: boolean;
 
-  @Prop({ type: String, enum: ['public', 'friends', 'private', 'specific'], default: 'public' })
+  @Prop({ type: String, enum: ['public', 'friends', 'private', 'specific' , 'membergroup'], default: 'public' , index: true})
   privacy: string; // ừ thì cái này dóng quyền riêng từ bên fở pò á
 
-
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })  
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User', index: true }] })  
   allowedUsers: Types.ObjectId[];
-
-
 }
-
 export const PostSchema = SchemaFactory.createForClass(Post);

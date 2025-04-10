@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import useWebSocket from "./useWebsocket";
 import axios from "axios";
+import '../style/group.css';
 
-const GroupChat = ({ userId }) => {
+
+const GroupChat = () => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [isGroupLoaded, setIsGroupLoaded] = useState(false);
   const [groupId, setGroupId] = useState("");
+  const [userId, setUserId] = useState("");
   const [groupInfo, setGroupInfo] = useState(null); 
   const token = localStorage.getItem("token");
 
@@ -16,17 +19,18 @@ const GroupChat = ({ userId }) => {
     try {
       const response = await axios.get("https://social-network-jbtx.onrender.com/user/current", {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      return response.data;
+      });   
+      return response.data; // Assuming the API returns the user object directly
     } catch (error) {
       console.error("Error fetching current user:", error);
       return { firstName: "Unknown", lastName: "" };
     }
   };
-
+  console.log(userId)
   const onMessageReceived = async (newMessage) => {
     if (!newMessage.author && newMessage.authorId) {
       newMessage.author = await fetchCurrentUser();
+      setUserId(newMessage.author._id); // Set userId from the response
     }
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
@@ -74,33 +78,36 @@ const GroupChat = ({ userId }) => {
     }
   }, [socket]);
 
+  
+
   const handleSendMessage = async () => {
-    if (message.trim() || fileInput.current.files.length > 0) { // Kiểm tra nếu có nội dung hoặc file
+    if (message.trim() || (fileInput.current && fileInput.current.files.length > 0)) {
       try {
         const formData = new FormData();
-        formData.append("content", message); // Chỉ gửi nội dung văn bản nếu có
+        formData.append("content", message);
   
+        // Kiểm tra nếu có file được chọn
         if (fileInput.current && fileInput.current.files.length > 0) {
-          // Sử dụng trường "files" thay vì "mediaURL"
-          formData.append("files", fileInput.current.files[0]); // Nếu có file, gửi đi
+          formData.append("files", fileInput.current.files[0]);
         }
   
-        // Gửi dữ liệu tới API
         const response = await axios.post(
           `https://social-network-jbtx.onrender.com/chat/sendmessagetogroup/${groupId}`,
           formData,
           {
             headers: {
               "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`, // Gửi token để lấy sender từ backend
+              Authorization: `Bearer ${token}`,
             },
           }
         );
   
         console.log("Message sent successfully:", response.data);
-        // Sau khi gửi tin nhắn qua API, gửi tin nhắn qua WebSocket
         sendMessage(groupId, message);
         setMessage(""); // Clear message input
+        if (fileInput.current) {
+          fileInput.current.value = ""; // Clear file input
+        }
       } catch (error) {
         console.error("Failed to send message", error);
       }
@@ -131,22 +138,26 @@ const GroupChat = ({ userId }) => {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`message ${msg.sender._id === userId ? "own-message" : "other-message"}`}
+                className={`message ${
+                  msg.sender._id === userId ? "own-message" : "other-message"
+                }`}
               >
                 <div className="message-header">
                   <strong>{msg.sender.firstName} {msg.sender.lastName}</strong>
-                  {msg.sender.avatar && (
+                  {/* {msg.sender.avatar && (
                     <img
                       src={msg.sender.avatar}
                       alt={`${msg.sender.firstName}'s Avatar`}
                       width={30}
                       height={30}
                     />
-                  )}
+                  )} */}
                 </div>
-                <div className="message-content">
-                  {msg.content}
-                  {msg.mediaURL && <img src={msg.mediaURL} alt="Media" width={100} height={100} />}
+                <div className={`message-content ${
+                  msg.sender._id === userId ? "content-right" : "content-left"
+                }`}>
+                  <span>{msg.content}</span>
+                  {msg?.mediaURL.length === 0 ? '' : <img src={msg.mediaURL} alt="Media" width={100} height={100} />}
                 </div>
               </div>
             ))}
