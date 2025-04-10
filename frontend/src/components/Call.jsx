@@ -21,11 +21,6 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     const iceServers = {
         iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
-            { urls: "stun:stun2.l.google.com:19302" },
-            { urls: "stun:stun3.l.google.com:19302" },
-            { urls: "stun:stun4.l.google.com:19302" },
-            { urls: "stun:stun.ekiga.net" },
             { urls: "stun:openrelay.metered.ca:80" },
             {
                 urls: "turn:openrelay.metered.ca:80",
@@ -37,25 +32,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 username: "openrelayproject",
                 credential: "openrelayproject",
             },
-            {
-                urls: "turn:openrelay.metered.ca:443?transport=tcp",
-                username: "openrelayproject",
-                credential: "openrelayproject",
-            },
-            // Global Xirsys public TURN servers (free tier)
-            {
-                urls: "turn:turn.xirsys.com:80?transport=udp",
-                username: "webrtc",
-                credential: "webrtc",
-            },
-            {
-                urls: "turn:turn.xirsys.com:3478?transport=udp",
-                username: "webrtc",
-                credential: "webrtc",
-            },
         ],
-        iceCandidatePoolSize: 10,
-        iceTransportPolicy: 'all' // Use 'relay' to force TURN usage if needed
     };
 
     // Lấy stream ngay khi component mở
@@ -243,9 +220,9 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 }
                 const pc = peerConnections.current[from];
 
-                // Check signaling state to determine if we can set a remote description
-                if (pc.signalingState === "stable") {
-                    console.log("ℹ️ [Peer] Connection already stable for:", from);
+                // Nếu remote description đã được thiết lập, ta bỏ qua answer mới
+                if (pc.remoteDescription) {
+                    console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
                     return;
                 }
 
@@ -338,7 +315,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         }
         pc.onicecandidate = (e) => {
             if (e.candidate && socket) {
-                console.log("❄️ [Peer] Gửi ICE candidate tới:", targetId, e.candidate.candidate);
+                console.log("❄️ [Peer] Gửi ICE candidate tới:", targetId);
                 socket.emit("ice-candidate", { targetUserId: targetId, candidate: e.candidate });
             }
         };
@@ -372,35 +349,11 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
             // });
         };
         pc.oniceconnectionstatechange = () => {
-            console.log(`🔄 [Peer] ICE connection state change: ${pc.iceConnectionState} with: ${targetId}`);
             if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
                 console.log("❌ [Peer] Kết nối ICE thất bại với:", targetId);
-
-                // Try to restart ICE if connection fails
-                if (pc.iceConnectionState === "failed") {
-                    console.log("🔄 [Peer] Attempting ICE restart with:", targetId);
-                    try {
-                        pc.restartIce();
-                    } catch (err) {
-                        console.error("❌ [Peer] ICE restart failed:", err);
-                        cleanupPeer(targetId);
-                    }
-                }
+                cleanupPeer(targetId);
             } else if (pc.iceConnectionState === "connected") {
-                console.log("✅ [Peer] ICE connection established with:", targetId);
             }
-        };
-
-        pc.onicegatheringstatechange = () => {
-            console.log(`🔍 [Peer] ICE gathering state: ${pc.iceGatheringState} with: ${targetId}`);
-        };
-
-        pc.onsignalingstatechange = () => {
-            console.log(`📡 [Peer] Signaling state: ${pc.signalingState} with: ${targetId}`);
-        };
-
-        pc.onconnectionstatechange = () => {
-            console.log(`🌐 [Peer] Connection state: ${pc.connectionState} with: ${targetId}`);
         };
 
         return pc;
@@ -493,30 +446,30 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 </div>
 
                 {/* Nút điều khiển cuộc gọi */}
-                <div className="absolute bottom-3 left-0 right-0 flex justify-center"></div>
-                {(callStatus === "calling" || callStatus === "in-call") && (
-                    <button
-                        onClick={endCall}
-                        className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
-                        aria-label="End call"
-                        disabled={callStatus === "idle"}
-                    >
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                    {(callStatus === "calling" || callStatus === "in-call") && (
+                        <button
+                            onClick={endCall}
+                            className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                            aria-label="End call"
+                            disabled={callStatus === "idle"}
+                        >
+                            <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
+                        </button>
+                    )}
 
-                        <PhoneXMarkIcon className="h-10 w-10 text-red-600" />
-                    </button>
-                )}
+                    {callStatus === "idle" && (
+                        <button
+                            onClick={endCall}
+                            className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                            aria-label="Close"
+                        >
+                            <XMarkIcon className="h-14 w-14 bg-white cursor-pointer rounded-full text-red-600 p-1 shadow-lg" />
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
 
-                {callStatus === "idle" && (
-                    <button
-                        onClick={endCall}
-                        className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
-                        aria-label="Close"
-                    >
-                        <XMarkIcon className="h-14 w-14 bg-white cursor-pointer rounded-full text-red-600 p-1 shadow-lg" />
-                    </button>
-                )
-                }
-            </div >
-        </div >
     );
 }
