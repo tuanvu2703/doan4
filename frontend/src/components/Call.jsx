@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import authToken from "../components/authToken";
@@ -46,7 +47,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                     });
                     console.log("✅ [Media] Đã lấy stream thành công");
                     setStream(userStream);
-                    setIsStreamReady(true); // Đánh dấu stream đã sẵn sàng
+                    setIsStreamReady(true); 
                     if (localVideoRef.current) {
                         localVideoRef.current.srcObject = userStream;
                     }
@@ -62,7 +63,6 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         }
     }, [isOpen]);
 
-    // Kết nối socket và bắt đầu cuộc gọi khi stream sẵn sàng
     useEffect(() => {
         if (isStreamReady && targetUserIds && !socket) {
             connectSocket();
@@ -213,34 +213,89 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
         });
 
         socket.on("answer", async ({ from, sdp }) => {
+            console.log(`[Socket] Received 'answer' event. From: ${from}, Local User ID: ${userId}`); // Thêm log userId cục bộ
+        
+            // Quan trọng: Kiểm tra xem có phải answer từ chính mình không (ít xảy ra)
+            if (from === userId) {
+                console.warn(`[Peer] Ignorning 'answer' event potentially from self (${from}).`);
+                return;
+            }
+        
+            const pc = peerConnections.current[from];
+            if (!pc) {
+                 console.warn(`[Peer] PeerConnection for ${from} not found when receiving answer.`);
+                 return;
+            }
+        
+            // === KIỂM TRA QUAN TRỌNG ===
+            // Chỉ người gọi ban đầu (người gửi offer) mới nên xử lý answer.
+            // Kiểm tra xem local description (offer) đã được set chưa.
+            // Nếu local description tồn tại, nghĩa là instance này là người gọi.
+            if (!pc.localDescription) {
+                console.warn(`[Peer] Instance (${userId}) received an answer from ${from}, but doesn't seem to be the caller (no localDescription/offer set for this PC). Ignoring answer.`);
+                return; // Instance này có lẽ là người nhận, không nên xử lý answer này.
+            }
+        
+            // Kiểm tra xem remote description đã tồn tại chưa (đây là logic gốc gây warning)
+            if (pc.remoteDescription) {
+                // Log chi tiết hơn để hiểu tại sao nó lại xảy ra
+                console.warn(`⚠️ [Peer] Remote description already exists for ${from}. Ignoring new answer. SignalingState: ${pc.signalingState}. Existing remoteDesc:`, pc.remoteDescription);
+                return;
+            }
+        
             try {
-                if (!peerConnections.current[from]) {
-                    console.warn("⚠️ [Peer] PeerConnection không tồn tại cho:", from);
-                    return;
-                }
-                const pc = peerConnections.current[from];
-
-                // Nếu remote description đã được thiết lập, ta bỏ qua answer mới
-                if (pc.remoteDescription) {
-                    console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
-                    return;
-                }
-
+                console.log(`[Peer] Setting remote description (answer) for ${from}.`);
                 await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                console.log("✅ [Peer] Remote answer SDP set successfully for:", from);
-
+                console.log(`✅ [Peer] Remote answer SDP set successfully for: ${from}. New SignalingState: ${pc.signalingState}`);
+        
+                // Xử lý ICE candidates đã lưu trữ
                 if (iceCandidatesBuffer.current[from]) {
+                    console.log(`[Peer] Processing ${iceCandidatesBuffer.current[from].length} buffered ICE candidates for ${from}.`);
                     for (const candidate of iceCandidatesBuffer.current[from]) {
-                        console.log("❄️ [Socket] Xử lý ICE candidate từ buffer cho:", from);
-                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                        try {
+                            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                            console.log(`❄️ [Peer] Added buffered ICE candidate for ${from}`);
+                        } catch (iceError) {
+                             console.error(`❌ [Peer] Error adding buffered ICE candidate for ${from}:`, iceError);
+                        }
                     }
                     delete iceCandidatesBuffer.current[from];
                 }
             } catch (error) {
-                console.error("❌ [Socket] Lỗi xử lý answer:", error);
+                console.error(`❌ [Socket] Error processing answer from ${from}:`, error);
                 cleanupPeer(from);
             }
         });
+
+        // socket.on("answer", async ({ from, sdp }) => {
+        //     try {
+        //         if (!peerConnections.current[from]) {
+        //             console.warn("⚠️ [Peer] PeerConnection không tồn tại cho:", from);
+        //             return;
+        //         }
+        //         const pc = peerConnections.current[from];
+
+        //         // Nếu remote description đã được thiết lập, ta bỏ qua answer mới
+        //         if (pc.remoteDescription) {
+        //             console.warn("⚠️ [Peer] Đã có remote answer, bỏ qua answer mới từ:", from);
+        //             return;
+        //         }
+
+        //         await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        //         console.log("✅ [Peer] Remote answer SDP set successfully for:", from);
+
+        //         if (iceCandidatesBuffer.current[from]) {
+        //             for (const candidate of iceCandidatesBuffer.current[from]) {
+        //                 console.log("❄️ [Socket] Xử lý ICE candidate từ buffer cho:", from);
+        //                 await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        //             }
+        //             delete iceCandidatesBuffer.current[from];
+        //         }
+        //     } catch (error) {
+        //         console.error("❌ [Socket] Lỗi xử lý answer:", error);
+        //         cleanupPeer(from);
+        //     }
+        // });
 
 
 
