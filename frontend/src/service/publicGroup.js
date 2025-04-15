@@ -1,5 +1,6 @@
 import authToken from '../components/authToken';
 import API from './API';
+// import axios from 'axios';
 
 async function createPublicGroup(data) {
     try {
@@ -7,15 +8,53 @@ async function createPublicGroup(data) {
             {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'multipart/form-data',
                 }
             }
         )
-        return request
+        return request.data;
     } catch (error) {
 
     }
 }
 
+async function getPublicGroupParticipated() {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/PublicGroup/getGroupByUser`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
 
-export { createPublicGroup }
+    }
+}
+
+async function getMemberGroup(groupId) {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/PublicGroup/getMemberGroup/${groupId}`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+
+    }
+}
+
+async function getPublicGroupById(groupId) {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/PublicGroup/getGroupId/${groupId}`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+
+    }
+}
+
+export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById }

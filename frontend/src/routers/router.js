@@ -43,6 +43,7 @@ import MemoryGame from "../components/MemoryGame.jsx";
 import Group from "../views/group/index.jsx";
 import Layoutgr from "../views/group/layoutgr.jsx";
 import SelectGroup from "../views/group/select/SelectGroup.jsx";
+import Member from "../views/group/Member.jsx";
 
 function routers() {
     return (
@@ -86,8 +87,9 @@ function routers() {
                     </Route>
 
                     <Route path="group" element={<SelectGroup />} />
-                    <Route path="/group/detail" element={<Layoutgr />}>
+                    <Route path="/group/:groupid" element={<Layoutgr />}>
                         <Route index element={<Group />} />
+                        <Route path="member" element={<Member />} />
                     </Route>
                 </Route>
                 {/* Redirect to login if not authenticated */}

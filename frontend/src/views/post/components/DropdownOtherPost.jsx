@@ -1,11 +1,9 @@
 import React from 'react'
 import { FlagIcon, BookmarkIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/solid'
-import { Link } from 'react-router-dom'
 import { handleAddBookmark } from '../../../service/PostService';
 import { toast } from 'react-toastify';
 import NotificationCss from '../../../module/cssNotification/NotificationCss';
-import { useState, useEffect } from 'react';
-import { sendReport } from '../../../service/report';
+import { useState } from 'react';
 import ReportForm from './ReportForm';
 export default function DropdownOtherPost({ postId }) {
     const [dropdownOpen, setDropdownOpen] = useState(false)

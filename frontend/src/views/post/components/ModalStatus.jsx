@@ -11,9 +11,10 @@ import Loading from '../../../components/Loading';
 import FileViewChane from '../../../components/fileViewChane';
 import DropdownEmoji from '../../../components/DropdownEmoji';
 import Gif from './Gif';
-
+import { useNavigate } from 'react-router-dom';
 
 export default function ModalStatus({ user, onCloseModal }) {
+    const navigate = useNavigate();
     const [open, setOpen] = useState(true);
     const [rows, setRows] = useState(3);
     const [visibility, setVisibility] = useState('Tất cả mọi người');
@@ -125,7 +126,7 @@ export default function ModalStatus({ user, onCloseModal }) {
                     window.location.reload();
                 }, 1000);
             } else {
-                alert('Có lỗi xảy ra, vui lòng thử lại.');
+                console.log('Có lỗi xảy ra, vui lòng thử lại.');
             }
         } catch (error) {
             console.error('Lỗi:', error.response ? error.response.data : error.message);

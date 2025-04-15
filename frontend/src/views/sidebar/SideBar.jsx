@@ -20,28 +20,34 @@ export default function SideBar() {
                     <ul className="mt-2">
                         <Link
                             to="/"
-                            className={`hover:bg-blue-100 flex items-center gap-6 p-2 ${isActiveTab('/') ? 'text-blue-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <HomeIcon className='size-11' />
 
                         </Link>
                         <Link
                             to="/friends"
-                            className={`hover:bg-green-100 flex items-center gap-6 p-2 ${isActiveTab('/friends') ? 'text-green-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/friends') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <UserGroupIcon className='size-11' />
                         </Link>
                         <Link
                             onClick={() => navigate('/messenger')}
-                            className={`hover:bg-yellow-100 flex items-center gap-6 p-2 ${isActiveTab('/messenger') ? 'text-yellow-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <ChatBubbleLeftIcon className='size-11' />
                         </Link>
                         <Link
                             to="/bookmark"
-                            className={`hover:bg-red-100 flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? 'text-red-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <BookmarkIcon className='size-11' />
+                        </Link>
+                        <Link
+                            to="/group"
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/group') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
+                        >
+                            <GlobeAltIcon className='size-11' />
                         </Link>
                     </ul>
                 </aside>
@@ -50,35 +56,35 @@ export default function SideBar() {
                     <ul className="mt-2">
                         <Link
                             to="/"
-                            className={`hover:bg-blue-100  flex items-center gap-6 p-2 ${isActiveTab('/') ? 'text-blue-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <HomeIcon className='size-11' />
                             <span className="text-sm font-medium">Trang chủ</span>
                         </Link>
                         <Link
                             to="/friends"
-                            className={`hover:bg-green-100  flex items-center gap-6 p-2 ${isActiveTab('/friends') ? 'text-green-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/friends') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <UserGroupIcon className='size-11' />
                             <span className="text-sm font-medium">Bạn bè</span>
                         </Link>
                         <Link
                             to="/messenger"
-                            className={`hover:bg-yellow-100  flex items-center gap-6 p-2 ${isActiveTab('/messenger') ? 'text-yellow-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/messenger') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <ChatBubbleLeftIcon className='size-11' />
                             <span className="text-sm font-medium">Nhắn tin</span>
                         </Link>
                         <Link
                             to="/bookmark"
-                            className={`hover:bg-red-100  flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? 'text-red-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <BookmarkIcon className='size-11' />
                             <span className="text-sm font-medium">Lữu trữ</span>
                         </Link>
                         <Link
                             to="/group"
-                            className={`hover:bg-red-100  flex items-center gap-6 p-2 ${isActiveTab('/bookmark') ? 'text-red-500' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/group') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <GlobeAltIcon className='size-11' />
                             <span className="text-sm font-medium">Nhóm</span>

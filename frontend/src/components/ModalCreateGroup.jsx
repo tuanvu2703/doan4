@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { createPublicGroup } from '../service/publicGroup';
+import Loading from './Loading';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import FileViewChane from './fileViewChane';
+import NotificationCss from '../module/cssNotification/NotificationCss';
 export default function ModalCreateGroup() {
     const [formData, setFormData] = useState({
         groupName: "",
@@ -9,8 +13,10 @@ export default function ModalCreateGroup() {
         rules: "",
         typegroup: ""
     });
+    const navigate = useNavigate();
     const [filePreview, setFilePreview] = useState(null)
     const [isFormValid, setIsFormValid] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({
         groupName: false,
         files: false
@@ -22,7 +28,7 @@ export default function ModalCreateGroup() {
 
     useEffect(() => {
         const { groupName, files, rules, typegroup } = formData;
-        const valid = groupName.trim() !== "" && files !== null;
+        const valid = groupName.trim() !== "" && files !== null && typegroup !== "";
         setIsFormValid(valid);
 
         setErrors({
@@ -51,7 +57,9 @@ export default function ModalCreateGroup() {
         setTouched({ ...touched, groupName: true });
     };
 
-    async function handleSubmit() {
+    async function handleSubmit(e) {
+        setIsLoading(true);
+        e.preventDefault();
         // Mark all fields as touched to show errors
         setTouched({
             groupName: true,
@@ -59,14 +67,42 @@ export default function ModalCreateGroup() {
         });
 
         if (isFormValid) {
-            await createPublicGroup(formData);
+            try {
+                // Create a new FormData instance
+                const formDataToSend = new FormData();
+                formDataToSend.append('groupName', formData.groupName);
+                formDataToSend.append('rules', formData.rules);
+                formDataToSend.append('typegroup', formData.typegroup);
+
+                // Log file to verify it exists before sending
+                console.log("File being uploaded:", formData.files);
+
+                // Append the file with the correct field name
+                if (formData.files) {
+                    formDataToSend.append('files', formData.files, formData.files.name);
+                }
+
+                // Submit the form data
+                const response = await createPublicGroup(formDataToSend);
+                toast.success(response?.message ? response.message : 'Tạo nhóm thành công', NotificationCss.Success);
+                console.log("Response:", response);
+
+                // Close the modal on success
+                setIsLoading(false);
+                document.getElementById('my_modal_create_group').close();
+            } catch (error) {
+                console.error("Error creating group:", error);
+            }
         }
     }
 
     return (
         <dialog id="my_modal_create_group" className="modal">
             <div className="modal-box">
-                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </form>
                 <h3 className="font-bold text-lg text-center my-7 border-b-black border-b-[1px]">Tạo nhóm mới</h3>
                 <div className='grid gap-5'>
                     <fieldset className="fieldset">
@@ -84,6 +120,13 @@ export default function ModalCreateGroup() {
                             <p className="text-error text-sm mt-1">Vui lòng nhập tên nhóm</p>
                         )}
                     </fieldset>
+                    {/* select privacy */}
+                    <select defaultValue="Server location" className="select select-neutral">
+                        <option disabled={true}>Chọn loại nhóm</option>
+                        <option value={"public"}>Công khai</option>
+                        <option value={"private"}>Riêng tư</option>
+                    </select>
+
 
                     <div className="form-control">
                         <input
@@ -106,16 +149,18 @@ export default function ModalCreateGroup() {
                     )}
                 </div>
                 <div className="modal-action">
-                    <form method="dialog" className='flex gap-5'>
-                        <button className="btn btn-error text-white">Hủy</button>
-                        <button
-                            onClick={handleSubmit}
-                            className={`btn ${isFormValid ? 'btn-success' : 'btn-disabled'} text-white`}
-                            disabled={!isFormValid}
-                        >
-                            Tạo nhóm
-                        </button>
-                    </form>
+                    {isLoading ? (<Loading />) : (
+                        <form method="dialog" className='flex gap-5'>
+                            <button className="btn btn-error text-white">Hủy</button>
+                            <button
+                                onClick={handleSubmit}
+                                className={`btn ${isFormValid ? 'btn-success' : 'btn-disabled'} text-white`}
+                                disabled={!isFormValid}
+                            >
+                                Tạo nhóm
+                            </button>
+                        </form>
+                    )}
                 </div>
             </div>
             <form method="dialog" className="modal-backdrop">
