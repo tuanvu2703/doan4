@@ -11,7 +11,7 @@ import {
   export class UploadCoverImgDto {
       @ApiProperty({
         type: 'string',
-        format: 'binary', // Định dạng file upload trong Swagger
+        format: 'binary',
       })
     @IsString()
     @IsNotEmpty({ message: 'please upload 1 file img ' })
