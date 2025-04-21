@@ -58,9 +58,6 @@ export class ChatService {
       return decrypted;
     }
     
-    
-
-
     async createGroup(createGroupDto: CreateGroupDto, userId: Types.ObjectId){
         const { name, avatarGroup, participants } = createGroupDto;
         const participantIds = participants.map(participant =>
@@ -413,31 +410,25 @@ export class ChatService {
     
       return processedMessages;
     }
-    
-    
 
     async revokeAMessage(messageId: Types.ObjectId, userId: Types.ObjectId): Promise<Message | GroupMessage> {
       // Tìm tin nhắn trong MessageModel
       let message = await this.MessageModel.findById(messageId);
       let messageSource = 'MessageModel';
     
-
       if (!message) {
         message = await this.GroupMessageModel.findById(messageId);
         messageSource = 'GroupMessageModel';
       }
     
-
       if (!message) {
         throw new HttpException('Message not found', HttpStatus.NOT_FOUND);
       }
-    
 
       if (message.sender.toString() !== userId.toString()) {
         throw new HttpException('You are not authorized to revoke this message', HttpStatus.FORBIDDEN);
       }
     
-      
       const updateFields = {
         isLive: false,
         content: null,

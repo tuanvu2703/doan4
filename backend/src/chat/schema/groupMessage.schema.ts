@@ -30,5 +30,4 @@ export class GroupMessage extends Document {
 
 }
 
-
 export const GroupMessageSchema = SchemaFactory.createForClass(GroupMessage);
