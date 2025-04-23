@@ -138,6 +138,7 @@ export default function ModalStatus({ user, onCloseModal, addNewPost }) {
 
                 setTimeout(() => {
                     setOpen(false);
+                    setAlertVisible(false); // Reset the alert visibility
                     // Reset the form instead of reloading
                     setFormData({
                         content: '',
