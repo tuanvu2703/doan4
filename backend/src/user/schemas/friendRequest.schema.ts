@@ -3,7 +3,7 @@ import { Types, Document } from 'mongoose';
 import { User } from './user.schemas';
 
 @Schema({
-  timestamps: true,
+  timestamps: true, 
 })
 export class FriendRequest extends Document {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -17,3 +17,5 @@ export class FriendRequest extends Document {
 }
 
 export const FriendRequestSchema = SchemaFactory.createForClass(FriendRequest);
+
+FriendRequestSchema.index({ sender: 1, receiver: 1 }, { unique: true });

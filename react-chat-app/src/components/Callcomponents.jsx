@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import useWebSocket from "./useWebsocket";
+
 
 const Call = () => {
   const localVideoRef = useRef(null);
@@ -8,13 +10,12 @@ const Call = () => {
   const iceCandidatesBuffer = useRef({});
   const [userId, setUserId] = useState(null);
   const [targetUserIds, setTargetUserIds] = useState("");
-  const [token, setToken] = useState("");
   const [socket, setSocket] = useState(null);
   const [stream, setStream] = useState(null);
   const [callStatus, setCallStatus] = useState("idle");
   const [roomId, setRoomId] = useState(null); // Thêm state để lưu roomId
 
-  const URL = "https://social-network-jbtx.onrender.com";
+  const URL = "http://localhost:3001";
   const iceServers = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -62,10 +63,10 @@ const Call = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("connect", () => {
-      console.log("✅ [Socket] Kết nối WebSocket thành công");
-      setCallStatus("connected");
-    });
+    // socket.on("connect", () => {
+    //   console.log("✅ [Socket] Kết nối WebSocket thành công");
+    //   setCallStatus("connected");
+    // });
 
     socket.on("disconnect", () => {
       console.log("❌ [Socket] WebSocket ngắt kết nối");
@@ -185,14 +186,14 @@ const Call = () => {
     };
   }, [socket, stream]);
 
-  const connectSocket = () => {
-    if (!token) return alert("Vui lòng nhập token");
-    console.log("🔌 [Socket] Bắt đầu kết nối với token:", token);
-    const newSocket = io(URL, {
-      extraHeaders: { Authorization: `Bearer ${token}` },
-    });
-    setSocket(newSocket);
-  };
+  // const connectSocket = () => {
+  //   if (!token) return alert("Vui lòng nhập token");
+  //   console.log("🔌 [Socket] Bắt đầu kết nối với token:", token);
+  //   const newSocket = io(URL, {
+  //     extraHeaders: { Authorization: `Bearer ${token}` },
+  //   });
+  //   setSocket(newSocket);
+  // };
 
   const createPeerConnection = (targetId) => {
     console.log("🔗 [Peer] Tạo PeerConnection với:", targetId);
@@ -239,7 +240,7 @@ const Call = () => {
   };
 
   const startCall = async () => {
-    if (!targetUserIds || !socket || !stream) return alert("Vui lòng kết nối socket và bật camera/micro");
+    if (!targetUserIds || !stream) return alert("Vui lòng kết nối socket và bật camera/micro");
 
     const ids = targetUserIds.split(",").map((id) => id.trim());
     if (ids.length > 5) return alert("Tối đa 5 người trong nhóm");
@@ -248,7 +249,6 @@ const Call = () => {
     socket.emit("startCall", { targetUserIds: ids });
     setCallStatus("calling");
 
-    // Backend sẽ trả về roomId qua event "incomingCall", nên không cần tạo offer ngay tại đây
   };
 
   const acceptCall = async (callerId, group, roomId) => {
@@ -258,7 +258,7 @@ const Call = () => {
         peerConnections.current[id] = createPeerConnection(id);
       }
     });
-    setRoomId(roomId); // Đảm bảo roomId được lưu khi chấp nhận cuộc gọi
+    setRoomId(roomId);
   };
 
   const endCall = () => {
@@ -292,16 +292,11 @@ const Call = () => {
       <p>User ID: {userId || "Chưa kết nối"}</p>
       <p>Room ID: {roomId || "Chưa tham gia phòng"}</p>
 
-      <div>
-        <label>Token: </label>
-        <input value={token} onChange={(e) => setToken(e.target.value)} />
-        <button onClick={connectSocket} disabled={socket}>Kết nối</button>
-      </div>
 
       <div>
         <label>Gọi tới ID (cách nhau bằng ","): </label>
         <input value={targetUserIds} onChange={(e) => setTargetUserIds(e.target.value)} />
-        <button onClick={startCall} disabled={callStatus === "in-call" || !socket}>Gọi</button>
+        <button onClick={startCall} disabled={callStatus === "in-call"}>Gọi</button>
         <button onClick={endCall} disabled={callStatus === "idle"}>Kết thúc</button>
       </div>
 

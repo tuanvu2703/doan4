@@ -10,3 +10,5 @@ This project sets up a Kafka cluster with Zookeeper and Kafka UI using Docker Co
 
 ## Setup
 1. Generate SSL certificates:
+2. cd -> file docker-compose.yml
+3. in your terminal write "docker compose up -d"

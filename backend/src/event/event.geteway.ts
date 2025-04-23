@@ -49,7 +49,6 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
       await Promise.all([pubClient.connect(), subClient.connect()]);
       server.adapter(createAdapter(pubClient, subClient));
       console.log('WebSocket server initialized with Upstash Redis');
-      // Thêm: Truyền server vào WebRTCService
       this.webrtcService.setServer(server);
     } catch (error) {
       console.error('Failed to connect to Upstash Redis:', error);
@@ -74,8 +73,6 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
       this.clientToUser.set(client.id, userId);
 
       client.join(`user:${userId}`);
-
-      // Log trạng thái sau khi connect
       console.log(`{ ${userId}: [${Array.from(this.activeUsers.get(userId)).join(', ')}] }`);
     } catch (error) {
       console.error('Error during connection:', error);
@@ -98,9 +95,8 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
         if (userSockets.size === 0) {
           this.activeUsers.delete(userId);
           this.server.emit('userDisconnected', { userId });
-          console.log(`{ ${userId}: [] }`); // Log trạng thái khi không còn client nào
+          console.log(`{ ${userId}: [] }`);
         } else {
-          // Log trạng thái sau khi disconnect
           console.log(`{ ${userId}: [${Array.from(userSockets).join(', ')}] }`);
         }
       }

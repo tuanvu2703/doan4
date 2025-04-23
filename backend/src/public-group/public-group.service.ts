@@ -241,13 +241,25 @@ export class PublicGroupService {
   
   }
 
-  async unEmpoverMember(groupId :Types.ObjectId, userId : Types.ObjectId): Promise<MemberGroup>{
+  async unEmpoverMember(groupId :Types.ObjectId, userIds:Types.ObjectId[]): Promise<any>{
 
-    const user = this.UserModel.findById(userId)
-    if(!user){
+    const group = await this.PublicGroupModel.findById(groupId);
+    if (!group) throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+
+    const users = await this.UserModel.find({ _id: { $in: userIds } });
+    if (users.length !== userIds.length) throw new HttpException('One or more users not found', HttpStatus.NOT_FOUND);
+
+    const members = await this.MemberGroupModel.find({ group: groupId, member: { $in: userIds } });
+    if (members.length !== userIds.length) throw new HttpException('One or more members not found in group', HttpStatus.NOT_FOUND);
+
+    for (const member of members) {
+        if (member.role === 'owner') throw new HttpException(`Member ${member.member} is owner`, HttpStatus.BAD_REQUEST);
+        if (member.role === 'user') throw new HttpException(`Member ${member.member} is already user`, HttpStatus.BAD_REQUEST);
+        member.role = 'user';
     }
 
-    return
+    await Promise.all(members.map(member => member.save()));
+    return members;
   }
 
 

@@ -180,7 +180,36 @@ export class PublicGroupController {
       data: updatedMembers,
     };
   }
+
+  @Patch('unempowerMember/:groupId')
+  @UseGuards(AuthGuardD)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'groupId',
+    required: true,
+    description: 'Nhập _id của nhóm',
+    example: '65fc4e5a4d3a7f1f2a1c9c10',
+  })
+  @ApiResponse({ status: 200, description: 'Cấp quyền thành viên nhóm thành công' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  @ApiResponse({ status: 404, description: 'Nhóm hoặc thành viên không tồn tại' })
+  async unEmpowerMember(
+    @CurrentUser() currentUser: User,
+    @Param('groupId') group: string,
+    @Body('member') members: string[], 
+  ) {
+    const groupId = new Types.ObjectId(group);
+    const memberIds = members.map((id) => new Types.ObjectId(id));
+    const updatedMembers = await this.publicGroupService.empowerMember(groupId, memberIds);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Members unEmpowered successfully',
+      data: updatedMembers,
+    };
   }
+
+}
   
 
 
