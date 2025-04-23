@@ -12,7 +12,7 @@ import { profileUserCurrent } from '../../service/ProfilePersonal';
 import FileViewer from '../../components/fileViewer';
 
 
-export default function HomePost() {
+export default function HomePost({ onPostsUpdated }) {
     const [posts, setPosts] = useState([]);
     const [displayedPosts, setDisplayedPosts] = useState([]); // Tracks the posts currently displayed
     const [userLogin, setUserLogin] = useState({});
@@ -38,6 +38,20 @@ export default function HomePost() {
         };
         setTimeout(fetchdata, 1000);
     }, []);
+
+    // Function to add a new post to the posts array
+    const addNewPost = (newPost) => {
+        const updatedPosts = [newPost, ...posts];
+        setPosts(updatedPosts);
+        setDisplayedPosts(updatedPosts.slice(0, postsToShow));
+    };
+
+    // Expose the addNewPost function to parent components
+    useEffect(() => {
+        if (onPostsUpdated) {
+            onPostsUpdated(addNewPost);
+        }
+    }, [onPostsUpdated, posts]);
 
     useEffect(() => {
         setDisplayedPosts(posts.slice(0, postsToShow));

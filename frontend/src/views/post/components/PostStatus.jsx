@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ModalStatus from './ModalStatus';
 
-export default function PostStatus({ user }) {
+export default function PostStatus({ user, addNewPost }) {
   if (!user) return;
   return (
     <div className='border border-gray-300 bg-white rounded-lg shadow-sm shadow-zinc-300 p-4'>
@@ -18,7 +18,7 @@ export default function PostStatus({ user }) {
           <span className="text-sm text-gray-600">Bạn muốn đăng gì?</span>
         </button>
 
-        <ModalStatus user={user} />
+        <ModalStatus user={user} addNewPost={addNewPost} />
       </div>
     </div>
   );

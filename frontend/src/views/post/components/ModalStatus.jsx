@@ -13,7 +13,7 @@ import DropdownEmoji from '../../../components/DropdownEmoji';
 import Gif from './Gif';
 import { useNavigate } from 'react-router-dom';
 
-export default function ModalStatus({ user, onCloseModal }) {
+export default function ModalStatus({ user, onCloseModal, addNewPost }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(true);
     const [rows, setRows] = useState(3);
@@ -121,14 +121,40 @@ export default function ModalStatus({ user, onCloseModal }) {
 
             if (response.status === 201) {
                 setAlertVisible(true);
+
+                // Use the addNewPost function if available
+                if (addNewPost && response.data) {
+                    const newPost = {
+                        ...response.data,
+                        author: user, // Add author information
+                        likes: [],
+                        dislikes: [],
+                        comments: [],
+                        img: response.data.img || [],
+                        createdAt: new Date().toISOString()
+                    };
+                    addNewPost(newPost);
+                }
+
                 setTimeout(() => {
                     setOpen(false);
-                    window.location.reload();
+                    // Reset the form instead of reloading
+                    setFormData({
+                        content: '',
+                        files: null,
+                        gif: null,
+                        privacy: privacy,
+                    });
+                    setFilePreview(null);
+                    setGifPreview(null);
+                    document.getElementById('my_modal_1').close();
                 }, 1000);
             } else {
                 console.log('Có lỗi xảy ra, vui lòng thử lại.');
             }
+            setLoading(false);
         } catch (error) {
+            setLoading(false);
             console.error('Lỗi:', error.response ? error.response.data : error.message);
         }
     };
