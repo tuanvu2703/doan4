@@ -4,19 +4,18 @@ import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import NotificationCss from '../../../module/cssNotification/NotificationCss'
 import { deletePost } from '../../../service/PostService'
-export default function DropdownPostPersonal({ postId }) {
+export default function DropdownPostPersonal({ postId, onPostDeleted }) {
 
   const handleDeletePost = async () => {
     try {
       await deletePost(postId)
       toast.success('Xóa bài viết thành công', NotificationCss.Success);
+      // Call the callback instead of reloading the page
+      if (onPostDeleted) {
+        onPostDeleted(postId);
+      }
     } catch (error) {
       console.error('Error deleting post:', error)
-    }
-    finally {
-      setTimeout(() => {
-        window.location.reload()
-      },1000)
     }
   }
 

@@ -32,7 +32,7 @@ export default function OtherPosts() {
 
     return (
         <div>
-            <p className='text-xl break-words w-screen max-w-2xl'>Bài viết của {dataProfile.lastName} {dataProfile.firstName}</p>
+            <p className='text-xl break-words mb-6 max-w-3xl mx-auto w-full'>Bài viết của {dataProfile.lastName} {dataProfile.firstName}</p>
             <div className='grid gap-3'>
                 <AllPostOther user={dataProfile} />
             </div>

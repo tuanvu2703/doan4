@@ -27,7 +27,7 @@ export default function FriendProfile() {
       ) : (
         data.length > 0 ? (
           data.map((e) => (
-            <li className='border-[1px] rounded-md p-2 shadow-lg'>
+            <li className='border-[1px] rounded-md p-2 shadow-lg bg-white'>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-x-6 ">
                   <img

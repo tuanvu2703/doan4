@@ -7,6 +7,8 @@ import { getMemberGroup } from '../../../service/publicGroup';
 export default function SelectGroup() {
     const [groups, setGroups] = useState([]);
     const [members, setMembers] = useState([]);
+    const [refresh, setRefresh] = useState(false); // Add refresh state
+
     useEffect(() => {
         async function fetchGroups() {
             try {
@@ -17,7 +19,8 @@ export default function SelectGroup() {
             }
         }
         fetchGroups();
-    }, []);
+    }, [refresh]); // Add refresh as a dependency
+
     useEffect(() => {
         async function fetchMembers() {
             try {
@@ -43,6 +46,12 @@ export default function SelectGroup() {
         const memberData = members.find((member) => member.groupId === groupId);
         return memberData && memberData.role === 'owner' ? memberData.member.firstName : 'Unknown';
     };
+
+    const handleNewGroup = (newGroup) => {
+        setGroups((prevGroups) => [...prevGroups, newGroup]);
+        setRefresh((prev) => !prev); // Trigger refresh
+    };
+
     console.log(members);
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 w-full">
@@ -74,7 +83,7 @@ export default function SelectGroup() {
                     </div>
                 </div>
             </div>
-            <ModalCreateGroup />
+            <ModalCreateGroup onNewGroup={handleNewGroup} />
         </div>
     )
 }

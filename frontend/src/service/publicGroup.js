@@ -11,10 +11,11 @@ async function createPublicGroup(data) {
                     'Content-Type': 'multipart/form-data',
                 }
             }
-        )
+        );
         return request.data;
     } catch (error) {
-
+        console.error("Error creating group:", error);
+        throw error;
     }
 }
 

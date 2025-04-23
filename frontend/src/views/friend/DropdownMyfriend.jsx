@@ -38,7 +38,7 @@ export default function DropdownMyfriend({ userdata }) {
             <div tabIndex={0} role="button" className="p-2 hover:bg-gray-300 rounded-full">
                 <ChevronDownIcon className="size-5 fill-black" />
             </div>
-            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow border-[1px] border-gray-300">
                 {/* <li>
                     <Link className="  data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
                         <HeartIcon className="size-5 fill-red-600" />

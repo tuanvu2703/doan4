@@ -21,6 +21,7 @@ export default function HomePost() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [copied, setCopied] = useState(false);
     const [currentIndexes, setCurrentIndexes] = useState({});
+    const [expandedPosts, setExpandedPosts] = useState({}); // Track which posts are expanded
 
     useEffect(() => {
         const fetchdata = async () => {
@@ -161,6 +162,45 @@ export default function HomePost() {
         }
     };
 
+    // Toggle content expansion for a specific post
+    const toggleContentExpansion = (postId) => {
+        setExpandedPosts(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
+    // Function to render content with truncation if needed
+    const renderPostContent = (post) => {
+        const isExpanded = expandedPosts[post._id];
+        // Check if content exists before trying to access its length
+        const content = post.content || '';
+        const shouldTruncate = content.length > 60 && !isExpanded;
+
+        return (
+            <div className="break-words text-gray-800 py-2 px-1 leading-relaxed max-w-2xl text-base mt-1 mb-2">
+                <div className={`whitespace-pre-wrap ${!isExpanded ? 'h-auto max-h-20 overflow-hidden' : 'h-auto'}`}>
+                    {content}
+                </div>
+                {content.length > 60 && (
+                    <button
+                        onClick={() => toggleContentExpansion(post._id)}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-1"
+                    >
+                        {isExpanded ? "Thu gọn" : "Xem thêm"}
+                    </button>
+                )}
+            </div>
+        );
+    };
+
+    // Add this handler function to remove deleted posts
+    const handlePostDeleted = (deletedPostId) => {
+        const updatedPosts = posts.filter(post => post._id !== deletedPostId);
+        setPosts(updatedPosts);
+        setDisplayedPosts(updatedPosts.slice(0, postsToShow));
+    };
+
     return (
         <>
             {loading ? (
@@ -170,105 +210,137 @@ export default function HomePost() {
                     {displayedPosts.length > 0 ? (
                         displayedPosts.map((post) => {
                             if (!post || !post.author) return null; // Skip invalid posts
+                            // Ensure post data properties exist
+                            const postData = {
+                                ...post,
+                                img: post.img || [],
+                                likes: post.likes || [],
+                                dislikes: post.dislikes || [],
+                                comments: post.comments || []
+                            };
+
                             return (
                                 <div
-                                    key={post._id}
-                                    className="grid p-4 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3 bg-white"
+                                    key={postData._id}
+                                    className="grid p-5 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 gap-4 bg-white mb-5"
                                 >
-                                    <div className="flex items-start gap-3">
-                                        <AVTUser user={post.author} />
-                                        <div className="grid gap-2 w-full">
-                                            <div className="flex justify-between items-center flex-wrap">
-                                                <article className="text-wrap grid gap-2">
-                                                    <div className="grid">
-                                                        <Link
-                                                            className="break-words font-bold text-lg hover:link max-w-[80vw] sm:max-w-[60vw]"
-                                                            to={`/user/${post.author._id}`}
-                                                        >
-                                                            {post.author.lastName} {post.author.firstName}
-                                                        </Link>
-                                                        <div className="flex gap-2 text-xs text-gray-600">
-                                                            <span>{formatDate(post.createdAt)}</span>
-                                                            <span>{formatPrivacy(post.privacy)}</span>
-                                                        </div>
+                                    <div className="flex items-start gap-4">
+                                        <AVTUser user={postData.author} />
+                                        <div className="flex flex-col w-full">
+                                            <div className="flex justify-between items-center w-full">
+                                                <article className="flex flex-col">
+                                                    <Link
+                                                        className="font-semibold text-lg hover:text-blue-600 transition-colors duration-200 text-gray-800"
+                                                        to={`/user/${postData.author._id}`}
+                                                    >
+                                                        {postData.author.lastName} {postData.author.firstName}
+                                                    </Link>
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                        <span>{formatDate(postData.createdAt)}</span>
+                                                        <span>•</span>
+                                                        {formatPrivacy(postData.privacy)}
                                                     </div>
                                                 </article>
-                                                {userLogin._id === post.author._id ? (
-                                                    <DropdownPostPersonal postId={post._id} />
+                                                {userLogin._id === postData.author._id ? (
+                                                    <DropdownPostPersonal postId={postData._id} onPostDeleted={handlePostDeleted} />
                                                 ) : (
-                                                    <DropdownOtherPost postId={post._id} />
+                                                    <DropdownOtherPost postId={postData._id} />
                                                 )}
                                             </div>
                                         </div>
                                     </div>
-                                    {/* Nội dung bài viết */}
-                                    <p className="break-words w-dvw max-w-2xl">{post.content}</p>
+                                    {/* Nội dung bài viết - với giới hạn 60 ký tự */}
+                                    {renderPostContent(postData)}
                                     {/* Hình ảnh/video */}
-                                    {post.img.length > 0 && (
-                                        <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto">
-                                            {post.img.length > 1 && (
+                                    {postData.img.length > 0 && (
+                                        <div className="relative w-full overflow-hidden rounded-xl shadow-lg max-w-3xl mx-auto my-3">
+                                            {postData.img.length > 1 && (
                                                 <button
-                                                    onClick={() => handlePrev(post)}
-                                                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10"
+                                                    onClick={() => handlePrev(postData)}
+                                                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800/60 hover:bg-gray-800/80 text-white p-2 rounded-full z-10 transition-all duration-200 text-xl font-bold w-8 h-8 flex items-center justify-center"
                                                 >
                                                     ‹
                                                 </button>
                                             )}
-                                            <div className="carousel-item w-full flex justify-center">
-                                                <FileViewer file={post.img[0]} mh={400} />
+                                            <div className="carousel-item w-full flex justify-center bg-gray-100/30 p-1">
+                                                <FileViewer file={postData.img[currentIndexes[postData._id] || 0]} mh={450} />
                                             </div>
-                                            {post.img.length > 1 && (
-                                                <button
-                                                    onClick={() => handleNext(post)}
-                                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10"
-                                                >
-                                                    ›
-                                                </button>
+                                            {postData.img.length > 1 && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleNext(postData)}
+                                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800/60 hover:bg-gray-800/80 text-white p-2 rounded-full z-10 transition-all duration-200 text-xl font-bold w-8 h-8 flex items-center justify-center"
+                                                    >
+                                                        ›
+                                                    </button>
+                                                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                                                        {postData.img.map((_, idx) => (
+                                                            <span
+                                                                key={idx}
+                                                                className={`h-2 rounded-full ${idx === (currentIndexes[postData._id] || 0) ? 'w-4 bg-white' : 'w-2 bg-white/60'} transition-all duration-200`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </>
                                             )}
                                         </div>
                                     )}
-                                    {post.gif && (
-                                        <div className='flex justify-center'>
+                                    {postData.gif && (
+                                        <div className='flex justify-center my-3'>
                                             <img
-                                                style={{ maxWidth: '100%', maxHeight: '400px' }}
-                                                src={post.gif}
-                                                alt="" />
+                                                className="rounded-xl shadow-md max-h-[450px] object-contain"
+                                                src={postData.gif}
+                                                alt="Gif content" />
                                         </div>
-
                                     )}
                                     {/* Các nút like, comment, share */}
-                                    <div className="flex justify-between flex-wrap gap-2">
-                                        <div className="flex gap-2">
+                                    <div className="flex justify-between items-center mt-2 pt-3 border-t border-gray-200">
+                                        <div className="flex gap-4">
                                             <button
-                                                onClick={() => handleLikeClick(post._id)}
-                                                className="flex items-center gap-1"
+                                                onClick={() => handleLikeClick(postData._id)}
+                                                className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
                                             >
-                                                {post.likes.includes(userLogin._id) ? (
-                                                    <HandThumbUpIcon className="size-5 animate__heartBeat text-blue-500" />
+                                                {postData.likes.includes(userLogin._id) ? (
+                                                    <HandThumbUpIcon className="size-5 animate__animated animate__heartBeat text-blue-600" />
                                                 ) : (
-                                                    <HandThumbUpIcon className="size-5 hover:text-blue-700" />
+                                                    <HandThumbUpIcon className="size-5 text-gray-600" />
                                                 )}
-                                                <span>{post.likes.length}</span>
+                                                <span className={`font-medium ${postData.likes.includes(userLogin._id) ? 'text-blue-600' : 'text-gray-600'}`}>
+                                                    {postData.likes.length > 0 ? postData.likes.length : ''}
+                                                </span>
                                             </button>
                                             <button
-                                                onClick={() => handleDislikeClick(post._id)}
-                                                className="flex items-center gap-1"
+                                                onClick={() => handleDislikeClick(postData._id)}
+                                                className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-red-50 transition-all duration-200"
                                             >
-                                                {post.dislikes.includes(userLogin._id) ? (
-                                                    <HandThumbDownIcon className="size-5 animate__heartBeat text-red-500" />
+                                                {postData.dislikes.includes(userLogin._id) ? (
+                                                    <HandThumbDownIcon className="size-5 animate__animated animate__heartBeat text-red-600" />
                                                 ) : (
-                                                    <HandThumbDownIcon className="size-5 hover:text-red-700" />
+                                                    <HandThumbDownIcon className="size-5 text-gray-600" />
                                                 )}
-                                                <span>{post.dislikes.length}</span>
+                                                <span className={`font-medium ${postData.dislikes.includes(userLogin._id) ? 'text-red-600' : 'text-gray-600'}`}>
+                                                    {postData.dislikes.length > 0 ? postData.dislikes.length : ''}
+                                                </span>
                                             </button>
                                         </div>
-                                        <Link to={`/post/${post._id}`} className="flex items-center gap-1">
-                                            <ChatBubbleLeftIcon className="size-5" />
-                                            <span>{post.comments.length}</span>
-                                        </Link>
-                                        <button onClick={() => handleCopyLink(post._id)} className="flex items-center gap-1">
-                                            <ShareIcon className="size-5" />
-                                        </button>
+                                        <div className="flex gap-4">
+                                            <Link
+                                                to={`/post/${postData._id}`}
+                                                className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200"
+                                            >
+                                                <ChatBubbleLeftIcon className="size-5 text-gray-600" />
+                                                <span className="font-medium text-gray-600">
+                                                    {postData.comments.length > 0 ? postData.comments.length : ''}
+                                                </span>
+                                            </Link>
+                                            <button
+                                                onClick={() => handleCopyLink(postData._id)}
+                                                className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200"
+                                            >
+                                                <ShareIcon className="size-5 text-gray-600" />
+                                                {copied && <span className="text-xs text-green-600 font-medium">Đã sao chép!</span>}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             );

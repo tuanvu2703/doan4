@@ -35,7 +35,7 @@ export default function Layoutgr() {
                 <div className='grid'>
                     <h1 className='font-semibold text-lg mb-2'>Thông tin</h1>
                     <span className='text-3xl font-bold '>{groups.groupName}</span>
-                    <span className='font-semibold'>Giới thiệu</span>
+                    <span className='font-semibold my-2'>Giới thiệu</span>
                     {/* <span>{groups.desc}</span> */}
                     {groups.typegroup === 'public' ? (
                         <div>

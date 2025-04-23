@@ -10,13 +10,24 @@ import { profileUserCurrent } from '../../service/ProfilePersonal';
 import DropdownOtherPost from './components/DropdownOtherPost';
 import { useUser } from '../../service/UserContext';
 import FilePreview from '../../components/fileViewer';
+import FileViewer from '../../components/fileViewer';
 export default function AllPostOther({ user }) {
     const [posts, setPosts] = useState([]);
     const [userLogin, setUserLogin] = useState({})
     const [copied, setCopied] = useState(false);
     const [currentIndexes, setCurrentIndexes] = useState({});
+    const [expandedPosts, setExpandedPosts] = useState({}); // State to track expanded posts
     const { id } = useParams();
     const { setShowZom } = useUser()
+
+    // Toggle function to expand/collapse post content
+    const toggleExpand = (postId) => {
+        setExpandedPosts(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
     useEffect(() => {
         const fetchdata = async () => {
             try {
@@ -154,87 +165,109 @@ export default function AllPostOther({ user }) {
             {posts.map((post) => (
                 <div
                     key={post._id}
-                    className="grid gap-4 bg-white p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300"
+                    className="bg-white p-5 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 mb-6 max-w-3xl mx-auto w-full"
                 >
                     {/* Header: AVT + thông tin người dùng và Dropdown */}
-                    <div className="flex flex-col md:flex-row items-start gap-3">
-                        <AVTUser user={user} />
-                        <div className="flex flex-col w-full">
-                            <div className="flex justify-between items-center">
-                                <article className="flex-1">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0">
+                            <AVTUser user={user} />
+                        </div>
+                        <div className="flex-grow min-w-0">
+                            <div className="flex justify-between items-start">
+                                <article>
                                     <Link
                                         to="#"
-                                        className="font-bold text-lg hover:link break-words block"
+                                        className="font-semibold text-base hover:underline text-gray-800 break-words line-clamp-1"
                                     >
                                         {user.lastName} {user.firstName}
                                     </Link>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex items-center gap-2 text-gray-500">
                                         <span className="text-xs">{formatDate(post.createdAt)}</span>
+                                        <span className="text-xs">•</span>
                                         <span className="text-xs">{formatPrivacy(post.privacy)}</span>
                                     </div>
                                 </article>
-                                <DropdownOtherPost postId={post._id} />
+                                <div className="flex-shrink-0">
+                                    <DropdownOtherPost postId={post._id} />
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Nội dung bài viết */}
-                    <p className="break-words">{post.content}</p>
+                    {/* Nội dung bài viết - with character limit */}
+                    <div className="text-gray-700 mb-3">
+                        {post.content.length <= 150 || expandedPosts[post._id] ? (
+                            <p className="text-base leading-relaxed whitespace-pre-line">{post.content}</p>
+                        ) : (
+                            <>
+                                <p className="text-base leading-relaxed whitespace-pre-line">{post.content.substring(0, 150)}...</p>
+                                <button
+                                    onClick={() => toggleExpand(post._id)}
+                                    className="text-blue-500 hover:text-blue-700 text-sm font-medium mt-1 transition-colors duration-200"
+                                >
+                                    Xem thêm
+                                </button>
+                            </>
+                        )}
+                    </div>
 
                     {/* Hình ảnh/Video */}
                     {post.img.length > 0 && (
-                        <div className='flex justify-center'>
-                            <FilePreview file={post.img} />
+                        <div className="relative overflow-hidden rounded-lg shadow-sm my-3 bg-gray-50">
+                            <div className="w-full flex justify-center">
+                                <FileViewer file={post.img} mh={500} />
+                            </div>
                         </div>
                     )}
-                    {post.gif && (
-                        <div className='flex justify-center'>
-                            <img
-                                style={{ maxWidth: '100%', maxHeight: '300px' }}
-                                src={post.gif}
-                                alt="" />
-                        </div>
 
-                    )}
                     {/* Footer: Like, Dislike, Comment và Share */}
-                    <div className="flex flex-wrap justify-between items-center gap-2">
-                        <div className="flex gap-2">
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                        <div className="flex gap-4">
                             <button
                                 onClick={() => handleLikeClick(post._id)}
-                                className="flex items-center gap-1"
+                                className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors duration-200 ${post.likes.includes(userLogin._id)
+                                    ? 'text-blue-600 bg-blue-50'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
                             >
                                 {post.likes.includes(userLogin._id) ? (
-                                    <HandThumbUpIcon className="w-5 h-5 animate__heartBeat text-blue-500" />
+                                    <HandThumbUpIcon className="w-5 h-5 animate__heartBeat text-blue-600" />
                                 ) : (
-                                    <HandThumbUpIcon className="w-5 h-5 hover:text-blue-700" />
+                                    <HandThumbUpIcon className="w-5 h-5" />
                                 )}
-                                <span className="text-sm">{post.likes.length}</span>
+                                <span className="text-sm font-medium">{post.likes.length}</span>
                             </button>
                             <button
                                 onClick={() => handleDislikeClick(post._id)}
-                                className="flex items-center gap-1"
+                                className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors duration-200 ${post.dislikes.includes(userLogin._id)
+                                    ? 'text-red-600 bg-red-50'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
                             >
                                 {post.dislikes.includes(userLogin._id) ? (
-                                    <HandThumbDownIcon className="w-5 h-5 animate__heartBeat text-red-500" />
+                                    <HandThumbDownIcon className="w-5 h-5 animate__heartBeat text-red-600" />
                                 ) : (
-                                    <HandThumbDownIcon className="w-5 h-5 hover:text-red-700" />
+                                    <HandThumbDownIcon className="w-5 h-5" />
                                 )}
-                                <span className="text-sm">{post.dislikes.length}</span>
+                                <span className="text-sm font-medium">{post.dislikes.length}</span>
                             </button>
                         </div>
-                        <Link
-                            to={`/post/${post._id}`}
-                            className="flex items-center gap-1 text-sm"
-                        >
-                            <ChatBubbleLeftIcon className="w-5 h-5" />
-                            <span>{post.comments.length}</span>
-                        </Link>
-                        <button
-                            onClick={() => handleCopyLink(post._id)}
-                            className="flex items-center gap-1 text-sm"
-                        >
-                            <ShareIcon className="w-5 h-5" />
-                        </button>
+                        <div className="flex gap-4">
+                            <Link
+                                to={`/post/${post._id}`}
+                                className="flex items-center gap-1 px-2 py-1 text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                            >
+                                <ChatBubbleLeftIcon className="w-5 h-5" />
+                                <span className="text-sm font-medium">{post.comments.length}</span>
+                            </Link>
+                            <button
+                                onClick={() => handleCopyLink(post._id)}
+                                className="flex items-center gap-1 px-2 py-1 text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                            >
+                                <ShareIcon className="w-5 h-5" />
+                                {copied && <span className="text-xs text-green-600 absolute mt-6">Link đã được sao chép!</span>}
+                            </button>
+                        </div>
                     </div>
                 </div>
             ))}

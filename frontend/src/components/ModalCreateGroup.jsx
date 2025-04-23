@@ -6,12 +6,12 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import FileViewChane from './fileViewChane';
 import NotificationCss from '../module/cssNotification/NotificationCss';
-export default function ModalCreateGroup() {
+export default function ModalCreateGroup({ onNewGroup }) {
     const [formData, setFormData] = useState({
         groupName: "",
         files: null,
         rules: "",
-        typegroup: ""
+        typegroup: "public"
     });
     const navigate = useNavigate();
     const [filePreview, setFilePreview] = useState(null)
@@ -66,33 +66,35 @@ export default function ModalCreateGroup() {
             files: true
         });
 
-        if (isFormValid) {
-            try {
-                // Create a new FormData instance
-                const formDataToSend = new FormData();
-                formDataToSend.append('groupName', formData.groupName);
-                formDataToSend.append('rules', formData.rules);
-                formDataToSend.append('typegroup', formData.typegroup);
+        try {
+            // Create a new FormData instance
+            const formDataToSend = new FormData();
+            formDataToSend.append('groupName', formData.groupName);
+            formDataToSend.append('rules', formData.rules);
+            formDataToSend.append('typegroup', formData.typegroup);
 
-                // Log file to verify it exists before sending
-                console.log("File being uploaded:", formData.files);
-
-                // Append the file with the correct field name
-                if (formData.files) {
-                    formDataToSend.append('files', formData.files, formData.files.name);
-                }
-
-                // Submit the form data
-                const response = await createPublicGroup(formDataToSend);
-                toast.success(response?.message ? response.message : 'Tạo nhóm thành công', NotificationCss.Success);
-                console.log("Response:", response);
-
-                // Close the modal on success
-                setIsLoading(false);
-                document.getElementById('my_modal_create_group').close();
-            } catch (error) {
-                console.error("Error creating group:", error);
+            // Append the file with the correct field name
+            if (formData.files) {
+                formDataToSend.append('files', formData.files, formData.files.name);
             }
+
+            // Submit the form data
+            const response = await createPublicGroup(formDataToSend);
+            toast.success(response?.message ? response.message : 'Tạo nhóm thành công', NotificationCss.Success);
+
+            // Invoke the callback with the new group data
+            if (onNewGroup && response?.data) {
+                onNewGroup(response.data);
+            }
+
+            // Close the modal on success
+            setIsLoading(false);
+            document.getElementById('my_modal_create_group').close();
+        } catch (error) {
+            console.error("Error creating group:", error);
+        } finally {
+            setIsLoading(false);
+            window.location.reload(); // Reload the page to reflect the new group
         }
     }
 
@@ -121,7 +123,9 @@ export default function ModalCreateGroup() {
                         )}
                     </fieldset>
                     {/* select privacy */}
-                    <select defaultValue="Server location" className="select select-neutral">
+                    <select defaultValue="Server location"
+                        onChange={(e) => setFormData({ ...formData, typegroup: e.target.value })}
+                        className="select select-neutral">
                         <option disabled={true}>Chọn loại nhóm</option>
                         <option value={"public"}>Công khai</option>
                         <option value={"private"}>Riêng tư</option>
@@ -154,8 +158,7 @@ export default function ModalCreateGroup() {
                             <button className="btn btn-error text-white">Hủy</button>
                             <button
                                 onClick={handleSubmit}
-                                className={`btn ${isFormValid ? 'btn-success' : 'btn-disabled'} text-white`}
-                                disabled={!isFormValid}
+                                className={`btn btn-success text-white`}
                             >
                                 Tạo nhóm
                             </button>

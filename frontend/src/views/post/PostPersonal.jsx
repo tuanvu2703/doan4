@@ -10,11 +10,14 @@ import DropdownPostPersonal from './components/DropdownPostPersonal';
 import { format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
 import Loading from '../../components/Loading';
 import FilePreview from '../../components/fileViewer';
+import FileViewer from '../../components/fileViewer';
 
 export default function PostPersonal({ user }) {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
+    const [expandedPosts, setExpandedPosts] = useState([]);
+
     useEffect(() => {
         const fetchdata = async () => {
             setLoading(true);
@@ -127,6 +130,20 @@ export default function PostPersonal({ user }) {
             });
     };
 
+    // Function to toggle expanded state
+    const toggleExpandPost = (postId) => {
+        if (expandedPosts.includes(postId)) {
+            setExpandedPosts(expandedPosts.filter(id => id !== postId));
+        } else {
+            setExpandedPosts([...expandedPosts, postId]);
+        }
+    };
+
+    // Add this handler function to remove deleted posts
+    const handlePostDeleted = (deletedPostId) => {
+        setPosts(posts.filter(post => post._id !== deletedPostId));
+    };
+
     return (
         <>
             {loading ? (
@@ -148,26 +165,61 @@ export default function PostPersonal({ user }) {
                                                 </div>
                                             </div>
                                         </article>
-                                        <DropdownPostPersonal postId={post._id} />
+                                        <DropdownPostPersonal postId={post._id} onPostDeleted={handlePostDeleted} />
                                     </div>
                                 </div>
                             </div>
                             {/* content */}
-                            <p className='break-words w-full'>{post.content}</p>
+                            <p className='break-words text-gray-800 py-2 px-1 leading-relaxed max-w-2xl text-base mt-1 mb-2 whitespace-pre-wrap'>
+                                {expandedPosts.includes(post._id) ? (
+                                    post.content
+                                ) : (
+                                    post.content.length > 70 ? (
+                                        <>
+                                            {post.content.slice(0, 70)}...
+                                            <button onClick={() => toggleExpandPost(post._id)} className='text-blue-500 hover:underline '>Xem thêm</button>
+                                        </>
+                                    ) : (
+                                        post.content
+                                    )
+                                )}
+                                {expandedPosts.includes(post._id) && (
+                                    <button onClick={() => toggleExpandPost(post._id)} className='text-blue-500 hover:underline ml-2'>Thu gọn</button>
+                                )}
+                            </p>
                             {/* image/video */}
                             {post.img.length > 0 && (
-                                <div className='flex justify-center'>
-                                    <FilePreview file={post.img} />
+                                <div className="relative w-full overflow-hidden rounded-xl shadow-lg max-w-3xl mx-auto my-3">
+                                    {/* {post.img.length > 1 && (
+                                                <button
+                                                    onClick={() => handlePrev(post)}
+                                                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800/60 hover:bg-gray-800/80 text-white p-2 rounded-full z-10 transition-all duration-200 text-xl font-bold w-8 h-8 flex items-center justify-center"
+                                                >
+                                                    ‹
+                                                </button>
+                                            )} */}
+                                    <div className="carousel-item w-full flex justify-center bg-gray-100/30 p-1">
+                                        <FileViewer file={post.img} mh={450} />
+                                    </div>
+                                    {/* {post.img.length > 1 && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleNext(postData)}
+                                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800/60 hover:bg-gray-800/80 text-white p-2 rounded-full z-10 transition-all duration-200 text-xl font-bold w-8 h-8 flex items-center justify-center"
+                                                    >
+                                                        ›
+                                                    </button>
+                                                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                                                        {post.img.map((_, idx) => (
+                                                            <span
+                                                                key={idx}
+                                                                className={`h-2 rounded-full ${idx === (currentIndexes[postData._id] || 0) ? 'w-4 bg-white' : 'w-2 bg-white/60'} transition-all duration-200`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )} */}
                                 </div>
-                            )}
-                            {post.gif && (
-                                <div className='flex justify-center'>
-                                    <img
-                                        style={{ maxWidth: '100%', maxHeight: '300px' }}
-                                        src={post.gif}
-                                        alt="" />
-                                </div>
-
                             )}
                             {/* like, comment, share */}
                             <div className='flex justify-between flex-wrap gap-3'>
