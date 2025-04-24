@@ -204,7 +204,7 @@ function LayoutContent() {
             <SideBar />
           </div>
         ) : (
-          <div className="hidden md:block md:w-1/5 lg:w-1/6 xl:w-1/6">
+          <div className="hidden md:block md:w-1/4 lg:w-1/5 xl:w-1/4">
             <SideBar />
           </div>
         )}

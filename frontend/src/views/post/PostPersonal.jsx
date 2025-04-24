@@ -221,6 +221,15 @@ export default function PostPersonal({ user }) {
                                             )} */}
                                 </div>
                             )}
+                            {/* gif */}
+                            {post.gif && (
+                                <div className='flex justify-center my-3'>
+                                    <img
+                                        className="rounded-xl shadow-md max-h-[450px] object-contain"
+                                        src={post.gif}
+                                        alt="Gif content" />
+                                </div>
+                            )}
                             {/* like, comment, share */}
                             <div className='flex justify-between flex-wrap gap-3'>
                                 <div className='flex gap-2'>

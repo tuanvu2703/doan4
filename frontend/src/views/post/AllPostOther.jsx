@@ -219,6 +219,14 @@ export default function AllPostOther({ user }) {
                             </div>
                         </div>
                     )}
+                    {post.gif && (
+                        <div className='flex justify-center my-3'>
+                            <img
+                                className="rounded-xl shadow-md max-h-[450px] object-contain"
+                                src={post.gif}
+                                alt="Gif content" />
+                        </div>
+                    )}
 
                     {/* Footer: Like, Dislike, Comment và Share */}
                     <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">

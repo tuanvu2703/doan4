@@ -78,7 +78,7 @@ export default function Comment({ postId, user }) {
   }
   //
 
-
+  console.log(comment)
   return (
     <div>
       <div className='mt-3 border-[1px] rounded-xl grid gap-5'>

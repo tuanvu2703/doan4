@@ -16,7 +16,7 @@ export default function SideBar() {
     return (
         <>
             {isMessengerPath ? (
-                <aside className={`mt-16 fixed z-[1] top-0 left-0 h-full border-l-2 shadow-md transition-transform duration-300`}>
+                <aside className={`mt-16 fixed z-[1] top-0 left-0 h-full bg-white border-l-2 shadow-md transition-transform duration-300`}>
                     <ul className="mt-2">
                         <Link
                             to="/"
@@ -33,7 +33,7 @@ export default function SideBar() {
                         </Link>
                         <Link
                             onClick={() => navigate('/messenger')}
-                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
+                            className={`hover:bg-[#D4D4D8] rounded-md  flex items-center gap-6 p-2 ${isActiveTab('/messenger') ? ' bg-[#E4E4E7]' : 'text-gray-500'} `}
                         >
                             <ChatBubbleLeftIcon className='size-11' />
                         </Link>
@@ -52,7 +52,7 @@ export default function SideBar() {
                     </ul>
                 </aside>
             ) : (
-                <aside className={`mt-16 fixed z-[1] top-0 left-0 h-full border-l-2 w-1/4 md:w-1/4 lg:w-1/5 xl:w-1/6 bg-white to-50% shadow-md transition-transform duration-300`}>
+                <aside className={`mt-16 fixed z-[1] top-0 left-0 h-full border-l-2 w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 bg-white to-50% shadow-md transition-transform duration-300`}>
                     <ul className="mt-2">
                         <Link
                             to="/"

@@ -28,18 +28,22 @@ export default function TableReport({ query }) {
       <Loading />
     )
   }
-  const filteredReport = query.trim() === "" ? report : report.filter(report => {
-    return report.reason.toLowerCase().includes(query.toLowerCase()) ||
-      new Date(report.createdAt).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }).includes(query) ||
-      report.status.toLowerCase().includes(query.toLowerCase()) ||
-      report.type.toLowerCase().includes(query.toLowerCase()) ||
-      report.reportedId._id.toLowerCase().includes(query.toLowerCase()) ||
-      report.sender.email.toLowerCase().includes(query.toLowerCase());
-  });
+  const filteredReport = query.trim() === ""
+    ? report.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    : report
+      .filter(report => {
+        return report.reason.toLowerCase().includes(query.toLowerCase()) ||
+          new Date(report.createdAt).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }).includes(query) ||
+          report.status.toLowerCase().includes(query.toLowerCase()) ||
+          report.type.toLowerCase().includes(query.toLowerCase()) ||
+          report.reportedId?._id.toLowerCase().includes(query.toLowerCase()) ||
+          report.sender.email.toLowerCase().includes(query.toLowerCase());
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const handleApproval = async (reportId) => {
     try {
@@ -66,6 +70,7 @@ export default function TableReport({ query }) {
       console.error("Error active user:", error);
     }
   }
+  console.log(filteredReport)
   return (
     <tbody>
       {filteredReport.length === 0 ? (
@@ -77,11 +82,6 @@ export default function TableReport({ query }) {
       ) : (
         filteredReport.map((rp, index) => (
           <tr key={rp._id}>
-            {/* <th>
-              <label>
-                <input type="checkbox" className="checkbox border-white" />
-              </label>
-            </th> */}
             <td>
               {index + 1}
             </td>
@@ -89,13 +89,31 @@ export default function TableReport({ query }) {
               {rp.type}
             </td>
             <td>
-              <button className='hover:underline' onClick={() => document.getElementById(`my_modal_report_post_${rp?.reportedId._id}`).showModal()}>{rp.reportedId._id}</button>
+              {rp?.reportedId ? (
+                <button
+                  className='hover:underline'
+                  onClick={() => document.getElementById(`my_modal_report_post_${rp.reportedId._id}`).showModal()}
+                >
+                  {rp.reportedId._id}
+                </button>
+              ) : (
+                <span>Not available</span>
+              )}
             </td>
             <td>
               {rp?.reason}
             </td>
             <td>
-              <button className='hover:underline' onClick={() => document.getElementById(`my_modal_report_user_${rp?.sender._id}`).showModal()}>{rp.sender.email}</button>
+              {rp?.sender ? (
+                <button
+                  className='hover:underline'
+                  onClick={() => document.getElementById(`my_modal_report_user_${rp.sender._id}`).showModal()}
+                >
+                  {rp.sender.email}
+                </button>
+              ) : (
+                <span>Not available</span>
+              )}
             </td>
             <td>
               {new Date(rp.createdAt).toLocaleDateString('en-GB', {
@@ -117,8 +135,8 @@ export default function TableReport({ query }) {
                 </div>
               )}
             </th>
-            <ModalReportPost postId={rp?.reportedId._id} />
-            <ModalReportUser userId={rp?.sender._id} />
+            {rp?.reportedId && <ModalReportPost postId={rp.reportedId._id} />}
+            {rp?.sender && <ModalReportUser userId={rp.sender._id} />}
           </tr>
         ))
       )}

@@ -143,7 +143,7 @@ export default function DetailPost() {
   // console.log(posts)
   return (
     <div className="grid justify-center p-4">
-      <div className="w-full max-w-[700px] mx-auto min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[600px]">
+      <div className="w-full max-w-[700px] mx-auto min-w-[300px] sm:min-w-[400px] md:min-w-[500px] lg:min-w-[800px] bg-white">
         <div
           key={posts._id}
           className="flex flex-col md:flex-row items-start w-full p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3"
@@ -182,7 +182,7 @@ export default function DetailPost() {
 
             {/* Carousel hiển thị hình ảnh (nếu có) */}
             {posts?.img?.length > 0 && (
-              <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto">
+              <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto ">
                 {posts?.img?.length > 1 && (
                   <button
                     onClick={() => handlePrev(posts)}
@@ -202,6 +202,14 @@ export default function DetailPost() {
                     ›
                   </button>
                 )}
+              </div>
+            )}
+            {posts.gif && (
+              <div className='flex justify-center my-3'>
+                <img
+                  className="rounded-xl shadow-md max-h-[450px] object-contain"
+                  src={posts.gif}
+                  alt="Gif content" />
               </div>
             )}
 
