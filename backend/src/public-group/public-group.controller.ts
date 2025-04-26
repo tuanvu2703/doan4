@@ -35,6 +35,7 @@ export class PublicGroupController {
     }
   
     const userId = new Types.ObjectId(currentUser._id.toString());
+    console.log("Raw Body Controller:", createPublicGroupDto);
     return this.publicGroupService.createPublicGroup(createPublicGroupDto, userId, files.files[0]);
   }
 

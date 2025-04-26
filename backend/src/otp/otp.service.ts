@@ -27,12 +27,13 @@ export class OtpService {
         if(!user){
             throw new BadRequestException('Email not found');
         }
-        const { otp, hashedOtp } = this.generateOtp();
-      
+        try {
+            const { otp, hashedOtp } = this.generateOtp();
+        
         // Tạo nội dung email tùy theo mục đích
         const subject = purpose === 'verify-account' ? 'Verify Your Account' : 'Reset Password OTP';
         const text = `Your OTP code is: ${otp}. It will expire in 5 minutes.`;
-      
+        
         // Gửi OTP qua email (tác vụ bất đồng bộ)
         await this.mailService.sendMail(email, subject, text);
       
@@ -43,6 +44,10 @@ export class OtpService {
           { email },
           { otp: hashedOtp, otpExpirationTime }
         );
+        } catch (error) {
+            console.log(error);
+        }
+        
 
       }
 

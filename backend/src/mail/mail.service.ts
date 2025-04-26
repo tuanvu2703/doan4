@@ -33,6 +33,7 @@ export class MailService {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             refreshToken: process.env.REFRESH_TOKEN,
             accessToken: accessToken.token || '',
+            
           },
         });
         
