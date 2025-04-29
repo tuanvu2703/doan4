@@ -2,17 +2,6 @@ import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 
 @Schema()
-class Rule {
-  @Prop({ type: String, required: true })
-  ruleText: string;
-
-  @Prop({ type: Number, required: true })
-  order: number;
-}
-
-export const RuleSchema = SchemaFactory.createForClass(Rule);
-
-@Schema()
 class GroupHistory {
   @Prop({ type: Date, default: Date.now })
   createdAt: Date;
@@ -52,8 +41,8 @@ export class PublicGroup extends Document {
   @Prop()
   avatargroup: string;
 
-  @Prop({ type: [RuleSchema], default: [] })
-  rules: Rule[];
+  @Prop({ type: [String], default: [] }) // Sửa rules thành mảng chuỗi
+  rules: string[];
 
   @Prop({ type: GroupIntroductionSchema, required: true })
   introduction: GroupIntroduction;

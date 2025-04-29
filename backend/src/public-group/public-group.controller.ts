@@ -33,7 +33,7 @@ export class PublicGroupController {
     if (!files || !files.files || files.files.length === 0) {
       throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
     }
-  
+    console.log("DTO after transform:", createPublicGroupDto);
     const userId = new Types.ObjectId(currentUser._id.toString());
     console.log("Raw Body Controller:", createPublicGroupDto);
     return this.publicGroupService.createPublicGroup(createPublicGroupDto, userId, files.files[0]);

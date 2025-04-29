@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { PublicGroup } from './schema/plgroup.schema';
 import { MemberGroup } from './schema/membergroup.schema';
-import { CreatePublicGroupDto,} from './dto/createpublicgroup.dto';
+import { CreatePublicGroupDto} from './dto/createpublicgroup.dto';
 import { RequestJoinGroup } from './schema/requestJoinGroup.schema';
 import { PostSchema, Post } from 'src/post/schemas/post.schema';
 import { User } from 'src/user/schemas/user.schemas';
@@ -34,10 +34,11 @@ export class PublicGroupService {
         throw new HttpException("User not found", HttpStatus.NOT_FOUND);
       }
   
-      // Kiểm tra file upload (tạm thời bỏ qua vì yêu cầu curl không gửi file)
+      // Kiểm tra file upload
       let avatargroupUrl: string = "";
       if (file) {
         try {
+          console.log(`Using upload_stream for file: ${file.originalname}, size: ${file.size}`);
           const uploadedImage = await this.cloudinaryService.uploadFile(file);
           avatargroupUrl = uploadedImage;
         } catch (error) {
@@ -48,17 +49,14 @@ export class PublicGroupService {
       // Parse tags từ chuỗi thành mảng
       const tagsArray = createPublicGroupDto.tags.split(",").map((tag: string) => tag.trim());
   
-      // Ánh xạ rules từ mảng chuỗi thành mảng object { ruleText, order }
-      const rulesArray = createPublicGroupDto.rules.map((ruleText: string, index: number) => ({// cái này sửa lại thành string
-        ruleText,
-        order: index + 1, // Tự động gán order dựa trên thứ tự
-      }));
+      // Log rules trước khi lưu
+      console.log("Rules before saving:", createPublicGroupDto.rules);
   
       // Ánh xạ dữ liệu từ DTO vào schema
       const groupData = {
         groupName: createPublicGroupDto.groupName,
         avatargroup: avatargroupUrl,
-        rules: rulesArray,
+        rules: createPublicGroupDto.rules, // Giữ nguyên mảng chuỗi từ DTO
         introduction: {
           summary: createPublicGroupDto.summary,
           visibility: createPublicGroupDto.visibility,

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsEnum, IsArray, IsString } from "class-validator";
+import { IsNotEmpty, IsEnum, IsArray, IsString, } from "class-validator";
+import {HttpException, HttpStatus } from "@nestjs/common";
 import { Transform } from "class-transformer";
 
 export class CreatePublicGroupDto {
@@ -16,24 +17,29 @@ export class CreatePublicGroupDto {
     description: "Danh sách quy tắc của nhóm, gửi dưới dạng chuỗi phân tách bằng dấu phẩy (VD: rule1,rule2,rule3)",
     example: "rule1,rule2,rule3,rule4,rule5",
   })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: "rules must not be empty" })
   @Transform(({ value }) => {
-    // Log giá trị thô của rules
-    console.log("Raw rules value DTO :", value);
-
-    // Xử lý trường hợp value không phải chuỗi
-    if (typeof value !== "string") {
-      return []; // Trả về mảng rỗng để tránh lỗi, sẽ validate sau
+    console.log("Raw rules value DTO:", value);
+    if (Array.isArray(value)) {
+      return value;
     }
-
+    if (typeof value !== "string") {
+      throw new HttpException("rules must be a string", HttpStatus.BAD_REQUEST);
+    }
     try {
-      return value.split(",").map((ruleText: string) => ruleText.trim());
+      const rules = value.split(",").map((ruleText: string) => ruleText.trim());
+      if (rules.length === 0 || rules.every((rule) => rule === "")) {
+        throw new HttpException("rules must contain at least one non-empty rule", HttpStatus.BAD_REQUEST);
+      }
+      console.log("Transformed rules DTO:", rules);
+      return rules;
     } catch (error) {
-      return []; // Trả về mảng rỗng nếu parse thất bại
+      throw new HttpException("Invalid format for rules", HttpStatus.BAD_REQUEST);
     }
   })
   @IsArray({ message: "rules must be an array of strings" })
   @IsString({ each: true, message: "each rule must be a string" })
+  @IsNotEmpty({ each: true, message: "each rule must not be empty" })
   rules: string[];
 
   @ApiProperty({
@@ -45,10 +51,10 @@ export class CreatePublicGroupDto {
   summary: string;
 
   @ApiProperty({
-      type: 'string',
-      format: 'binary', 
-    })
-    files: any;
+    type: "string",
+    format: "binary",
+  })
+  files: any;
 
   @ApiProperty({
     enum: ["public", "private"],
@@ -69,7 +75,7 @@ export class CreatePublicGroupDto {
   @ApiProperty({
     type: String,
     description: "Các thẻ (tags) liên quan đến nhóm, gửi dưới dạng chuỗi phân tách bằng dấu phẩy",
-    example: "nhóm hội thảo",
+    example: "trò chơi điện tử",
   })
   @IsString()
   @IsNotEmpty()
