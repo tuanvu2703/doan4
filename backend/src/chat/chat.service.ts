@@ -367,12 +367,6 @@ export class ChatService {
           throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
         }
       }
-      if (Types.ObjectId.isValid(receiverId)) {
-        const receiverObjectId = new Types.ObjectId(receiverId); 
-
-      } else {
-
-      }
     
       // Save and return the message
       return await Message.save();

@@ -3,7 +3,8 @@ import {
   Response, UseGuards, HttpStatus, BadRequestException, Param,
   UseInterceptors, UploadedFiles, Delete, Res, Req,
   UnauthorizedException,
-  ForbiddenException
+  ForbiddenException,
+  Logger
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
@@ -34,11 +35,14 @@ import { InjectModel } from '@nestjs/mongoose';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
+  private readonly logger = new Logger(UserController.name)
   constructor(
     private userService: UserService,
     private otpService: OtpService,
     private eventService: EventService,
+
     @InjectModel(User.name) private UserModel: Model<User>,
+
   ) { }
 
   @Post('register')
@@ -83,7 +87,7 @@ export class UserController {
     @Res() res,
     @Req() req,
   ) {
-    const { accessToken, refreshToken } = await this.userService.login(loginDto);
+    const { accessToken, refreshToken, UserId } = await this.userService.login(loginDto);
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -92,9 +96,9 @@ export class UserController {
       path: '/user',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
-
-
+    this.logger.log(`User ${UserId} logged in successfully`);
     return res.json({ accessToken });
+
   }
 
   @Post('refresh-token')

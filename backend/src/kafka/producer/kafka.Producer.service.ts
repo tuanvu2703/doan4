@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { Kafka, Producer, logLevel } from 'kafkajs';
 import { randomUUID } from 'crypto';
 import { Types } from 'mongoose';
@@ -7,7 +7,7 @@ import { Types } from 'mongoose';
 export class ProducerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private producer: Producer;
-
+  private readonly logger = new Logger(ProducerService.name);
   constructor() {
     if (!process.env.KAFKA_BROKER) {
       throw new Error('❌ Kafka environment variables are missing!');
@@ -28,11 +28,11 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     try {
-      console.log('🔄 Connecting Kafka Producer...');
+      this.logger.log('🔄 Connecting Kafka Producer...');
       await this.producer.connect();
-      console.log('✅ Kafka Producer connected!');
+      this.logger.log('✅ Kafka Producer connected!');
     } catch (error) {
-      console.error('❌ Kafka Producer connection failed:', error);
+      this.logger.error('❌ Kafka Producer connection failed:', error);
       setTimeout(() => this.onModuleInit(), 5000);
     }
   }
@@ -50,7 +50,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
         message.ownerId = message.ownerId.toString();
       }
 
-      await this.producer.send({
+      const result = await this.producer.send({
         topic,
         messages: [
           {
@@ -59,10 +59,11 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
           },
         ],
       });
+      this.logger.log(`📨 Message sent to "${topic}": ${JSON.stringify(message)}`);
 
-      console.log(`📨 Message sent to "${topic}":`, message);
+      this.logger.log(`📨 Message sent to "${topic}":`, message);
     } catch (error) {
-      console.error('❌ Kafka sendMessage error:', error);
+      this.logger.error(`Failed to send message to ${topic}: ${error.message}`, error.stack);
     }
   }
 }
