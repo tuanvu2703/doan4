@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { PublicGroup } from './schema/plgroup.schema';
 import { MemberGroup } from './schema/membergroup.schema';
-import { CreatePublicGroupDto, RuleDto } from './dto/createpublicgroup.dto';
+import { CreatePublicGroupDto} from './dto/createpublicgroup.dto';
 import { RequestJoinGroup } from './schema/requestJoinGroup.schema';
 import { PostSchema, Post } from 'src/post/schemas/post.schema';
 import { User } from 'src/user/schemas/user.schemas';
@@ -24,60 +24,68 @@ export class PublicGroupService {
     ) {}
 
     async createPublicGroup(
-        createPublicGroupDto: CreatePublicGroupDto,
-        userId: Types.ObjectId,
-        file: Express.Multer.File,
-      ): Promise<{ publicGroup: PublicGroup; memberGroup: MemberGroup }> {
-        // Kiểm tra user tồn tại
-        const user = await this.userService.findById(userId.toString());
-        if (!user) {
-          throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-        }
-      
-        if (!file) {
-          throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
-        }
-      
-        let avatargroupUrl: string;
+      createPublicGroupDto: CreatePublicGroupDto,
+      userId: Types.ObjectId,
+      file: Express.Multer.File
+    ): Promise<{ publicGroup: PublicGroup; memberGroup: MemberGroup }> {
+      // Kiểm tra user tồn tại
+      const user = await this.userService.findById(userId.toString());
+      if (!user) {
+        throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+      }
+  
+      // Kiểm tra file upload
+      let avatargroupUrl: string = "";
+      if (file) {
         try {
+          console.log(`Using upload_stream for file: ${file.originalname}, size: ${file.size}`);
           const uploadedImage = await this.cloudinaryService.uploadFile(file);
-          avatargroupUrl = uploadedImage; 
+          avatargroupUrl = uploadedImage;
         } catch (error) {
-          throw new HttpException(
-            `Failed to upload image: ${error.message}`,
-            HttpStatus.BAD_REQUEST,
-          );
+          throw new HttpException(`Failed to upload image: ${error.message}`, HttpStatus.BAD_REQUEST);
         }
-      
-
-        const rulesArray: RuleDto[] = createPublicGroupDto.rules
-          .split(',') 
-          .map((ruleText, index) => ({
-            ruleText: ruleText.trim(), 
-            
-          }));
-      
-        const groupData = {
-          groupName: createPublicGroupDto.groupName,
-          avatargroup: avatargroupUrl,
-          rules: rulesArray, 
-          typegroup: createPublicGroupDto.typegroup,
-        };
-      
-        const createdGroup = new this.PublicGroupModel(groupData);
-        await createdGroup.save();
-      
-        const memberGroupData = {
-          group: createdGroup._id,
-          member: userId,
-          role: 'owner',
-        };
-      
-        const createdMemberGroup = new this.MemberGroupModel(memberGroupData);
-        await createdMemberGroup.save();
-      
-        return { publicGroup: createdGroup, memberGroup: createdMemberGroup };
+      }
+  
+      // Parse tags từ chuỗi thành mảng
+      const tagsArray = createPublicGroupDto.tags.split(",").map((tag: string) => tag.trim());
+  
+      // Log rules trước khi lưu
+      console.log("Rules before saving:", createPublicGroupDto.rules);
+  
+      // Ánh xạ dữ liệu từ DTO vào schema
+      const groupData = {
+        groupName: createPublicGroupDto.groupName,
+        avatargroup: avatargroupUrl,
+        rules: createPublicGroupDto.rules, // Giữ nguyên mảng chuỗi từ DTO
+        introduction: {
+          summary: createPublicGroupDto.summary,
+          visibility: createPublicGroupDto.visibility,
+          discoverability: createPublicGroupDto.discoverability,
+          tags: tagsArray,
+          // history không cần gửi, schema sẽ tự động gán
+        },
+      };
+  
+      // Log dữ liệu trước khi lưu
+      console.log("Group Data:", JSON.stringify(groupData, null, 2));
+  
+      // Tạo và lưu nhóm
+      const createdGroup = new this.PublicGroupModel(groupData);
+      await createdGroup.save();
+  
+      // Tạo memberGroup (vai trò owner)
+      const memberGroupData = {
+        group: createdGroup._id,
+        member: userId,
+        role: "owner",
+      };
+  
+      const createdMemberGroup = new this.MemberGroupModel(memberGroupData);
+      await createdMemberGroup.save();
+  
+      return { publicGroup: createdGroup, memberGroup: createdMemberGroup };
     }
+    
 
     async getPublicGroupById(groupId: string): Promise<PublicGroup> {
         const group = await this.PublicGroupModel.findById(groupId)
@@ -140,8 +148,7 @@ export class PublicGroupService {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
     
-      // If group is private, check if user is admin or owner
-      if (grouptype.typegroup === 'private') {
+      if (grouptype.introduction.visibility === 'private') {
         const memberGroup = await this.MemberGroupModel.findOne({ group: requestJoinGroup.group, member: userId });
         if (!memberGroup || (memberGroup.role !== 'admin' && memberGroup.role !== 'owner')) {
           throw new HttpException('Only admin or owner can accept join requests for private group', HttpStatus.FORBIDDEN);
@@ -180,7 +187,7 @@ export class PublicGroupService {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
     
-      if (grouptype.typegroup === 'private') {
+      if (grouptype.introduction.visibility === 'private') {
         const memberGroup = await this.MemberGroupModel.findOne({ group: requestJoinGroup.group, member: userId });
         if (!memberGroup || (memberGroup.role !== 'admin' && memberGroup.role !== 'owner')) {
           throw new HttpException('Only admin or owner can reject join requests for private group', HttpStatus.FORBIDDEN);

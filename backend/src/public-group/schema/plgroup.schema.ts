@@ -1,38 +1,51 @@
-import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Types, Document } from 'mongoose';
-import { User } from 'src/user/schemas/user.schemas';
+import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+
+@Schema()
+class GroupHistory {
+  @Prop({ type: Date, default: Date.now })
+  createdAt: Date;
+
+  @Prop({ type: Date, default: Date.now })
+  lastRenamed: Date;
+}
+
+@Schema()
+class GroupIntroduction {
+  @Prop({ required: true })
+  summary: string;
+
+  @Prop({ enum: ["public", "private"], required: true })
+  visibility: "public" | "private";
+
+  @Prop({ enum: ["everyone", "invited"], default: "everyone" })
+  discoverability: "everyone" | "invited";
+
+  @Prop({ type: GroupHistory, required: false, default: () => ({}) })
+  history: GroupHistory;
+
+  @Prop({ type: [String] })
+  tags: string[];
+}
+
+export const GroupIntroductionSchema = SchemaFactory.createForClass(GroupIntroduction);
+export const GroupHistorySchema = SchemaFactory.createForClass(GroupHistory);
 
 @Schema({
   timestamps: true,
 })
 export class PublicGroup extends Document {
-
-  @Prop()
+  @Prop({ required: true })
   groupName: string;
-
-  // @Prop()
-  // description: string;
-
-  // @Prop({ type: Types.ObjectId, ref: 'User' , required: true })
-  // author: User;
 
   @Prop()
   avatargroup: string;
 
-  @Prop({
-    type: [{ ruleText: { type: String }, order: { type: Number } }],
-    default: [],
-  })
-  rules: { ruleText: string; order: number }[];
+  @Prop({ type: [String], default: [] }) // Sửa rules thành mảng chuỗi
+  rules: string[];
 
-  @Prop({
-    enum: ['public', 'private'],
-    required: true,
-  })
-  typegroup: string;
-
+  @Prop({ type: GroupIntroductionSchema, required: true })
+  introduction: GroupIntroduction;
 }
 
-
 export const PublicGroupSchema = SchemaFactory.createForClass(PublicGroup);
-
