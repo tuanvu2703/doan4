@@ -7,7 +7,14 @@ import { useEffect, useState } from 'react';
 export default function SideBar() {
     const navigate = useNavigate();
     const location = useLocation();
-    const isActiveTab = (path) => location.pathname === path;
+    const isActiveTab = (path) => {
+        if (path === '/') {
+            // Special case for home page to avoid matching everything
+            return location.pathname === '/';
+        }
+        return location.pathname.startsWith(path);
+    };
+
     const [isMessengerPath, SetIsMessengerPath] = useState(true);
     useEffect(() => {
         SetIsMessengerPath(/^\/messenger(\/|$)/.test(location.pathname));
