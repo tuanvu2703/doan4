@@ -63,7 +63,7 @@ export default function SelectGroup() {
                 </button>
 
                 <div className='flex flex-col gap-4'>
-                    <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Nhóm đã tham gia</h2>
+                    <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Nhóm của tôi</h2>
 
                     <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-1">
                         {groups.map((r) => (

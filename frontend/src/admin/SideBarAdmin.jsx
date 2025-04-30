@@ -50,8 +50,8 @@ export default function SideBarAdmin() {
             <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
             <div className="drawer-content flex flex-col ">
                 {/* Page content here */}
-                <label htmlFor="my-drawer-2" className="btn fixed btn-primary drawer-button lg:hidden bottom-0 left-0">
-                    Tabs
+                <label htmlFor="my-drawer-2" className="btn fixed bg-black text-white drawer-button lg:hidden top-0 left-0">
+                    Menu
                 </label>
                 <Outlet />
             </div>

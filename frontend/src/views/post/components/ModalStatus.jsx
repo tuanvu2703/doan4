@@ -13,7 +13,7 @@ import DropdownEmoji from '../../../components/DropdownEmoji';
 import Gif from './Gif';
 import { useNavigate } from 'react-router-dom';
 
-export default function ModalStatus({ user, onCloseModal, addNewPost }) {
+export default function ModalStatus({ user, onCloseModal, addNewPost, group }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(true);
     const [rows, setRows] = useState(3);
@@ -110,6 +110,9 @@ export default function ModalStatus({ user, onCloseModal, addNewPost }) {
         data.append('files', formData.files || '');
         data.append('gif', formData.gif || '');
         data.append('privacy', formData.privacy);
+        if (group) {
+            data.append('group', group || group);
+        }
         try {
             setLoading(true);
             const response = await axios.post(`${process.env.REACT_APP_API_URL}/post/createPost`, data, {

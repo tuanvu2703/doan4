@@ -1,15 +1,25 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import { getPublicGroupById } from '../../service/publicGroup';
-import { Outlet, useParams } from 'react-router-dom'
+import { Link, Outlet, useParams } from 'react-router-dom'
 import { GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid';
+import { useLocation } from 'react-router-dom';
 export default function Layoutgr() {
     const [groups, setGroups] = useState({});
-    const [members, setMembers] = useState([]);
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
     const { groupid } = useParams();
-
+    const location = useLocation();
+    const basePath = location.pathname.split('/').slice(0, 3).join('/');
+    const tabs = [
+        {
+            name: 'Bài đăng',
+            href: `${basePath}`
+        },
+        {
+            name: 'Thành viên',
+            href: `${basePath}/member`
+        },
+    ];
+    const currentTab = tabs.find((tab) => location.pathname === tab.href);
     useEffect(() => {
         async function fetchGroups() {
             try {
@@ -59,7 +69,17 @@ export default function Layoutgr() {
             <div>
 
             </div>
-            <div className="col-span-4 row-start-2 rounded-lg bg-white p-4 text-center">
+            <div className="col-span-4 row-start-2 rounded-lg bg-white p-4">
+                <div className=" flex justify-center w-full gap-4 p-5">
+                    {tabs.map(({ name, href }) => (
+                        <Link
+                            key={name}
+                            to={href}
+                            className={`rounded-full py-2 px-4 text-sm/6 font-semibold focus:outline-none ${currentTab?.href === href ? 'bg-gray-600 text-white' : ''}`}>
+                            {name}
+                        </Link>
+                    ))}
+                </div>
                 <Outlet />
             </div>
         </div >

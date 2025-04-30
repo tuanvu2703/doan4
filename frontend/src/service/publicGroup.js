@@ -58,4 +58,17 @@ async function getPublicGroupById(groupId) {
     }
 }
 
-export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById }
+async function getAllPostInGroup(groupId) {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/PublicGroup/getPostInGroup/${groupId}`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+
+    }
+}
+
+export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById, getAllPostInGroup }

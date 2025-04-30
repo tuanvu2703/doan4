@@ -10,7 +10,6 @@ import DropdownPostPersonal from './components/DropdownPostPersonal';
 import Loading from '../../components/Loading';
 import { profileUserCurrent } from '../../service/ProfilePersonal';
 import FileViewer from '../../components/fileViewer';
-import RowFriendRight from '../../admin/components/RowFriendRight';
 
 
 export default function HomePost({ onPostsUpdated }) {
@@ -218,7 +217,7 @@ export default function HomePost({ onPostsUpdated }) {
 
     return (
         <>
-            
+
             {loading ? (
                 <Loading />
             ) : (

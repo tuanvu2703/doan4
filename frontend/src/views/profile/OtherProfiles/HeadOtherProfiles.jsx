@@ -8,7 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import friend from '../../../service/friend';
-import { ToastContainer, toast } from 'react-toastify';
+import {  toast } from 'react-toastify';
 import NotificationCss from '../../../module/cssNotification/NotificationCss';
 import { useUser } from '../../../service/UserContext';
 export default function HeadOtherProfiles({ dataProfile }) {
@@ -131,7 +131,7 @@ export default function HeadOtherProfiles({ dataProfile }) {
                     <div className="flex gap-2 justify-center mb-5">
                         {/* {friendStatus} */}
                         {
-                            loadingRequest == true ? friendStatus === "friend" ? (
+                            loadingRequest === true ? friendStatus === "friend" ? (
                                 <button
                                     onClick={() => dataProfile ? handRemoveFriend(dataProfile._id) : ''}
                                     className="bg-red-600 text-white p-2 rounded-full flex items-center gap-1"

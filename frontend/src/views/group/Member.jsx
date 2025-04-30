@@ -15,17 +15,24 @@ export default function Member() {
 
     return (
         <div className=" min-h-screen">
-            <h1 className="text-3xl font-bold text-center text-sky-600 mb-6">Thành viên nhóm</h1>
+            <h1 className="text-3xl font-bold text-center text-sky-600 mb-6">Chủ nhóm</h1>
+            <div className="flex w-full justify-center gap-4 mb-6">
+                {members.map((m) => (
+                    m.role === 'owner' && (
+                        <Link to={`/user/${m.member._id}`} key={m._id} className="bg-white shadow-md rounded-lg p-4 text-center border-[1px] flex justify-center">
+                            <h2 className="text-lg font-semibold text-gray-800 flex hover:underline hover:text-blue-500">{m.member.lastName} {m.member.firstName}</h2>
+                        </Link>
+                    )
+                ))}
+            </div>
+            <h1 className="text-3xl font-bold text-center text-stone-600 mb-6">Thành viên nhóm</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {members.map((m) => (
-                    <Link to={`/user/${m.member._id}`} key={m._id} className="bg-white shadow-md rounded-lg p-4 text-center">
-                        {/* <img
-                            src={member.avatar}
-                            alt={member.name}
-                            className="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-blue-500"
-                        /> */}
-                        <h2 className="text-lg font-semibold text-gray-800 flex">{m.member.lastName} {m.member.firstName}</h2>
-                    </Link>
+                    m.role === 'member' && (
+                        <Link to={`/user/${m.member._id}`} key={m._id} className="bg-white shadow-md rounded-lg p-4 text-center border-[1px] flex justify-center">
+                            <h2 className="text-lg font-semibold text-gray-800 flex hover:underline hover:text-blue-500">{m.member.lastName} {m.member.firstName}</h2>
+                        </Link>
+                    )
                 ))}
             </div>
         </div>

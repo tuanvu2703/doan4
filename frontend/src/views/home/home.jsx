@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { profileUserCurrent } from "../../service/ProfilePersonal.js";
 
 import HomePost from "../post/HomePost.jsx";
+import SideHome from "../../components/SideHome.jsx";
 
 
 function Home() {
@@ -30,6 +31,9 @@ function Home() {
                 {/* <Story /> */}
                 <PostStatus user={user} addNewPost={addNewPostFunction} />
                 <HomePost onPostsUpdated={handlePostsUpdated} />
+            </div>
+            <div className="hidden lg:block">
+                <SideHome />
             </div>
         </div>
     );

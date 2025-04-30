@@ -33,7 +33,7 @@ export default function TablePost({ query }) {
 
     }
     const filteredPosts = query.trim() === "" ? posts : posts.filter(post => {
-        return post.content.toLowerCase().includes(query.toLowerCase());
+        return post.content && post.content.toLowerCase().includes(query.toLowerCase());
     });
 
     return (
@@ -55,10 +55,16 @@ export default function TablePost({ query }) {
                         <td>
                             {post.img.length > 0 ? (
                                 <UserProvider>
-                                    <FileViewer file={post.img} mh={100} />
+                                    <div className='w-44 h-44 overflow-hidden flex items-center justify-center bg-gray-100 rounded-lg'>
+                                        <div className='w-full h-full flex items-center justify-center'>
+                                            <FileViewer file={post.img} className="w-full h-full object-cover" />
+                                        </div>
+                                    </div>
                                 </UserProvider>
                             ) : (
-                                <span>No image/Video</span>
+                                <div className='bg-gray-600 w-44 h-44 flex justify-center items-center rounded-lg'>
+                                    <span>No image/Video</span>
+                                </div>
                             )}
                         </td>
                         <td>
