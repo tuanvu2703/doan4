@@ -12,6 +12,7 @@ export default function Dashboard() {
     const [rppending, setRpPending] = useState([])
     const [rpdone, setRpDone] = useState([])
     const [rpreject, setRpReject] = useState([])
+    const [postHidden, setPostHidden] = useState([])
     const [loading, setLoading] = useState(false)
     useEffect(() => {
         const fetchData = async () => {
@@ -23,6 +24,7 @@ export default function Dashboard() {
                 setUser(responseUser.data);
                 setPost(responsePost.data);
                 setReport(responseReport.data);
+                setPostHidden(responsePost.data.filter((post) => post.isActive === false));
                 setRpPending(responseReport.data.filter((report) => report.status === 'pending'))
                 setRpDone(responseReport.data.filter((report) => report.status === 'resolved'))
                 setRpReject(responseReport.data.filter((report) => report.status === 'rejected'))
@@ -42,6 +44,7 @@ export default function Dashboard() {
                 <Stat title={"Tổng số báo cáo chờ xử lý"} value={rppending.length} icon={<EllipsisHorizontalCircleIcon className='size-8 text-gray-400' />} />
                 <Stat title={"Tổng số báo cáo đã xử lý"} value={rpdone.length} icon={<CheckBadgeIcon className='size-8 text-green-600' />} />
                 <Stat title={"Tổng số báo cáo đã từ chối xử lý"} value={rpreject.length} icon={<ArchiveBoxXMarkIcon className='size-8 text-red-600' />} />
+                <Stat title={"Tổng số bài viết đã ẩn"} value={postHidden.length} icon={<ArchiveBoxXMarkIcon className='size-8 text-red-600' />} />
             </div>
         </div>
     )

@@ -6,7 +6,7 @@ import 'animate.css';
 import { Link } from 'react-router-dom';
 import FormReply from './FormReply';
 import CommentReply from './CommentReply';
-import { HeartIcon } from '@heroicons/react/24/outline';
+import { HeartIcon, ChatBubbleLeftIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 
 
@@ -76,46 +76,84 @@ export default function Comment({ postId, user }) {
   const handleReplyList = (cmtId) => {
     setIsReplyOpen(isReplyOpen === cmtId ? null : cmtId);
   }
-  //
 
-  console.log(comment)
   return (
-    <div>
-      <div className='mt-3 border-[1px] rounded-xl grid gap-5'>
-        {comment.filter((com_e) => com_e.replyTo.length === 0).map((e) => (
-          <div key={e._id} className="bg-card dark:bg-card-foreground p-4 rounded-lg rounded-b-none border-b-2 ">
-            <div className=' '>
-              <div className="flex items-center gap-2 ">
-                {/* <img className="h-12 w-12 rounded-full mr-4" src="https://placehold.co/50x50" alt="user-avatar" /> */}
+    <div className="space-y-4">
+      {comment.filter((com_e) => com_e.replyTo.length === 0).map((e) => (
+        <div key={e._id} className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-all hover:shadow-md">
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
                 <AVTUser user={e?.author} />
-                <div>
-
-                  <Link to={`/user/${e?.author?._id}`} className="text-lg font-semibold">{e?.author?.lastName} {e?.author?.firstName}</Link>
-                  <p className="text-sm text-muted-foreground">{formatDate(e.createdAt)}</p>
-                </div>
               </div>
-              <p className="text-base mt-4">{e?.content}</p>
-              <div className="flex items-center justify-between mt-4">
-                <div className='flex gap-1 justify-center items-center'>
-                  <span>{e?.likes?.length}</span>
-                  <button onClick={() => handleLikeClick(e?._id)} className={"flex items-end gap-1"}>
+              <div className="flex-grow">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    to={`/user/${e?.author?._id}`}
+                    className="text-base font-medium hover:underline text-gray-900"
+                  >
+                    {e?.author?.lastName} {e?.author?.firstName}
+                  </Link>
+                  <span className="text-xs text-gray-500 ">{formatDate(e.createdAt)}</span>
+                </div>
+                <div className="mt-2 text-gray-700 ">
+                  {e?.content}
+                </div>
+                <div className="mt-3 flex items-center gap-4">
+                  <button
+                    onClick={() => handleLikeClick(e?._id)}
+                    className="flex items-center gap-1.5 text-sm group"
+                  >
                     {e?.likes?.includes(user._id)
-                      ? <HeartIcon className='fill-red-600 text-red-600 size-5 animate__heartBeat' />
-                      : <HeartIcon className=' size-5 text-red-600 '>Like</HeartIcon>
+                      ? <HeartIcon className='fill-red-600 text-red-600 size-4 animate__animated animate__heartBeat' />
+                      : <HeartIcon className='size-4 text-gray-500 group-hover:text-red-600 transition-colors' />
                     }
+                    <span className={e?.likes?.includes(user._id) ? "text-red-600" : "text-gray-500 group-hover:text-red-600"}>
+                      {e?.likes?.length || 0}
+                    </span>
                   </button>
 
+                  <button
+                    onClick={() => handleReply(e._id)}
+                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                  >
+                    <ChatBubbleLeftIcon className="w-4 h-4" />
+                    <span>Phản hồi</span>
+                  </button>
                 </div>
-                <button onClick={() => handleReply(e._id)} className="text-secondary">Phản hồi</button>
               </div>
             </div>
-            <FormReply open={openReplyId === e._id} keycmt={e} />
-            <button onClick={() => handleReplyList(e._id)}>Xem các phản hồi</button>
-            {isReplyOpen && <CommentReply open={isReplyOpen === e._id} postId={postId} user={user} cmtId={e._id} />}
-          </div>
-        ))}
 
-      </div>
+            <div className="mt-2">
+              <FormReply open={openReplyId === e._id} keycmt={e} />
+            </div>
+
+            {e.replies && e.replies.length > 0 && (
+              <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                <button
+                  onClick={() => handleReplyList(e._id)}
+                  className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                >
+                  {isReplyOpen === e._id ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
+                  <span>{isReplyOpen === e._id ? 'Ẩn phản hồi' : `Xem ${e.replies.length} phản hồi`}</span>
+                </button>
+
+                {isReplyOpen === e._id &&
+                  <div className="mt-2 pl-2 border-l-2 border-gray-200 dark:border-gray-700">
+                    <CommentReply open={true} postId={postId} user={user} cmtId={e._id} />
+                  </div>
+                }
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {comment.filter((com_e) => com_e.replyTo.length === 0).length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+        </div>
+      )}
     </div>
   )
 }

@@ -7,6 +7,11 @@
   background-color: white;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+}
+
 @keyframes colorWave {
   0% {
     color: #ff0000;
@@ -52,6 +57,7 @@
   overflow-wrap: break-word;
   white-space: normal;
 }
+
 /* Apply custom styles to all scrollable areas */
 ::-webkit-scrollbar {
   width: 8px;

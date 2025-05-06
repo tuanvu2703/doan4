@@ -1,44 +1,148 @@
-import React, { Suspense, useState, useEffect } from 'react'
-import Loading from '../../../components/Loading'
-import ListGif from './ListGif'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Loading from '../../../components/Loading';
 
 export default function Gif({ onGifSelect }) {
-    const [query, setQuery] = useState('excited') // Set default query to "excited"
-    const [inputValue, setInputValue] = useState('')
+    const [gifSearch, setGifSearch] = useState('');
+    const [gifs, setGifs] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [fetching, setFetching] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+
+    const handleChange = (e) => {
+        setGifSearch(e.target.value);
+    };
 
     useEffect(() => {
-        if (inputValue.trim() === '') {
-            setQuery('excited')
+        if (gifSearch) {
+            const delayDebounce = setTimeout(() => {
+                fetchGifs(gifSearch, 1);
+                setPage(1);
+            }, 700);
+            return () => clearTimeout(delayDebounce);
         } else {
-            setQuery(inputValue)
+            // If search is empty, load trending GIFs
+            fetchTrendingGifs(1);
+            setPage(1);
         }
-    }, [inputValue])
+    }, [gifSearch]);
+
+    const fetchGifs = async (query, pageNum) => {
+        setLoading(true);
+        try {
+            const response = await axios.get(`https://api.giphy.com/v1/gifs/search`, {
+                params: {
+                    api_key: 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65',
+                    q: query,
+                    limit: 20,
+                    offset: (pageNum - 1) * 20
+                }
+            });
+
+            if (pageNum === 1) {
+                setGifs(response.data.data);
+            } else {
+                setGifs(prev => [...prev, ...response.data.data]);
+            }
+
+            setHasMore(response.data.data.length === 20);
+        } catch (error) {
+            console.error('Error fetching GIFs:', error);
+        } finally {
+            setLoading(false);
+            setFetching(false);
+        }
+    };
+
+    const fetchTrendingGifs = async (pageNum) => {
+        setLoading(true);
+        try {
+            const response = await axios.get(`https://api.giphy.com/v1/gifs/trending`, {
+                params: {
+                    api_key: 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65',
+                    limit: 20,
+                    offset: (pageNum - 1) * 20
+                }
+            });
+
+            if (pageNum === 1) {
+                setGifs(response.data.data);
+            } else {
+                setGifs(prev => [...prev, ...response.data.data]);
+            }
+
+            setHasMore(response.data.data.length === 20);
+        } catch (error) {
+            console.error('Error fetching trending GIFs:', error);
+        } finally {
+            setLoading(false);
+            setFetching(false);
+        }
+    };
+
+    // Handle scroll to load more GIFs
+    const handleScroll = (e) => {
+        const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+
+        if (scrollHeight - scrollTop <= clientHeight * 1.5 && !fetching && hasMore) {
+            setFetching(true);
+            setPage(prev => prev + 1);
+
+            if (gifSearch) {
+                fetchGifs(gifSearch, page + 1);
+            } else {
+                fetchTrendingGifs(page + 1);
+            }
+        }
+    };
 
     return (
-        <div>
-            <ul className='overflow-y-auto h-64 grid grid-cols-1'>
-                <label className="input input-bordered flex items-center gap-2 rounded-none border-none">
-                    <input
-                        type="text"
-                        onChange={e => setInputValue(e.target.value)}
-                        className="grow"
-                        value={inputValue}
-                        placeholder="Search" />
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 16 16"
-                        fill="currentColor"
-                        className="h-8 w-8 opacity-70 ">
-                        <path
-                            fillRule="evenodd"
-                            d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-                            clipRule="evenodd" />
-                    </svg>
-                </label>
-                <Suspense fallback={<Loading />}>
-                    <ListGif query={query} onGifSelect={onGifSelect} />
-                </Suspense>
-            </ul>
+        <div className="gif-container h-64 p-2 sm:p-3 md:p-4">
+            <div className="mb-3 sm:mb-4">
+                <input
+                    type="text"
+                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md text-sm sm:text-base"
+                    placeholder="Tìm kiếm GIF..."
+                    value={gifSearch}
+                    onChange={handleChange}
+                />
+            </div>
+            <div
+                className="grid grid-cols-2 gap-2 overflow-y-auto max-h-[300px] sm:max-h-[350px] md:max-h-[400px] p-1"
+                onScroll={(e) => handleScroll(e)}
+            >
+                {loading && !fetching ? (
+                    <div className="col-span-3 flex justify-center py-4">
+                        <Loading />
+                    </div>
+                ) : gifs.length > 0 ? (
+                    gifs.map((gif, index) => (
+                        <div
+                            key={index}
+                            className="relative cursor-pointer hover:opacity-80 transition-opacity border border-gray-200 rounded-md overflow-hidden"
+                            onClick={() => onGifSelect(gif.images.fixed_height.url)}
+                        >
+                            <img
+                                src={gif.images.fixed_height_small.url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                            />
+                        </div>
+                    ))
+                ) : !loading ? (
+                    <div className="col-span-3 text-center py-4 text-gray-500 text-sm sm:text-base">
+                        Không tìm thấy GIF nào
+                    </div>
+                ) : null}
+
+                {fetching && (
+                    <div className="col-span-3 flex justify-center py-2">
+                        <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-blue-500"></div>
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }

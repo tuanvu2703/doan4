@@ -36,7 +36,7 @@ const LayoutMessenger = () => {
 
     return (
         <MessengerContext.Provider value={{ RightShow, handleHiddenRight, content, setContent, setInboxData, inboxData }}>
-            <div className="h-screen max-h-[640px] w-full flex flex-col md:flex-row text-black border-2 rounded-lg mx-auto overflow-hidden">
+            <div className="h-screen max-h-[640px] w-full flex flex-col md:flex-row text-black bg-white border-2 rounded-lg mx-auto overflow-hidden">
                 {/* Sidebar Messenger */}
                 <div className="h-full w-full md:w-auto">
                     <LeftMessenger />

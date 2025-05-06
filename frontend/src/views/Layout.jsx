@@ -32,6 +32,7 @@ function LayoutContent() {
   const { callState, acceptIncomingCall, endCall } = useCall();
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState(null);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   useEffect(() => {
     if (disconnect === true) {
@@ -194,44 +195,90 @@ function LayoutContent() {
     SetIsMessengerPath(/^\/messenger(\/|$)/.test(location.pathname));
   }, [location]);
 
+  // Toggle mobile sidebar
+  const toggleMobileSidebar = () => {
+    setShowMobileSidebar(!showMobileSidebar);
+  };
+
+  // Close mobile sidebar when navigating
+  useEffect(() => {
+    setShowMobileSidebar(false);
+  }, [location.pathname]);
+
   return (
     <div className="min-h-screen flex flex-col bg-base-200">
-      <Navbar />
+      <Navbar onToggleSidebar={toggleMobileSidebar} />
       <div className="navbar"></div>
-      <div className="container mx-auto flex">
+      <div className="container mx-auto flex relative">
+        {/* Mobile sidebar toggle button */}
+        <button
+          onClick={toggleMobileSidebar}
+          className="md:hidden fixed bottom-4 left-4 z-30 bg-blue-500 text-white rounded-full p-3 shadow-lg"
+          aria-label="Toggle sidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+          </svg>
+        </button>
+
+        {/* Mobile sidebar */}
+        <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden transition-opacity duration-300 ${showMobileSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <div className={`fixed inset-y-0 left-0 w-64 bg-white transform transition-transform duration-300 ease-in-out ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <span className="font-semibold">Menu</span>
+              <button onClick={toggleMobileSidebar} className="p-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto h-full pb-20">
+              <SideBar />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop sidebar */}
         {isMessengerPath ? (
-          <div className="hidden md:block">
+          <div className="hidden md:block md:w-1/4 lg:w-1/5">
             <SideBar />
           </div>
         ) : (
-          <div className="hidden md:block md:w-1/4 lg:w-1/5 xl:w-1/4">
+          <div className="hidden md:block md:w-1/4 lg:w-1/5 xl:w-1/5">
             <SideBar />
           </div>
         )}
-        <main className="bg-background w-full">
+
+        {/* Main content */}
+        <main className="bg-background w-full px-2 sm:px-4 md:px-6 lg:px-8">
           <Outlet />
-          <ToastContainer position="bottom-left" autoClose={3000} />
+          <ToastContainer
+            position="bottom-left"
+            autoClose={3000}
+            limit={3}
+            newestOnTop
+          />
         </main>
       </div>
 
       {/* Call Confirmation Dialog */}
       {showCallConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
             <h3 className="text-lg font-bold mb-4">Cuộc gọi đến</h3>
             <p className="mb-6">
-              Bạn có cuộc gọi từ {incomingCallData?.from}. Bạn có muốn chấp nhận không?
+              Bạn có cuộc gọi từ {incomingCallData?.firtName}. Bạn có muốn chấp nhận không?
             </p>
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-3 sm:gap-4">
               <button
                 onClick={handleRejectCall}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm sm:text-base"
               >
                 Từ chối
               </button>
               <button
                 onClick={handleAcceptCall}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm sm:text-base"
               >
                 Chấp nhận
               </button>

@@ -487,11 +487,14 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
     const endCall = () => {
         console.log("🚫 [Socket] Gửi endCall");
 
+        // Send end call signal to all other users first
+        if (socket) {
+            console.log("📤 [Socket] Thông báo cuộc gọi kết thúc tới tất cả người dùng");
+            socket.emit("endCall");
+        }
+
         // Clean up all peer connections
         Object.keys(peerConnections.current).forEach((targetId) => cleanupPeer(targetId));
-
-        // Send end call signal
-        if (socket) socket.emit("endCall");
 
         // Clean up local resources
         cleanupMediaStream();
@@ -536,7 +539,7 @@ export default function Call({ onClose, isOpen, targetUserIds, status }) {
                 )}
 
                 {callStatus === "idle" && (
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md shadow-md">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-3 rounded-md shadow-md z-50">
                         <p className="text-gray-800 font-medium">Cuộc gọi kết thúc</p>
                     </div>
                 )}

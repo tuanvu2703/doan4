@@ -215,47 +215,52 @@ export default function DetailPost() {
 
             {/* Footer: Các nút tương tác */}
             <div className="flex justify-between flex-wrap gap-3">
-              <div className="flex gap-2">
+              <div className="flex items-center space-x-4">
                 <button
                   onClick={() => handleLikeClick(posts._id)}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
                 >
                   {posts?.likes?.includes(userLogin._id) ? (
-                    <HandThumbUpIcon className="w-5 h-5 animate__heartBeat text-blue-500" />
+                    <HandThumbUpIcon className="w-5 h-5 animate__animated animate__heartBeat text-blue-500 fill-blue-500" />
                   ) : (
                     <HandThumbUpIcon className="w-5 h-5 hover:text-blue-700" />
                   )}
-                  <span>{posts?.likes?.length}</span>
+                  <span className="text-sm font-medium">{posts?.likes?.length || 0}</span>
                 </button>
+
                 <button
                   onClick={() => handleDislikeClick(posts._id)}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
                 >
                   {posts?.dislikes?.includes(userLogin._id) ? (
-                    <HandThumbDownIcon className="w-5 h-5 animate__heartBeat text-red-500" />
+                    <HandThumbDownIcon className="w-5 h-5 animate__animated animate__heartBeat text-red-500 fill-red-500" />
                   ) : (
                     <HandThumbDownIcon className="w-5 h-5 hover:text-red-700" />
                   )}
-                  <span>{posts?.dislikes?.length}</span>
+                  <span className="text-sm font-medium">{posts?.dislikes?.length || 0}</span>
+                </button>
+
+                <button className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105">
+                  <ChatBubbleLeftIcon className="w-5 h-5 text-gray-600 hover:text-indigo-600" />
+                  <span className="text-sm font-medium">{posts?.comments?.length || 0}</span>
+                </button>
+
+                <button className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105">
+                  <ShareIcon className="w-5 h-5 text-gray-600 hover:text-green-600" />
+                  <span className="text-sm font-medium">Chia sẻ</span>
                 </button>
               </div>
-
-              <button className="flex items-center gap-1">
-                <ChatBubbleLeftIcon className="w-5 h-5" />
-                <span>{posts?.comments?.length}</span>
-              </button>
-
-              <button className="flex items-end gap-1">
-                <ShareIcon className="w-5 h-5" />
-              </button>
             </div>
           </div>
         </div>
 
         {/* Form Comment và Comment */}
-        <div className="mt-4">
+        <div className="mt-6 bg-gray-50 rounded-lg shadow-sm p-4">
           <FormComment postId={posts._id} onCommentAdded={fetchComments} />
-          <Comment postId={posts._id} user={userLogin} />
+          <div className="mt-4 border-t pt-4">
+            <h3 className="font-medium text-lg mb-4">Bình luận</h3>
+            <Comment postId={posts._id} user={userLogin} />
+          </div>
         </div>
       </div>
     </div>

@@ -26,13 +26,13 @@ function Home() {
     }, []);
 
     return (
-        <div className="flex justify-center max-w-2xl px-4 sm:px-6 lg:px-6">
-            <div className="grid gap-5 mt-3 rounded-md pb-4 w-full">
+        <div className="flex justify-between max-w-full px-2 sm:px-4 md:px-6 lg:px-8 xl:px-10 mx-auto">
+            <div className="grid gap-4 mt-3 rounded-md pb-4 w-full md:w-3/4 lg:w-2/3">
                 {/* <Story /> */}
                 <PostStatus user={user} addNewPost={addNewPostFunction} />
                 <HomePost onPostsUpdated={handlePostsUpdated} />
             </div>
-            <div className="hidden lg:block">
+            <div className="hidden lg:block lg:w-1/3 xl:w-1/4">
                 <SideHome />
             </div>
         </div>

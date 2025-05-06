@@ -32,15 +32,25 @@ export default function FormReply({ open, keycmt }) {
     return (
         <>
             {open === true && (
-                <form onSubmit={handleSubmit} className="form-control">
-                    <textarea
-                        name='content'
-                        value={formdata.content}
-                        onChange={handleChange}
-                        className="textarea focus:outline-none textarea-bordered rounded-b-none h-24 resize-none"
-                        placeholder={`Phản hồi @${keycmt?.author?.lastName} ${keycmt?.author?.firstName}`}>
-                    </textarea>
-                    <button className="btn btn-outline rounded-t-none btn-info" disabled={isSubmitting}>Gửi</button>
+                <form onSubmit={handleSubmit} className="form-control mt-3 transition-all duration-300 animate__animated animate__fadeIn">
+                    <div className="relative">
+                        <textarea
+                            name='content'
+                            value={formdata.content}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-300 focus:outline-none transition-all text-sm min-h-[80px] resize-none pr-[70px]"
+                            placeholder={`Phản hồi @${keycmt?.author?.lastName} ${keycmt?.author?.firstName}`}
+                            required
+                        >
+                        </textarea>
+                        <button
+                            type="submit"
+                            className="absolute bottom-2 right-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isSubmitting || !formdata.content.trim()}
+                        >
+                            {isSubmitting ? 'Đang gửi...' : 'Gửi'}
+                        </button>
+                    </div>
                 </form>
             )}
         </>

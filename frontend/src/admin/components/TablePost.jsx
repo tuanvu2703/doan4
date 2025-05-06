@@ -5,7 +5,9 @@ import Loading from '../../components/Loading'
 import FilePreview from '../../components/fileViewer';
 import FileViewer from '../../components/fileViewer';
 import { UserProvider } from '../../service/UserContext';
+import { use } from 'react';
 export default function TablePost({ query }) {
+    const [listWordBlock] = useState(['racism', 'fuck', 'óc chó', 'suicide', 'overdose', 'drug', 'cocaine', 'weed', 'nigger', 'porn', 'xxx', 'nude', 'pussy', 'dick', 'racist'])
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
@@ -36,17 +38,23 @@ export default function TablePost({ query }) {
         return post.content && post.content.toLowerCase().includes(query.toLowerCase());
     });
 
+    const sortedPosts = filteredPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const isBlockedContent = (content) => {
+        return listWordBlock.some(word => content && content.toLowerCase().includes(word));
+    };
+
     return (
         <tbody>
-            {filteredPosts.length === 0 ? (
+            {sortedPosts.length === 0 ? (
                 <tr>
                     <td colSpan="5" className="text-center py-4">
                         <p>Unable to find post: <i>"{query}"</i></p>
                     </td>
                 </tr>
             ) : (
-                filteredPosts.map((post) => (
-                    <tr key={post._id}>
+                sortedPosts.map((post) => (
+                    <tr key={post._id} className={isBlockedContent(post.content) ? 'bg-red-600' : ''}>
                         {/* <th>
                             <label>
                                 <input type="checkbox" className="checkbox border-white" />
