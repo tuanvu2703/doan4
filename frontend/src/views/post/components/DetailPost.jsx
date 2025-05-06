@@ -16,7 +16,7 @@ import FilePreview from '../../../components/fileViewer';
 
 export default function DetailPost() {
 
-
+  const [copied, setCopied] = useState(false);
   const [posts, setPosts] = useState([]);
   const [user, setUser] = useState({})
   const [userLogin, setUserLogin] = useState({})
@@ -139,6 +139,20 @@ export default function DetailPost() {
     }));
   };
 
+  //share
+  const handleCopyLink = (postId) => {
+    const link = `${window.location.href}`; // Lấy URL hiện tại
+    navigator.clipboard
+      .writeText(link)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000); // Reset trạng thái sau 2 giây
+      })
+      .catch((err) => {
+        console.error("Không thể sao chép liên kết: ", err);
+      });
+  };
+
 
   // console.log(posts)
   return (
@@ -221,7 +235,7 @@ export default function DetailPost() {
                   className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
                 >
                   {posts?.likes?.includes(userLogin._id) ? (
-                    <HandThumbUpIcon className="w-5 h-5 animate__animated animate__heartBeat text-blue-500 fill-blue-500" />
+                    <HandThumbUpIcon className="w-5 h-5 animate__animated animate__heartBeat text-blue-500" />
                   ) : (
                     <HandThumbUpIcon className="w-5 h-5 hover:text-blue-700" />
                   )}
@@ -233,7 +247,7 @@ export default function DetailPost() {
                   className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
                 >
                   {posts?.dislikes?.includes(userLogin._id) ? (
-                    <HandThumbDownIcon className="w-5 h-5 animate__animated animate__heartBeat text-red-500 fill-red-500" />
+                    <HandThumbDownIcon className="w-5 h-5 animate__animated animate__heartBeat text-red-500 " />
                   ) : (
                     <HandThumbDownIcon className="w-5 h-5 hover:text-red-700" />
                   )}
@@ -245,7 +259,9 @@ export default function DetailPost() {
                   <span className="text-sm font-medium">{posts?.comments?.length || 0}</span>
                 </button>
 
-                <button className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105">
+                <button
+                  onClick={() => handleCopyLink(posts._id)}
+                  className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105">
                   <ShareIcon className="w-5 h-5 text-gray-600 hover:text-green-600" />
                   <span className="text-sm font-medium">Chia sẻ</span>
                 </button>
