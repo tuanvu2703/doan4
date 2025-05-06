@@ -228,42 +228,48 @@ export default function DetailPost() {
             )}
 
             {/* Footer: Các nút tương tác */}
-            <div className="flex justify-between flex-wrap gap-3">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap justify-between items-center mt-2 pt-3 border-t border-gray-200">
+              <div className="flex gap-2 sm:gap-4">
                 <button
                   onClick={() => handleLikeClick(posts._id)}
-                  className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
                 >
                   {posts?.likes?.includes(userLogin._id) ? (
-                    <HandThumbUpIcon className="w-5 h-5 animate__animated animate__heartBeat text-blue-500" />
+                    <HandThumbUpIcon className="size-4 sm:size-5 animate__animated animate__heartBeat text-blue-600" />
                   ) : (
-                    <HandThumbUpIcon className="w-5 h-5 hover:text-blue-700" />
+                    <HandThumbUpIcon className="size-4 sm:size-5 text-gray-600" />
                   )}
-                  <span className="text-sm font-medium">{posts?.likes?.length || 0}</span>
+                  <span className={`text-xs sm:text-sm font-medium ${posts?.likes?.includes(userLogin._id) ? 'text-blue-600' : 'text-gray-600'}`}>
+                    {posts?.likes?.length > 0 ? posts?.likes?.length : ''}
+                  </span>
                 </button>
-
                 <button
                   onClick={() => handleDislikeClick(posts._id)}
-                  className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-red-50 transition-all duration-200"
                 >
                   {posts?.dislikes?.includes(userLogin._id) ? (
-                    <HandThumbDownIcon className="w-5 h-5 animate__animated animate__heartBeat text-red-500 " />
+                    <HandThumbDownIcon className="size-4 sm:size-5 animate__animated animate__heartBeat text-red-600" />
                   ) : (
-                    <HandThumbDownIcon className="w-5 h-5 hover:text-red-700" />
+                    <HandThumbDownIcon className="size-4 sm:size-5 text-gray-600" />
                   )}
-                  <span className="text-sm font-medium">{posts?.dislikes?.length || 0}</span>
+                  <span className={`text-xs sm:text-sm font-medium ${posts?.dislikes?.includes(userLogin._id) ? 'text-red-600' : 'text-gray-600'}`}>
+                    {posts?.dislikes?.length > 0 ? posts?.dislikes?.length : ''}
+                  </span>
                 </button>
-
-                <button className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105">
-                  <ChatBubbleLeftIcon className="w-5 h-5 text-gray-600 hover:text-indigo-600" />
-                  <span className="text-sm font-medium">{posts?.comments?.length || 0}</span>
+              </div>
+              <div className="flex gap-2 sm:gap-4 mt-1 sm:mt-0">
+                <button className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200">
+                  <ChatBubbleLeftIcon className="size-4 sm:size-5 text-gray-600" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-600">
+                    {posts?.comments?.length > 0 ? posts?.comments?.length : ''}
+                  </span>
                 </button>
-
                 <button
                   onClick={() => handleCopyLink(posts._id)}
-                  className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105">
-                  <ShareIcon className="w-5 h-5 text-gray-600 hover:text-green-600" />
-                  <span className="text-sm font-medium">Chia sẻ</span>
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200"
+                >
+                  <ShareIcon className="size-4 sm:size-5 text-gray-600" />
+                  {copied && <span className="text-xs text-green-600 font-medium">Đã sao chép!</span>}
                 </button>
               </div>
             </div>
