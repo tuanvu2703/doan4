@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UserService } from 'src/user/user.service';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,6 +9,8 @@ import { CreatePublicGroupDto} from './dto/createpublicgroup.dto';
 import { RequestJoinGroup } from './schema/requestJoinGroup.schema';
 import { PostSchema, Post } from 'src/post/schemas/post.schema';
 import { User } from 'src/user/schemas/user.schemas';
+import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+
 
 
 @Injectable()
@@ -117,6 +119,8 @@ export class PublicGroupService {
       
 
     async requestjonGroup(groupId: Types.ObjectId, userId: Types.ObjectId): Promise<RequestJoinGroup> {
+      try {
+        const logger = new Logger(this.requestjonGroup.name);
         const group = await this.PublicGroupModel.findById(groupId);
         if (!group) {
           throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
@@ -127,17 +131,26 @@ export class PublicGroupService {
             sender: userId,
             status: 'pending',
         }
+        logger.log('requestJoinGroup', requestJoinGroup);
         const createdRequestJoinGroup = new this.RequestJoinGroupModel(requestJoinGroup);
         return createdRequestJoinGroup.save();
-
+      
+      } catch (error) {
+        throw new HttpException('Error creating request to join group', HttpStatus.BAD_REQUEST, error);
+      }
     }
+    
+        
 
     async acceptRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: string): Promise<MemberGroup> {
-      const requestJoinGroup = await this.RequestJoinGroupModel.findById(requestJoinGroupId);
+      const Logeer = new Logger(this.acceptRequestJoinGroup.name);
+      try {
+        const requestJoinGroup = await this.RequestJoinGroupModel.findById(requestJoinGroupId);
       if (!requestJoinGroup) {
+        Logger.warn('Request not found', HttpStatus.NOT_FOUND);
         throw new HttpException('Request not found', HttpStatus.NOT_FOUND);
       }
-    
+
       const grouptype = await this.PublicGroupModel.findById(requestJoinGroup.group);
       if (!grouptype) {
         throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
@@ -154,7 +167,12 @@ export class PublicGroupService {
           throw new HttpException('Only admin or owner can accept join requests for private group', HttpStatus.FORBIDDEN);
         }
       }
-    
+
+      const isMember = await this.MemberGroupModel.findOne({ group: requestJoinGroup.group, member:  userId });
+      if (!isMember) {
+        throw new HttpException('you are not member group', HttpStatus.BAD_REQUEST);
+      }
+
       const group = requestJoinGroup.group;
       const member = requestJoinGroup.sender;
       const newMemberGroup = {
@@ -162,13 +180,19 @@ export class PublicGroupService {
         member,
         role: 'member',
       };
+      Logeer.log('newMemberGroup', newMemberGroup);
     
       const createdMemberGroup = new this.MemberGroupModel(newMemberGroup);
       await createdMemberGroup.save();
       await this.RequestJoinGroupModel.findByIdAndDelete(requestJoinGroupId);
     
       return createdMemberGroup;
+      } catch (error) {
+        console.error('Error accepting join request:', error);
+      }
     }
+
+      
     
 
     async rejectRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: string): Promise<RequestJoinGroup> {

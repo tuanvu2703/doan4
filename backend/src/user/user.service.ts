@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -28,6 +29,7 @@ import { Multer } from 'multer';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
   constructor(
     @InjectModel(User.name) private UserModel: Model<User>,
     @InjectModel(FriendRequest.name) private FriendRequestModel: Model<FriendRequest>,
@@ -112,33 +114,33 @@ export class UserService {
 
   async logout(refreshToken: string): Promise<void> {
     if (!refreshToken) {
-      console.log('No refresh token provided, skipping database update');
+      this.logger.log('No refresh token provided, skipping database update');
       return;
     }
 
-    console.log('Attempting to remove refreshToken:', refreshToken);
+    this.logger.log('Attempting to remove refreshToken:', refreshToken);
 
     const user = await this.UserModel.findOne({ refreshToken });
     if (!user) {
-      console.log('No user found with this refreshToken:', refreshToken);
+      this.logger.log('No user found with this refreshToken:', refreshToken);
       return;
     }
 
-    console.log('User found:', user._id);
+    this.logger.log('User found:', user._id);
 
     const result = await this.UserModel.updateOne(
       { refreshToken },
       { $unset: { refreshToken: 1 } }
     );
 
-    console.log('Update result:', result);
+    this.logger.log('Update result:', result);
     if (result.modifiedCount === 0) {
-      console.log('No user was updated. refreshToken may not match.');
+      this.logger.log('No user was updated. refreshToken may not match.');
     }
   }
 
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<{ accessToken: string, refreshToken: string ,UserId: string }> {
     const { numberPhone, email, password } = loginDto;
 
     if (!numberPhone && !email) {
@@ -165,7 +167,12 @@ export class UserService {
     if (!isPasswordValid) {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
-    return this.generateToken(user._id);
+    const { accessToken, refreshToken } = await this.generateToken(user._id);
+    return {
+      accessToken,
+      refreshToken,
+      UserId: user._id.toString(),
+    }
   }
 
 
@@ -445,10 +452,6 @@ export class UserService {
       return (friend.sender && friend.sender._id !== userId) || (friend.receiver && friend.receiver._id !== userId);
     });
   }
-
-
-
-
 
   async updateUser(userId: string, updateData: any): Promise<any> {
     // Tìm người dùng theo ID
@@ -746,7 +749,9 @@ export class UserService {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
     user.isActive = !user.isActive
-    return await user.save();
+    const acctiveuser = await user.save();
+    this.logger.log(`User ${userId} is now ${user.isActive ? 'active' : 'inactive'}`);
+    return acctiveuser;
   }
 
 }

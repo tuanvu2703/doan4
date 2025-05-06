@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable , Logger} from '@nestjs/common';
 import { EventGeteWay } from './event.geteway';
-
 
 @Injectable()
     export class EventService {
+        private readonly logger = new Logger(EventService.name);
         constructor(
             private readonly socket: EventGeteWay)
         {}
@@ -19,7 +19,7 @@ import { EventGeteWay } from './event.geteway';
     async disconnectUserId(userId: string) {
         const sockets = await this.socket.server.in(`user:${userId}`).fetchSockets();
         sockets.forEach(socket => socket.disconnect(true));
-        console.log(`🔌 Disconnected all sockets for user: ${userId}`);
+        this.logger.log(`🔌 Disconnected all sockets for user: ${userId}`);
     }
     
 
@@ -31,7 +31,7 @@ import { EventGeteWay } from './event.geteway';
             
             this.socket.server.to(`user:${userId}`).emit(event, data);
         } else {
-            console.log(`No clients found for user ${userId}`);
+            this.logger.log(`No clients found for user ${userId}`);
         }
     }
     

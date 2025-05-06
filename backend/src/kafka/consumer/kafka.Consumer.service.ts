@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { Kafka, Consumer, logLevel, EachMessagePayload } from 'kafkajs';
 import { EventService } from '../../event/event.service';
 import { NotificationService } from '../notification/notification.service';
@@ -7,7 +7,7 @@ import { NotificationService } from '../notification/notification.service';
 export class ConsumerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private consumer: Consumer;
-
+  private readonly logger = new Logger(ConsumerService.name);
   constructor(
     private readonly eventService: EventService,
     private readonly notificationService: NotificationService,
@@ -33,9 +33,9 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     try {
-      console.log('🔄 Connecting Kafka Consumer...');
+      this.logger.log('🔄 Connecting Kafka Consumer...');
       await this.consumer.connect();
-      console.log('✅ Kafka Consumer connected!');
+      this.logger.log('✅ Kafka Consumer connected!');
 
       await this.consumer.subscribe({ topic: 'notification', fromBeginning: false });
       await this.consumer.subscribe({ topic: 'group', fromBeginning: false });
@@ -50,20 +50,20 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
               { topic, partition, offset: (parseInt(message.offset) + 1).toString() },
             ]);
           } catch (error) {
-            console.error(`❌ Error processing message from ${topic}:`, error);
+            this.logger.error(`❌ Error processing message from ${topic}:`, error);
             throw error;
           }
         },
       });
     } catch (error) {
-      console.error('❌ Kafka Consumer error:', error);
+      this.logger.error('❌ Kafka Consumer error:', error);
       await this.consumer.disconnect();
       setTimeout(() => this.onModuleInit(), 5000);
     }
   }
 
   async onModuleDestroy() {
-    console.log('🔌 Disconnecting Kafka Consumer...');
+    this.logger.log('🔌 Disconnecting Kafka Consumer...');
     await this.consumer.disconnect();
   }
 }

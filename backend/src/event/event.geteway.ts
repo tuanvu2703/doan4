@@ -12,6 +12,7 @@ import { AuththenticationSoket } from '../user/guard/authSocket.guard';
 import { WebRTCService } from './webrtc.service';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
+import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
@@ -34,7 +35,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
 
   private activeUsers = new Map<string, Set<string>>();
   private clientToUser = new Map<string, string>();
-
+  private readonly logger = new Logger(EventGeteWay.name);
   constructor(
     private readonly authenticationSoket: AuththenticationSoket,
     private readonly webrtcService: WebRTCService,
@@ -48,10 +49,10 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
     try {
       await Promise.all([pubClient.connect(), subClient.connect()]);
       server.adapter(createAdapter(pubClient, subClient));
-      console.log('WebSocket server initialized with Upstash Redis');
+      this.logger.log('WebSocket server initialized with Upstash Redis');
       this.webrtcService.setServer(server);
     } catch (error) {
-      console.error('Failed to connect to Upstash Redis:', error);
+      this.logger.error('Failed to connect to Upstash Redis:', error);
       throw new Error('Redis connection failed');
     }
   }
@@ -73,9 +74,9 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
       this.clientToUser.set(client.id, userId);
 
       client.join(`user:${userId}`);
-      console.log(`{ ${userId}: [${Array.from(this.activeUsers.get(userId)).join(', ')}] }`);
+      this.logger.log(`{ ${userId}: [${Array.from(this.activeUsers.get(userId)).join(', ')}] }`);
     } catch (error) {
-      console.error('Error during connection:', error);
+      this.logger.error('Error during connection:', error);
       client.disconnect();
     }
   }
@@ -90,14 +91,14 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
         this.clientToUser.delete(client.id);
 
         // Log disconnect
-        console.log(`disconnect: ${client.id} from ${userId}`);
+        this.logger.log(`disconnect: ${client.id} from ${userId}`);
 
         if (userSockets.size === 0) {
           this.activeUsers.delete(userId);
           this.server.emit('userDisconnected', { userId });
-          console.log(`{ ${userId}: [] }`);
+          this.logger.log(`{ ${userId}: [] }`);
         } else {
-          console.log(`{ ${userId}: [${Array.from(userSockets).join(', ')}] }`);
+          this.logger.log(`{ ${userId}: [${Array.from(userSockets).join(', ')}] }`);
         }
       }
     }

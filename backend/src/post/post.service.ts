@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage, Types } from 'mongoose';
 import { Post } from './schemas/post.schema';
@@ -18,6 +18,7 @@ import { ProjectedPostDto } from './dto/projected-post.dto';
 
 @Injectable()
 export class PostService {
+    private readonly logger = new Logger(PostService.name);
     constructor(
         @InjectModel(Post.name) private PostModel: Model<Post>,
         @InjectModel(User.name) private UserModel: Model<User>,
@@ -258,9 +259,21 @@ export class PostService {
 
     async findPostCurrentUser(userId: Types.ObjectId): Promise<Post[]> {
         try {
-            const userPosts = await this.PostModel.find({ author: userId, isActive: true }) 
+            const userPosts = await this.PostModel.find(
+                { 
+                author: userId, 
+                isActive: true,
+                group: { $in : [null, undefined] }
+                 }) 
                 .populate('author', 'username firstName lastName avatar')
                 .exec();
+            
+                this.logger.log(
+                    `User ${userId.toString()} fetched their posts (excluding group posts)`,
+                    userId.toString(),
+                    'FindPostCurrentUser',
+                    { postCount: userPosts.length },
+                  );
     
             return userPosts;
         } catch (error) {
@@ -350,6 +363,10 @@ export class PostService {
                         if (userId.equals(currentUserId)) {
                             return post; // Chỉ tác giả mới xem được
                         }
+                        return null;
+                    }
+
+                    if(post.group){
                         return null;
                     }
 
@@ -628,67 +645,176 @@ export class PostService {
     }
 
 
-    async getHomeFeed(userId: Types.ObjectId): Promise<Post[]> {
+    async getHomeFeed(userId: Types.ObjectId): Promise<ProjectedPost[]> {
         try {
-            const user = await this.UserModel.findById(userId);
-            console.log('user successfully');
-            if (!user) {
-                throw new NotFoundException('User not found');
-            } //ok
-            const friends = await this.FriendModel.find({
-                $or: [
-                    { sender: userId.toString() }, 
-                    { receiver: userId.toString() }, 
-                ],
-            }).exec(); //bug ở đây 
-            
-            const friendIds = friends.map(friend => {
-                return friend.sender.toString() === userId.toString() ? friend.receiver : friend.sender;
-            });
-            const useridSting = userId.toString();
-            const conditions: Array<any> = [
-                { privacy: 'public' }, // ok
-                // { isActive: true }, // ok
-                { privacy: 'specific', allowedUsers: userId },// ok
-                { privacy: 'friends', author: { $in: [...friendIds, useridSting] } }, 
-            ];
-            // Lấy tất cả bài viết dựa trên điều kiện
-            const posts = await this.PostModel.find({
+          const user = await this.UserModel.findById(userId);
+          if (!user) throw new NotFoundException('User not found');
+      
+          const userIdObject = new Types.ObjectId(userId);
+      
+          // Lấy danh sách bạn bè và nhóm
+          const friends = await this.FriendModel.find({
+            $or: [{ sender: userIdObject, status: 'friend' }, { receiver: userIdObject, status: 'friend' }],
+          })
+            .select('sender receiver')
+            .lean();
+          const friendIds = friends.map((f) => (userIdObject.equals(f.sender.toString()) ? f.receiver : f.sender));
+          const memberships = await this.MemberGroupModel.find({ member: userIdObject, blackList: false })
+            .select('group')
+            .lean();
+          const memberGroupIds = memberships.map((m) => m.group);
+      
+          const timeThreshold = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      
+          // Pipeline Aggregation
+          const pipeline: PipelineStage[] = [];
+      
+          // Giai đoạn 1: $match để lấy bài viết hợp lệ
+          pipeline.push({
+            $match: {
+              isActive: true,
+              $or: [
+                { author: userIdObject },
+                { author: { $in: friendIds }, $or: [{ privacy: 'friends' }, { privacy: 'public' }, { privacy: 'specific', allowedUsers: userIdObject }] },
+                { group: { $in: memberGroupIds } },
+                { author: { $nin: [userIdObject, ...friendIds] }, group: { $in: [null, undefined] }, privacy: 'public' },
+                { author: { $nin: [userIdObject, ...friendIds] }, privacy: 'specific', allowedUsers: userIdObject },
+              ],
+            },
+          });
+      
+          // Giai đoạn 2: $lookup
+          pipeline.push(
+            { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'authorInfo' } },
+            { $unwind: { path: '$authorInfo', preserveNullAndEmptyArrays: false } },
+            { $lookup: { from: 'publicgroups', localField: 'group', foreignField: '_id', as: 'groupInfo' } },
+            { $lookup: { from: 'comments', localField: 'comments', foreignField: '_id', as: 'commentObjects', pipeline: [{ $project: { createdAt: 1 } }] } },
+          );
+      
+          // Giai đoạn 3: Tính toán các yếu tố trung gian
+          pipeline.push({
+            $addFields: {
+              latestCommentTime: { $ifNull: [{ $max: '$commentObjects.createdAt' }, '$createdAt'] },
+              isFriendPost: { $in: ['$author', friendIds] },
+              isGroupPost: { $cond: { if: '$group', then: true, else: false } },
+              isOwnPost: { $eq: ['$author', userIdObject] },
+            },
+          });
+      
+          pipeline.push({
+            $addFields: {
+              isPublicFromOther: {
                 $and: [
-                    { privacy: { $ne: 'private' }},
-                    { isActive: true },
-                    { $or: conditions },
-                    
+                  { $eq: ['$privacy', 'public'] },
+                  { $eq: ['$isOwnPost', false] },
+                  { $eq: ['$isFriendPost', false] },
+                  { $eq: ['$isGroupPost', false] },
                 ],
-            })
-                .populate('author', 'firstName lastName avatar ')
-                .populate('likes', '_id')
-                .populate('comments', '_id')
-                .lean() 
-                .exec();
-    
-            // Tính điểm xếp hạng cho các bài viết
-            const scoredPosts = posts.map((post) => {
-                const postObj = typeof post.toObject === 'function' ? post.toObject() : post;
-                const timeSincePosted = (Date.now() - new Date(postObj.createdAt).getTime()) / (100 * 60 * 60); // Tính số giờ kể từ khi đăng
-                const userInterest = friendIds.some((friendId) => friendId.toString() === postObj.author.toString()) ? 1.2 : 1; // Điểm quan tâm từ bạn bè
-                const engagement = postObj.likes.length * 3 + postObj.comments.length * 5; // Điểm tương tác
-                const timeDecay = 1 / (1 + timeSincePosted); // Giảm dần theo thời gian
-                const contentQuality = postObj.privacy === 'public' ? 1 : 0.8; // Điểm chất lượng nội dung
-    
-                // Tính điểm tổng thể của bài viết
-                const rankingScore = userInterest * (engagement + contentQuality) * timeDecay;
-                return { ...postObj, rankingScore };
-            });
-    
-            // Sắp xếp bài viết theo điểm xếp hạng từ cao đến thấp
-            scoredPosts.sort((a, b) => b.rankingScore - a.rankingScore);
-    
-            return scoredPosts;
+              },
+              isNewPost: { $gte: ['$createdAt', timeThreshold] },
+              hasRecentComment: {
+                $and: [{ $ne: ['$latestCommentTime', '$createdAt'] }, { $gte: ['$latestCommentTime', timeThreshold] }],
+              },
+            },
+          });
+      
+          // Giai đoạn 4: Gán priorityLevel
+          pipeline.push({
+            $addFields: {
+              priorityLevel: {
+                $switch: {
+                  branches: [
+                    { case: { $and: ['$isFriendPost', '$isNewPost'] }, then: 6 },
+                    { case: { $and: ['$isGroupPost', '$isNewPost'] }, then: 5 },
+                    { case: { $and: ['$isFriendPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 4 },
+                    { case: { $and: ['$isGroupPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 3 },
+                    { case: { $and: ['$isOwnPost', '$isNewPost'] }, then: 2 },
+                  ],
+                  default: 1,
+                },
+              },
+            },
+          });
+      
+          // Giai đoạn 5: Xác định sortTime
+          pipeline.push({
+            $addFields: {
+              sortTime: {
+                $cond: {
+                  if: { $in: ['$priorityLevel', [4, 3]] },
+                  then: '$latestCommentTime',
+                  else: '$createdAt',
+                },
+              },
+            },
+          });
+      
+          // Giai đoạn 6: Sắp xếp
+          pipeline.push({
+            $sort: { priorityLevel: -1, sortTime: -1, _id: -1 },
+          });
+      
+          // Giai đoạn 7: Định hình kết quả
+          pipeline.push({
+            $project: {
+              _id: 1,
+              content: 1,
+              img: 1,
+              gif: 1,
+              privacy: 1,
+              createdAt: 1,
+              likesCount: 1,
+              commentsCount: 1,
+              author: {
+                _id: '$authorInfo._id',
+                firstName: '$authorInfo.firstName',
+                lastName: '$authorInfo.lastName',
+                avatar: '$authorInfo.avatar',
+              },
+              group: {
+                $let: {
+                  vars: { groupDoc: { $ifNull: [{ $arrayElemAt: ['$groupInfo', 0] }, null] } },
+                  in: {
+                    $cond: {
+                      if: '$$groupDoc',
+                      then: { _id: '$$groupDoc._id', groupName: '$$groupDoc.groupName', avatargroup: '$$groupDoc.avatargroup', typegroup: '$$groupDoc.typegroup' },
+                      else: null,
+                    },
+                  },
+                },
+              },
+            },
+          });
+      
+          // Thực thi pipeline
+          const posts = (await this.PostModel.aggregate(pipeline)) as ProjectedPost[];
+      
+          // Ghi log
+          this.logger.log(
+            `User ${userId.toString()} fetched home feed`,
+            userId.toString(),
+            'GetHomeFeed',
+            { postCount: posts.length },
+          );
+      
+          return posts;
         } catch (error) {
-            throw new HttpException('An error occurred while fetching posts', HttpStatus.INTERNAL_SERVER_ERROR);
+          this.logger.error(
+            `Failed to fetch home feed for user ${userId.toString()}`,
+            userId.toString(),
+            'GetHomeFeed',
+            error.stack,
+            {},
+          );
+          if (error instanceof NotFoundException) {
+            throw error;
+          }
+          if (error.name === 'MongoServerError' || error.code) {
+            console.error('MongoDB Aggregation Error:', JSON.stringify(error, null, 2));
+          }
+          throw new HttpException('Error fetching home feed', HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
+      }
 
     async getPostByContent(content: string, currentUserId?: Types.ObjectId): Promise<Post[]> {
         try {
