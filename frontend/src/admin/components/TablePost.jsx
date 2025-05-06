@@ -69,7 +69,7 @@ export default function TablePost({ query }) {
                         </td>
                         <td>
                             {post.content && post.content.length > 0 ? (
-                                <p className='break-words max-w-2xl'>{post.content}</p>
+                                <p className='break-words max-w-xl'>{post.content}</p>
                             ) : (
                                 <span>No content</span>
                             )}

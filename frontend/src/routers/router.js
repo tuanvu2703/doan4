@@ -80,6 +80,9 @@ function routers() {
                     </Route>
                     <Route path="bookmark" element={<Bookmark />} />
 
+                    <Route path="/game/caro" element={<CaroGame />} />
+                    <Route path="/game/memory" element={<MemoryGame />} />
+
                     <Route path="/search" element={<LayoutSearch />}>
                         <Route path="all" element={<Searchpage />} />
                         <Route path="content" element={<PostSearch />} />
@@ -99,8 +102,7 @@ function routers() {
                 <Route path="/forgotpass" element={<ForgotPass />} />
                 {/* <Route path="/call/:targetUserIds" element={<Call />} />
                 <Route path="/call/accept/:targetUserIds" element={<AcceptCall />} /> */}
-                <Route path="/game/caro" element={<CaroGame />} />
-                <Route path="/game/memory" element={<MemoryGame />} />
+
 
                 {/* Route admin được bảo vệ bởi AdminRoute */}
                 <Route path="/admin" element={
