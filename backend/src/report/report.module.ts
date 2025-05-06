@@ -7,6 +7,7 @@ import { UserModule } from 'src/user/user.module';
 import { EventModule } from 'src/event/event.module';
 import { ProducerModule } from 'src/kafka/producer/producer.module';
 import { PostModule } from '../post/post.module';
+import { AppealSchema } from './schema/appeal.schema';
 
 @Module({
     imports: [
@@ -14,7 +15,9 @@ import { PostModule } from '../post/post.module';
         EventModule,
         ProducerModule,
         PostModule,
-        MongooseModule.forFeature([{ name: 'Report', schema: ReportSchema}])
+        MongooseModule.forFeature([{ name: 'Report', schema: ReportSchema}]),
+        MongooseModule.forFeature([{ name: 'Appeal', schema: AppealSchema}]),
+
     ],
     controllers: [ReportController],
     providers: [ReportService],

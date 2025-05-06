@@ -3,7 +3,10 @@ import { Types, Document } from 'mongoose';
 import { User } from '../../user/schemas/user.schemas';
 import { Post } from '../../post/schemas/post.schema';
 
-@Schema({ timestamps: true })
+@Schema({ 
+  timestamps: true
+})
+
 export class Report extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   sender: User;
@@ -21,7 +24,7 @@ export class Report extends Document {
   })
   reason: string;
 
-  @Prop({ required: true, default: 'pending', enum: ['pending', 'resolved', 'rejected'] })
+  @Prop({ required: true, default: 'pending', enum: ['pending', 'resolved',] })
   status: string;
 
   @Prop({
@@ -35,8 +38,6 @@ export class Report extends Document {
   @Prop({ type: Date, required: false })
     appealDeadline?: Date;
 
-  @Prop({ type: Boolean, default: false })
-    isAppealed: boolean;
 
 }
 

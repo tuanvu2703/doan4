@@ -55,7 +55,7 @@ export class CreatePostDto {
     type: 'string',
   })
   @IsOptional()
-  @IsEnum(['public', 'friends', 'private', 'specific'])
+  @IsEnum(['public', 'friends', 'private', 'specific','thisGroup'])
   readonly privacy?: string;
 
   @ApiProperty({

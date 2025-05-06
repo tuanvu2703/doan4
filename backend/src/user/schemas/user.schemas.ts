@@ -70,7 +70,6 @@ export class User extends Document {
   @Prop()
   otpExpirationTime: Date
 
-  
 }
 
 

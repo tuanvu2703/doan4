@@ -78,7 +78,7 @@ export class CommentService {
 
 
   //tìm 1 cmt theo obj của cmt
-  async findById(id: string): Promise<Comment> {
+  async findById(id: Types.ObjectId): Promise<Comment> {
     const comment = await this.commentModel.findById(id).populate('author', 'firstName lastName').exec();
     if (!comment) {
       throw new NotFoundException(`Bình luận có ID "${id}" không tồn tại`);
@@ -87,13 +87,13 @@ export class CommentService {
   }
 
   //tìm tòn bộ cmt có trong post
-  async findByPostId(postId: string): Promise<Comment[]> {
+  async findByPostId(postId: Types.ObjectId): Promise<Comment[]> {
     return this.commentModel.find({ post: postId }).populate('author', 'firstName lastName avatar').exec();
   }
 
 
   //
-  async delete(id: string): Promise<Comment> {
+  async delete(id: Types.ObjectId): Promise<Comment> {
     const deletedComment = await this.commentModel.findByIdAndDelete(id).exec();
     if (!deletedComment) {
       throw new NotFoundException(`Bình luận có ID "${id}" không tồn tại`);
@@ -166,20 +166,19 @@ export class CommentService {
 
     return await newReply.save();
   }
-  async likeComment(commentId: string, userId: string): Promise<{ comment: Comment; authorId: string }> {
-    // Tìm bình luận theo ID
+  async likeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<{ comment: Comment; authorId: string }> {
     const comment = await this.commentModel.findById(commentId);
   
     if (!comment) {
       throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
     }
 
-    if (comment.likes.includes(userId)) {
+    if (comment.likes.includes(userId.toString())) {
       throw new HttpException('Bạn đã thích bình luận này', HttpStatus.BAD_REQUEST);
     }
   
     // Thêm userId vào danh sách likes
-    comment.likes.push(userId);
+    comment.likes.push(userId.toString());
     const updatedComment = await comment.save();
   
     // Lấy ID của người đã viết bình luận
@@ -189,15 +188,15 @@ export class CommentService {
   }
   
 
-  async unlikeComment(commentId: string, userId: string): Promise<Comment> {
+  async unlikeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<Comment> {
     const comment = await this.commentModel.findById(commentId);
     if (!comment) {
       throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
     }
-    if (!comment.likes.includes(userId)) {
+    if (!comment.likes.includes(userId.toString())) {
       throw new HttpException('Bạn chưa thể unlike', HttpStatus.BAD_REQUEST);
     }
-    comment.likes = comment.likes.filter((id) => id !== userId);
+    comment.likes = comment.likes.filter((id) => id !== userId.toString());
     return await comment.save();
   }
 }
