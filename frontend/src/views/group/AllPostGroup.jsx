@@ -362,7 +362,7 @@ export default function AllPostGroup({ onPostsUpdated, groupId }) {
               );
             })
           ) : (
-            <div>No posts available</div>
+            <div className='mt-5'>Chưa có bài viết nào!</div>
           )}
 
         </>

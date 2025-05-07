@@ -7,6 +7,8 @@ import FilePreview from "../../components/fileViewer";
 export default function CardPost({ post }) {
     //carousel
     const [currentIndexes, setCurrentIndexes] = useState({});
+    const [expandedPosts, setExpandedPosts] = useState({});
+
     const handlePrev = (post) => {
         setCurrentIndexes((prevIndexes) => ({
             ...prevIndexes,
@@ -18,6 +20,24 @@ export default function CardPost({ post }) {
         setCurrentIndexes((prevIndexes) => ({
             ...prevIndexes,
             [post._id]: (prevIndexes[post._id] + 1) % post.img.length
+        }));
+    };
+
+    const renderPostContent = (post) => {
+        const isExpanded = expandedPosts[post._id];
+        // Check if content exists before trying to access its length
+        const content = post.content || '';
+        const shouldTruncate = content.length > 60 && !isExpanded;
+
+        return shouldTruncate
+            ? content.substring(0, 60) + '...'
+            : content;
+    };
+
+    const toggleExpand = (postId) => {
+        setExpandedPosts(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
         }));
     };
 
@@ -36,7 +56,20 @@ export default function CardPost({ post }) {
                                 />
                                 <div className="grid gap-2">
                                     <h2 className="font-semibold break-words">{post.author.lastName} {post.author.firstName}</h2>
-                                    <p className="text-sm sm:text-base text-ellipsis break-words">{post.content}</p>
+                                    <p className="text-sm sm:text-base text-ellipsis break-words max-w-[250px]">
+                                        {renderPostContent(post)}
+                                        {post.content && post.content.length > 60 && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    toggleExpand(post._id);
+                                                }}
+                                                className="ml-1 text-blue-500 hover:underline"
+                                            >
+                                                {expandedPosts[post._id] ? 'Thu gọn' : 'Xem thêm'}
+                                            </button>
+                                        )}
+                                    </p>
                                 </div>
                             </>
                         )}

@@ -1,12 +1,26 @@
 import React from 'react'
-import { FlagIcon, BookmarkIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/solid'
-import { handleAddBookmark } from '../../../service/PostService';
+import { FlagIcon, BookmarkIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
+import { getAllBookmark, handleAddBookmark } from '../../../service/PostService';
 import { toast } from 'react-toastify';
 import NotificationCss from '../../../module/cssNotification/NotificationCss';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReportForm from './ReportForm';
 export default function DropdownOtherPost({ postId }) {
     const [dropdownOpen, setDropdownOpen] = useState(false)
+    const [bookmark, setBookmark] = useState(false)
+
+    // useEffect(() => {
+    //     const fetchBookMark = async () => {
+    //         try {
+    //             const response = await getAllBookmark(postId);
+    //             setBookmark(response.data);
+    //         } catch (error) {
+    //             console.error('Error checking bookmark:', error);
+    //         }
+    //     };
+    //     fetchBookMark();
+    // }, [])
+
     const handleBookmarkAdd = async (e) => {
         e.preventDefault();
         try {
@@ -30,15 +44,15 @@ export default function DropdownOtherPost({ postId }) {
                         <button
                             onClick={handleBookmarkAdd}
                             className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
-                            <BookmarkIcon className="size-5 text-amber-600" />
-                            <span className='text-amber-600'>Lưu bài viết</span>
+                            <BookmarkIcon className="size-5 text-amber-600 " />
+                            <span className=''>Lưu bài viết</span>
                         </button>
                     </li>
 
                     <li>
                         <button onClick={() => document.getElementById(`my_modal_report_${postId}`).showModal()} className=" p-2 rounded-md flex items-center gap-2" to="#">
                             <FlagIcon className="size-5  text-red-600" />
-                            <span className='text-red-600'>Báo cáo bài viết</span>
+                            <span className=''>Báo cáo bài viết</span>
                         </button>
                     </li>
                 </ul>

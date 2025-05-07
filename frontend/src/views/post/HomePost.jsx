@@ -19,7 +19,7 @@ export default function HomePost({ onPostsUpdated }) {
     const [loading, setLoading] = useState(true);
     const [postsToShow, setPostsToShow] = useState(10); // Controls the number of posts to display
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [copied, setCopied] = useState(false);
+    const [copied, setCopied] = useState({}); // Changed from boolean to object to track by post ID
     const [currentIndexes, setCurrentIndexes] = useState({});
     const [expandedPosts, setExpandedPosts] = useState({}); // Track which posts are expanded
 
@@ -155,8 +155,10 @@ export default function HomePost({ onPostsUpdated }) {
         navigator.clipboard
             .writeText(link)
             .then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000); // Reset trạng thái sau 2 giây
+                setCopied(prev => ({ ...prev, [postId]: true }));
+                setTimeout(() => {
+                    setCopied(prev => ({ ...prev, [postId]: false }));
+                }, 2000); // Reset trạng thái sau 2 giây
             })
             .catch((err) => {
                 console.error("Không thể sao chép liên kết: ", err);
@@ -352,7 +354,7 @@ export default function HomePost({ onPostsUpdated }) {
                                                 className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200"
                                             >
                                                 <ShareIcon className="size-4 sm:size-5 text-gray-600" />
-                                                {copied && <span className="text-xs text-green-600 font-medium">Đã sao chép!</span>}
+                                                {copied[postData._id] && <span className="text-xs text-green-600 font-medium">Đã sao chép!</span>}
                                             </button>
                                         </div>
                                     </div>

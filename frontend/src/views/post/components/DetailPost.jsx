@@ -281,7 +281,7 @@ export default function DetailPost() {
           <FormComment postId={posts._id} onCommentAdded={fetchComments} />
           <div className="mt-4 border-t pt-4">
             <h3 className="font-medium text-lg mb-4">Bình luận</h3>
-            <Comment postId={posts._id} user={userLogin} />
+            <Comment postId={posts._id} user={userLogin} /> 
           </div>
         </div>
       </div>
