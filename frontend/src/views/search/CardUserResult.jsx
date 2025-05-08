@@ -39,7 +39,7 @@ export default function CardUserResult({ query }) {
     const handleLoadMoreUsers = () => {
         setUserLimit((prev) => prev + 8); // Increment user limit by 8
     };
-    
+
     useEffect(() => {
         const debouncedFetchData = debounce(async () => {
             if (query === '') {
@@ -87,7 +87,9 @@ export default function CardUserResult({ query }) {
             {
                 userdatas.slice(0, userLimit).map((user, index) => (
                     userContext._id === user._id ? null : (
+
                         <CardUserList userdata={user} key={index} />
+
                     )
                 ))
             }

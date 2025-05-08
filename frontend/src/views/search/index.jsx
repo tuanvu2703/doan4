@@ -44,47 +44,52 @@ export default function Searchpage() {
     }
 
     return (
-        <div className="w-full flex flex-col items-center pt-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-4xl">
-                {/* Danh sách mọi người */}
-                <div className="px-4 py-3 shadow-md shadow-gray-300 w-full rounded-lg">
-                    <strong className="text-lg">Mọi người</strong>
-                    {users.slice(0, userLimit).map((user, index) => (
-                        userContext._id === user._id ? null : (
-                            <CardUserList userdata={user} key={index} />
-                        )
-                    ))}
-                    {userLimit < users.length && (
-                        <div className="w-full flex justify-center">
-                            <button
-                                onClick={handleLoadMoreUsers}
-                                className="mt-3 text-blue-500 hover:text-blue-700"
-                            >
-                                Xem thêm
-                            </button>
+        <div className="w-full flex flex-col items-center">
+            <div className="w-full max-w-4xl px-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    {/* Danh sách mọi người */}
+                    <div className="px-4 py-3 shadow-md bg-white w-full rounded-lg relative">
+                        <h3 className="text-xl font-bold mb-4 border-b pb-2 sticky top-0 bg-white z-10 pt-2">Mọi người</h3>
+                        <div className="space-y-3">
+                            {users.slice(0, userLimit).map((user, index) => (
+                                userContext._id === user._id ? null : (
+                                    <CardUserList userdata={user} key={index} />
+                                )
+                            ))}
                         </div>
-                    )}
-                </div>
+                        {userLimit < users.length && (
+                            <div className="w-full flex justify-center mt-4">
+                                <button
+                                    onClick={handleLoadMoreUsers}
+                                    className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                                >
+                                    Xem thêm
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
-                {/* Danh sách bài đăng */}
-                <div className="px-4 py-3 shadow-md shadow-gray-300 w-full rounded-lg">
-                    <strong className="text-lg">Bài đăng</strong>
-                    {posts.slice(0, postLimit).map((post, index) => (
-                        <CardPost post={post} key={index} />
-                    ))}
-                    {postLimit < posts.length && (
-                        <div className="w-full flex justify-center">
-                            <button
-                                onClick={handleLoadMorePosts}
-                                className="mt-3 text-blue-500 hover:text-blue-700"
-                            >
-                                Xem thêm
-                            </button>
+                    {/* Danh sách bài đăng */}
+                    <div className="px-4 py-3 shadow-md bg-white w-full rounded-lg relative">
+                        <h3 className="text-xl font-bold mb-4 border-b pb-2 sticky top-0 bg-white z-10 pt-2">Bài đăng</h3>
+                        <div className="space-y-4">
+                            {posts.slice(0, postLimit).map((post, index) => (
+                                <CardPost post={post} key={index} />
+                            ))}
                         </div>
-                    )}
+                        {postLimit < posts.length && (
+                            <div className="w-full flex justify-center mt-4">
+                                <button
+                                    onClick={handleLoadMorePosts}
+                                    className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                                >
+                                    Xem thêm
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
-
     );
 }

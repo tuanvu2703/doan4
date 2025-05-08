@@ -7,7 +7,7 @@ const PostSearch = () => {
     const [query, setQuery] = useState('');
 
     return (
-        <div className="mt-5">
+        <div className="max-w-4xl mx-auto px-4">
             <label className="input input-bordered flex items-center gap-2">
                 <input
                     type="text"

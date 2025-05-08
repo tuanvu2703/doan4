@@ -84,9 +84,9 @@ export default function CardPostResult({ query }) {
     };
     console.log(albums)
     return (
-        <ul className='mt-5 grid gap-1'>
+        <ul className=' grid gap-3 my-3'>
             {albums.map(album => (
-                <li key={album._id}>
+                <li key={album._id} >
                     <Link to={`/post/${album._id}`} className="card card-side bg-base-100 shadow-xl border-[1px]">
                         <div className="card-body">
                             <div className='grid gap-3'>
@@ -107,7 +107,11 @@ export default function CardPostResult({ query }) {
                             )}
                             {album.gif && (
                                 <div className='flex justify-center'>
-                                    <img src={album.gif} alt="GIF" className="w-full h-auto" />
+                                    <img
+                                        src={album.gif}
+                                        alt="GIF"
+                                        className="max-w-xs w-auto max-h-64 rounded-lg shadow-md object-contain border border-gray-200"
+                                    />
                                 </div>
                             )}
                         </div>

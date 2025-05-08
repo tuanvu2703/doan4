@@ -209,7 +209,7 @@ export default function HomePost({ onPostsUpdated }) {
             </div>
         );
     };
-
+console.log(posts);
     // Add this handler function to remove deleted posts
     const handlePostDeleted = (deletedPostId) => {
         const updatedPosts = posts.filter(post => post._id !== deletedPostId);

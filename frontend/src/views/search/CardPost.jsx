@@ -42,67 +42,80 @@ export default function CardPost({ post }) {
     };
 
     return (
-        <div className="mt-5 w-full">
-            <Link to={`/post/${post._id}`} className="card card-side flex flex-col sm:flex-row bg-base-100 shadow-xl max-w-full">
-                <div className="card-body p-4">
+        <div className="mb-4 w-full">
+            <Link to={`/post/${post._id}`} className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <div className="p-4">
                     {/* Thông tin người đăng */}
-                    <div className="flex gap-3">
+                    <div className="flex items-center gap-3 mb-3">
                         {post.author && (
                             <>
                                 <img
-                                    className="w-12 h-12 sm:w-14 sm:h-14 aspect-square rounded-full border border-black cursor-pointer"
+                                    className="w-10 h-10 rounded-full object-cover border border-gray-300"
                                     src={post.author.avatar || 'https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain'}
-                                    alt=""
+                                    alt={`${post.author.firstName} avatar`}
                                 />
-                                <div className="grid gap-2">
-                                    <h2 className="font-semibold break-words">{post.author.lastName} {post.author.firstName}</h2>
-                                    <p className="text-sm sm:text-base text-ellipsis break-words max-w-[250px]">
-                                        {renderPostContent(post)}
-                                        {post.content && post.content.length > 60 && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    toggleExpand(post._id);
-                                                }}
-                                                className="ml-1 text-blue-500 hover:underline"
-                                            >
-                                                {expandedPosts[post._id] ? 'Thu gọn' : 'Xem thêm'}
-                                            </button>
-                                        )}
-                                    </p>
+                                <div>
+                                    <h2 className="font-semibold text-gray-800">{post.author.lastName} {post.author.firstName}</h2>
                                 </div>
                             </>
                         )}
                     </div>
 
+                    {/* Nội dung bài đăng */}
+                    <p className="text-gray-700 mb-3">
+                        {renderPostContent(post)}
+                        {post.content && post.content.length > 60 && (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    toggleExpand(post._id);
+                                }}
+                                className="ml-1 text-blue-500 hover:underline"
+                            >
+                                {expandedPosts[post._id] ? 'Thu gọn' : 'Xem thêm'}
+                            </button>
+                        )}
+                    </p>
+
                     {/* Hình ảnh bài đăng */}
                     {post?.img?.length > 0 && (
-                        <div className="relative w-full max-w-lg mx-auto">
-                            <div className="carousel rounded-lg overflow-hidden w-full h-auto sm:h-64">
+                        <div className="relative w-full rounded-lg overflow-hidden">
+                            <div className="carousel w-full">
                                 {post?.img?.length > 1 && (
                                     <button
-                                        onClick={() => handlePrev(post)}
-                                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handlePrev(post);
+                                        }}
+                                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800/70 text-white p-2 rounded-full z-10 hover:bg-gray-700"
                                     >
                                         ‹
                                     </button>
                                 )}
-                                {post.img.length > 0 && (
-                                    <div className='flex justify-center'>
-                                        <FilePreview file={post.img} />
-                                    </div>
+                                <div className='flex justify-center'>
+                                    <FilePreview file={post.img} />
+                                </div>
+                                {post?.img?.length > 1 && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleNext(post);
+                                        }}
+                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800/70 text-white p-2 rounded-full z-10 hover:bg-gray-700"
+                                    >
+                                        ›
+                                    </button>
                                 )}
                             </div>
                         </div>
                     )}
                     {post.gif && (
-                        <div className='flex justify-center'>
-                            <img src={post.gif} alt="GIF" className="w-full h-auto" />
+                        <div className='flex justify-center mt-2'>
+                            <img src={post.gif} alt="GIF" className="w-full h-auto rounded-lg" />
                         </div>
                     )}
                 </div>
             </Link>
         </div>
-
     )
 }
