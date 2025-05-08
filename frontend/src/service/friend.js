@@ -36,10 +36,21 @@ const AddFriend = async (id) => {
         };
     }
 };
-
-const getListFriendRequest = async () => {
+const getAllFriendInvitation = async () => {
     try {
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/getMyFriendRequest`,
+            {
+                headers: { Authorization: `Bearer ${authToken.getToken()}` },
+            }
+        );
+        return { success: true, data: response.data };
+    } catch (response) {
+        return { success: false, data: response.response.data.message };
+    }
+}
+const getListFriendRequest = async () => {
+    try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/request`,
             {
                 headers: { Authorization: `Bearer ${authToken.getToken()}` },
             }
@@ -91,15 +102,11 @@ const declineRequestAddFriend = async (id) => {
 const checkFriend = async (id) => {
     try {
         // Fetch user's friend list
-        const listResponse = await axios.get(`${process.env.REACT_APP_API_URL}/user/getalluser`, {
+        const listResponse = await axios.get(`${process.env.REACT_APP_API_URL}/user/getMyFriend`, {
             headers: { Authorization: `Bearer ${authToken.getToken()}` },
         });
-        const lisfr = listResponse.data;
 
-        // Find the friend with the matching ID
-        const friend = lisfr.find((friend) => friend._id == id);
-        // console.log(friend.status)
-        return { success: true, data: "dât loc tu getall.", status: friend.status };
+        return { success: true, data: listResponse.data };
     } catch (error) {
         return {
             success: false,
@@ -124,50 +131,13 @@ const cancelFriend = async (id) => {
     }
 };
 const cancelFriendRequest = async (id) => {
-    const remove = async (idrq) => {
-        try {
-            const response = await axios.delete(`${process.env.REACT_APP_API_URL}/user/removeFriendRequest/${idrq}`, {
-                headers: { Authorization: `Bearer ${authToken.getToken()}` },
-            });
-            return { success: true, data: response.data.message };
-        } catch (error) {
-            return { success: false, data: error };
-        }
-    };
     try {
-        const userrequest = await axios.get(`${process.env.REACT_APP_API_URL}/user/getMyFriendRequest`,
-            {
-                headers: { Authorization: `Bearer ${authToken.getToken()}` },
-            }
-        );
-        const idRequest = userrequest.data
-            .filter((item) => item.receiver !== id && item.sender !== id)
-            .map((item) => item._id);
-        let idrq = [];
-        if (idRequest.length == 0) {
-            const userrequest = await axios.get(`${process.env.REACT_APP_API_URL}/friend/status/${id}`,
-                {
-                    headers: { Authorization: `Bearer ${authToken.getToken()}` },
-                }
-            );
-            console.log(userrequest?.data?.idRequest)
-            idrq = userrequest?.data?.idRequest
-        } else {
-            idrq = idRequest
-        }
-        const rmv = await remove(idrq);
-        if (rmv.success == false) {
-            const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/rejectFriendRequest/${idrq}`, {},
-                {
-                    headers: { Authorization: `Bearer ${authToken.getToken()}` },
-                }
-            );
-            return { success: true, data: response.data };
-        } else {
-            return { success: true, data: rmv };
-        }
-    } catch (response) {
-        return { success: false, data: response.response.data.message };
+        const response = await axios.delete(`${process.env.REACT_APP_API_URL}/user/removeFriendRequest/${id}`, {
+            headers: { Authorization: `Bearer ${authToken.getToken()}` },
+        });
+        return { success: true, data: response.data.message };
+    } catch (error) {
+        return { success: false, data: error };
     }
 };
 async function getListFriendAnother(userId) {
@@ -191,4 +161,5 @@ export default {
     getListFriendAnother,
     checkFriend,
     cancelFriendRequest,
+    getAllFriendInvitation
 }

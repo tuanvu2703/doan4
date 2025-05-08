@@ -20,17 +20,12 @@ export default function Myfriend() {
                 <div className="flex flex-col w-full pt-3">
                     <a href='/friends'>
                         <button className="w-full p-3 pl-5 rounded-2xl text-start hover:bg-blue-100">
-                            <strong>Trang chủ</strong>
+                            <strong>Bạn bè</strong>
                         </button>
                     </a>
                     <a href='/friends/requests'>
                         <button className="w-full p-3 pl-5 rounded-2xl text-start hover:bg-blue-100">
                             <strong>Lời mời kết bạn</strong>
-                        </button>
-                    </a>
-                    <a href='/friends/list'>
-                        <button className="w-full p-3 pl-5 rounded-2xl text-start hover:bg-blue-100">
-                            <strong>Bạn bè</strong>
                         </button>
                     </a>
                 </div>

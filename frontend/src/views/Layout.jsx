@@ -32,7 +32,6 @@ function LayoutContent() {
   const { callState, acceptIncomingCall, endCall } = useCall();
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState(null);
-  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   useEffect(() => {
     if (disconnect === true) {
@@ -189,68 +188,17 @@ function LayoutContent() {
     };
   }, [userCurrent]);
 
-  const [isMessengerPath, SetIsMessengerPath] = useState(true);
-  const location = useLocation();
-  useEffect(() => {
-    SetIsMessengerPath(/^\/messenger(\/|$)/.test(location.pathname));
-  }, [location]);
-
-  // Toggle mobile sidebar
-  const toggleMobileSidebar = () => {
-    setShowMobileSidebar(!showMobileSidebar);
-  };
-
-  // Close mobile sidebar when navigating
-  useEffect(() => {
-    setShowMobileSidebar(false);
-  }, [location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col bg-base-200">
-      <Navbar onToggleSidebar={toggleMobileSidebar} />
+      <Navbar />
       <div className="navbar"></div>
-      <div className="container mx-auto flex relative">
-        {/* Mobile sidebar toggle button */}
-        <button
-          onClick={toggleMobileSidebar}
-          className="md:hidden fixed bottom-4 left-4 z-30 bg-blue-500 text-white rounded-full p-3 shadow-lg"
-          aria-label="Toggle sidebar"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-          </svg>
-        </button>
+      {/* SideBar component outside the container for full-height display */}
+      <SideBar />
 
-        {/* Mobile sidebar */}
-        <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden transition-opacity duration-300 ${showMobileSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <div className={`fixed inset-y-0 left-0 w-64 bg-white transform transition-transform duration-300 ease-in-out ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-              <span className="font-semibold">Menu</span>
-              <button onClick={toggleMobileSidebar} className="p-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="overflow-y-auto h-full pb-20">
-              <SideBar />
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop sidebar */}
-        {isMessengerPath ? (
-          <div className="hidden md:block md:w-1/4 lg:w-1/5">
-            <SideBar />
-          </div>
-        ) : (
-          <div className="hidden md:block md:w-1/4 lg:w-1/5 xl:w-1/5">
-            <SideBar />
-          </div>
-        )}
-
-        {/* Main content */}
-        <main className="bg-background w-full px-2 sm:px-4 md:px-6 lg:px-8">
+      <div className="flex relative">
+        {/* Main content with padding adjustment for sidebar */}
+        <main className="bg-background w-full px-2 sm:px-4 md:ml-[16.666667%] lg:ml-[16.666667%] transition-all duration-300">
           <Outlet />
           <ToastContainer
             position="bottom-left"

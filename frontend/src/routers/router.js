@@ -55,8 +55,7 @@ function routers() {
                     <Route path="/fixconnectsocket" element={<Fixconnectsocket />} />
                     <Route path="/updatepost/:id" element={<UpdatePost />} />
                     <Route path="friends" element={<Myfriend />} >
-                        <Route path="" element={<FriendInvitation />} />
-                        <Route path="list" element={<MyAllFriend />} />
+                        <Route path="" element={<MyAllFriend />} />
                         <Route path="requests" element={<FriendInvitation />} />
                     </Route>
                     <Route path="post/:id" element={<DetailPost />} />
