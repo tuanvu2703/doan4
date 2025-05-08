@@ -429,6 +429,75 @@ export class UserService {
     });
   }
 
+  async getMyFriendNew(userId: Types.ObjectId): Promise<{ friend: { _id: string, firstName: string, lastName: string, avatar?: string } }[]> {
+    // Lấy danh sách bạn bè
+    const friendList = await this.FriendModel.find({
+      $or: [
+        { sender: userId, status: 'friend' },
+        { receiver: userId, status: 'friend' }
+      ]
+    })
+      .populate('sender', 'firstName lastName avatar')
+      .populate('receiver', 'firstName lastName avatar')
+      .exec();
+  
+    // Chuyển đổi dữ liệu để chỉ trả về trường friend
+    const friends = friendList.map(friend => {
+      let friendData;
+      if (friend.sender && friend.sender._id.toString() === userId.toString()) {
+        // Nếu userId là sender, lấy thông tin receiver
+        friendData = friend.receiver;
+      } else {
+        // Nếu userId là receiver, lấy thông tin sender
+        friendData = friend.sender;
+      }
+  
+      return {
+        friend: {
+          _id: friendData._id.toString(),
+          firstName: friendData.firstName,
+          lastName: friendData.lastName,
+          avatar: friendData.avatar || undefined,
+        }
+      };
+    });
+  
+    return friends;
+  }
+
+  async getMyFriendIds(userId: Types.ObjectId): Promise<string[]> {
+    const friendList = await this.FriendModel.find({
+      $or: [
+        { sender: userId, status: 'friend' },
+        { receiver: userId, status: 'friend' }
+      ]
+    })
+      .populate('sender', '_id')
+      .populate('receiver', '_id')
+      .exec();
+  
+    const friendIds = friendList
+      .map(friend => {
+        let friendId: string | null = null;
+        if (friend.sender && friend.sender._id && friend.sender._id.toString() === userId.toString()) {
+          friendId = friend.receiver && friend.receiver._id ? friend.receiver._id.toString() : null;
+        } else if (friend.receiver && friend.receiver._id && friend.receiver._id.toString() === userId.toString()) {
+          friendId = friend.sender && friend.sender._id ? friend.sender._id.toString() : null;
+        }
+        return friendId;
+      })
+      .filter((friendId): friendId is string => friendId !== null)
+      .filter(id => id !== userId.toString());
+  
+    this.logger.log(`Friend IDs for ${userId}: ${JSON.stringify(friendIds)}`);
+    if (friendIds.length === 0) {
+      this.logger.log(`No valid friends found for ${userId}`);
+    }
+    return friendIds;
+  }
+
+
+
   async getListFriendAnother(userId: Types.ObjectId): Promise<Friend[]> {
     const friendList = await this.FriendModel.find({
       $or: [

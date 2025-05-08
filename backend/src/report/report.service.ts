@@ -122,7 +122,7 @@ export class ReportService {
 
                 report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
     
-                await this.producerService.sendMessage('mypost', {
+                await this.producerService.sendMessage('report', {
                     userId: report.sender,
                     owner: post.author,
                     type: 'report approve',
@@ -131,7 +131,7 @@ export class ReportService {
     
             } else if (implementationDto.implementation === 'reject') {
                 report.status = 'resolved';
-                await this.producerService.sendMessage('mypost', {
+                await this.producerService.sendMessage('report', {
                     userId: post.author,
                     owner: report.sender,
                     type: 'report reject',
@@ -153,7 +153,7 @@ export class ReportService {
                 report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
 
-                await this.producerService.sendMessage('myuser', {
+                await this.producerService.sendMessage('report', {
                     userId: report.sender,
                     owner: user._id,
                     type: 'report',
@@ -163,7 +163,7 @@ export class ReportService {
     
             } else if (implementationDto.implementation === 'reject') {
                 report.status = 'rejected';
-                await this.producerService.sendMessage('myuser', {
+                await this.producerService.sendMessage('report', {
                     userId: user._id,
                     owner: report.sender,
                     type: 'report',

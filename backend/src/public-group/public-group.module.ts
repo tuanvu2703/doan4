@@ -18,10 +18,9 @@ import { RequestJoinGroupSchema } from './schema/requestJoinGroup.schema';
     MongooseModule.forFeature([{name: 'RequestJoinGroup',schema: RequestJoinGroupSchema}]),
     UserModule,
     CloudinaryModule,
-    EventModule
     ],
     controllers: [PublicGroupController],
-    providers: [PublicGroupService, EventService],
+    providers: [PublicGroupService],
     exports: [MongooseModule, PublicGroupService],
 
 })

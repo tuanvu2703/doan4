@@ -66,10 +66,6 @@ import { WebRTCService } from './event/webrtc.service';
 
   providers: [
     AppService, 
-    MailService, 
-    OtpService, 
-    PublicGroupService, 
-    ReportService, 
   ],
 })
 export class AppModule { }

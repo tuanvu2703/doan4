@@ -12,7 +12,6 @@ import { OtpService } from 'src/otp/otp.service';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { FriendSchema } from './schemas/friend.schema';
-import { EventModule } from '../event/event.module';
 import { EventService } from '../event/event.service';
 import { GoogleStrategy } from './google.strategy';
 
@@ -42,7 +41,7 @@ import { GoogleStrategy } from './google.strategy';
 
   ],
   controllers: [UserController],
-  providers: [UserService, OtpService, CloudinaryService, EventService, GoogleStrategy],
+  providers: [UserService, OtpService, CloudinaryService, GoogleStrategy],
   exports:[UserService,JwtModule, MongooseModule]
 })
 export class UserModule {}

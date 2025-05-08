@@ -19,12 +19,11 @@ import { ParseCursorPipe } from './pipes/parse-cursor.pipe';
     MongooseModule.forFeature([{name: 'Post' , schema: PostSchema }, {name: 'User', schema: UserSchema}]),
     CloudinaryModule,
     UserModule,
-    EventModule,
     ProducerModule,
     PublicGroupModule,
   ],
   controllers: [PostController],
-  providers: [PostService, EventService, ParseCursorPipe],
+  providers: [PostService, ParseCursorPipe],
   exports: [MongooseModule, PostService],
 })
 export class PostModule {}

@@ -9,7 +9,6 @@ import { UserModule } from 'src/user/user.module';
 import { JwtService } from '@nestjs/jwt';
 import { PostSchema } from 'src/post/schemas/post.schema';
 import { User,UserSchema } from '../user/schemas/user.schemas';
-import { EventModule } from 'src/event/event.module';
 import { EventService } from 'src/event/event.service';
 
 @Module({
@@ -19,10 +18,9 @@ import { EventService } from 'src/event/event.service';
     CloudinaryModule,
     PostModule,
     UserModule,
-    EventModule
     ],
   controllers: [CommentController],
-  providers: [CommentService, EventService],
+  providers: [CommentService,],
   exports: [MongooseModule, CommentService],
 })
 export class CommentModule {}

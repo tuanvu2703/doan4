@@ -11,8 +11,6 @@ import { AppealSchema } from './schema/appeal.schema';
 
 @Module({
     imports: [
-        UserModule,
-        EventModule,
         ProducerModule,
         PostModule,
         MongooseModule.forFeature([{ name: 'Report', schema: ReportSchema}]),
