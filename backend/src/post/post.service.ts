@@ -43,7 +43,6 @@ export class PostService {
           }
         }
     
-
         if (groupId) {
           const membership = await this.MemberGroupModel.findOne({
             group: groupId,
@@ -56,7 +55,7 @@ export class PostService {
           if (membership.blackList) {
             throw new HttpException('You are in the blacklist of this group', HttpStatus.FORBIDDEN);
           }
-          if (membership.role === 'member' && createPostDto.privacy !== 'public') {
+          if (membership.role === 'member' && createPostDto.privacy !== 'thisGroup') {
             throw new HttpException(
               'Only admins or owners can set privacy for group posts',
               HttpStatus.FORBIDDEN,
@@ -109,13 +108,12 @@ export class PostService {
             }
         }
 
+        this.logger.log(`User ${userId.toString()} created a new post`, userId.toString(), 'CreatePost', { postId: newPost._id.toString() });
+
         const savedPost = await newPost.save();
         return savedPost
     }
     
-    
-    
-
 
     async updatePost(postId: string, updatePostDto: UpdatePostDto, userId: string, files?: Express.Multer.File[]): Promise<Post> {
         const post = await this.PostModel.findById(postId);
@@ -177,7 +175,7 @@ export class PostService {
             throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
         }
     
-        // Lấy authorId từ bài viết
+
         const authorId = post.author.toString();
     
         return { post, authorId };

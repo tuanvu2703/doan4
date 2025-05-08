@@ -24,9 +24,14 @@ export class Notification extends Document {
   @Prop({ type: [Types.ObjectId], ref: 'User', required: false })
   readBy: Types.ObjectId[];
 
-  @Prop({ type: Date, default: () => new Date(Date.now() + 31 * 24 * 60 * 60 * 1000), index: { expires: '31d' } }) 
-  expiresAt: Date; 
-}
 
+  @Prop({
+    type: Date,
+    default: () => new Date(Date.now() + 31 * 24 * 60 * 60 * 1000),
+    index: { expireAfterSeconds: 0 },
+  })
+  expiresAt: Date;
+  
+}
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

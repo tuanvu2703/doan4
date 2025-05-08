@@ -73,17 +73,20 @@ export class CommentController {
 
   @Get(':id')
   async findById(@Param('id') id: string) {
-    return await this.commentService.findById(id);
+    const cid = new Types.ObjectId(id);
+    return await this.commentService.findById(cid);
   }
 
   @Get('post/:postId')
   async findByPostId(@Param('postId') postId: string) {
-    return await this.commentService.findByPostId(postId);
+    const postIdo = new Types.ObjectId(postId);
+    return await this.commentService.findByPostId(postIdo);
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    return await this.commentService.delete(id);
+    const swageId = new Types.ObjectId(id);
+    return await this.commentService.delete(swageId);
   }
 
   @Put(':id')
@@ -110,8 +113,10 @@ export class CommentController {
     if (!currentUser) {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
+    const swageId = new Types.ObjectId(id);
+    const userId = new Types.ObjectId(currentUser._id.toString());
 
-    const {authorId,comment} = await this.commentService.likeComment(id, currentUser._id.toString());
+    const {authorId,comment} = await this.commentService.likeComment(swageId, userId);
     const notification = {
       title: 'new like in comment',
       body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
@@ -132,7 +137,9 @@ export class CommentController {
     if (!currentUser) {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
-    return await this.commentService.unlikeComment(id, currentUser._id.toString());
+    const swageId = new Types.ObjectId(id);
+    const userId = new Types.ObjectId(currentUser._id.toString());
+    return await this.commentService.unlikeComment(swageId, userId);
   }
 
   @Post(':id/reply')

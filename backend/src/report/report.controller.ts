@@ -8,6 +8,7 @@ import { Types } from 'mongoose';
 import { ApiTags,ApiOperation,ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { RolesGuard } from 'src/user/guard/role.guard';
 import { ImplementationDto } from './dto/implementation.dto';
+import { CreateAppealDto } from './dto/CreateAppeal.dto';
 
 
 @ApiTags('Report')
@@ -87,19 +88,87 @@ export class ReportController {
         return await this.reportService.implementationReport(reportId,implementationDto);
     }
 
-    @Patch('appealReport/:reportId')
+    @Patch('implementationAppeal/:appealId')
+    @UseGuards(new RolesGuard(true))
     @UseGuards(AuthGuardD)
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Kháng cáo báo cáo' })
+    @ApiOperation({ summary: 'Giải quyết kháng cáo ' })
     async appealReport(
         @CurrentUser() currentUser: User,
-        @Param('reportId') reportId: string
+        @Param('appealId') appealId: string,
+        @Body() appealReportDto: ImplementationDto
     ){
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-        const swageReportId = new Types.ObjectId(reportId);
+        const swageappealId = new Types.ObjectId(appealId); 
         const swageUserId = new Types.ObjectId(currentUser._id.toString());
-        return await this.reportService.appealReport(swageReportId,swageUserId);
+        return await this.reportService.implementationAppeal(swageappealId,appealReportDto);
     }
+
+    @Post('createAppeal')
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Tạo kháng cáo cho báo cáo' })
+    @ApiBody({ type: CreateAppealDto })
+    async createAppeal(
+        @CurrentUser() currentUser: User,
+        @Body() createAppealDto: CreateAppealDto,
+    ) {
+        if (!currentUser) {
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        const userId  = new Types.ObjectId(currentUser._id.toString());
+        return await this.reportService.createAppeal(userId,createAppealDto);
+    }
+
+    @Get('getAppealById/:appealId')
+    @UseGuards(new RolesGuard(true))
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Lấy kháng cáo theo ID' })
+    async getAppealById(
+        @CurrentUser() currentUser: User,
+        @Param('appealId') appealId: string
+    ) {
+        if (!currentUser) {
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        const swageappealId = new Types.ObjectId(appealId); 
+        return await this.reportService.getAppealById(swageappealId);
+    }
+
+    @Get('getAllAppeal')
+    @UseGuards(new RolesGuard(true))
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Lấy tất cả kháng cáo' })
+    async getAllAppeal(
+        @CurrentUser() currentUser: User,
+    ) {
+        if (!currentUser) {
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        if(currentUser.role.toString() !== 'true'){
+            throw new HttpException('You are not authorized to access this resource', HttpStatus.UNAUTHORIZED);
+        }
+        return await this.reportService.getAllAppeals();
+    }
+
+    @Get('getAppealByReportId/:reportId')
+    @UseGuards(new RolesGuard(true))
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Lấy kháng cáo từ báo cáo' })
+    async getAppealByReportId(
+        @CurrentUser() currentUser: User,
+        @Param('reportId') reportId: string
+    ) {
+        if (!currentUser) {
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        const ReportId = new Types.ObjectId(reportId); 
+        return await this.reportService.getAppealByReportId(ReportId);
+    }
+
 }
