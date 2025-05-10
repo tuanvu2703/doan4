@@ -64,22 +64,58 @@ export default function Layoutgr() {
                         <button onClick={() => setShowMobileInfo(false)} className="text-gray-500">×</button>
                     </div>
                     <div className="space-y-2">
-                        <span className="font-semibold block">Giới thiệu</span>
-                        {groups.typegroup === 'public' ? (
-                            <div className="bg-blue-50 p-2 rounded-lg">
-                                <div className="flex items-center gap-2 text-blue-500">
-                                    <span className="font-semibold">Nhóm công khai</span>
-                                    <GlobeAltIcon className="h-5 w-5" />
-                                </div>
-                                <span className="text-sm">Bất kỳ ai cũng có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!</span>
+                        {groups.introduction?.summary && (
+                            <div className="mb-3">
+                                <span className="font-semibold block">Giới thiệu</span>
+                                <p className="text-sm text-gray-600">{groups.introduction.summary}</p>
                             </div>
-                        ) : (
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                                <div className="flex items-center gap-2 text-gray-500">
-                                    <span className="font-semibold">Nhóm riêng tư</span>
+                        )}
+
+                        <div className="bg-blue-50 p-2 rounded-lg">
+                            <div className="flex items-center gap-2 text-blue-500">
+                                <span className="font-semibold">
+                                    {groups.introduction?.visibility === 'public' ? 'Nhóm công khai' : 'Nhóm riêng tư'}
+                                </span>
+                                {groups.introduction?.visibility === 'public' ? (
+                                    <GlobeAltIcon className="h-5 w-5" />
+                                ) : (
                                     <LockClosedIcon className="h-5 w-5" />
+                                )}
+                            </div>
+                            <span className="text-sm">
+                                {groups.introduction?.visibility === 'public'
+                                    ? 'Bất kỳ ai cũng có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!'
+                                    : 'Chỉ thành viên trong nhóm mới có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!'}
+                            </span>
+                        </div>
+
+                        {groups.introduction?.tags && groups.introduction.tags.length > 0 && (
+                            <div className="mt-3">
+                                <span className="font-semibold block">Thẻ</span>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {groups.introduction.tags.map((tag, index) => (
+                                        <span key={index} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                                            {tag}
+                                        </span>
+                                    ))}
                                 </div>
-                                <span className="text-sm">Chỉ thành viên trong nhóm mới có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!</span>
+                            </div>
+                        )}
+
+                        {groups.rules && groups.rules.length > 0 && (
+                            <div className="mt-3">
+                                <span className="font-semibold block">Quy tắc</span>
+                                <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
+                                    {groups.rules.map((rule, index) => (
+                                        <li key={index}>{rule.replace(/[\[\]"]/g, '')}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {groups.createdAt && (
+                            <div className="mt-3 text-xs text-gray-500">
+                                Tạo ngày: {new Date(groups.createdAt).toLocaleDateString('vi-VN')}
                             </div>
                         )}
                     </div>
@@ -92,22 +128,59 @@ export default function Layoutgr() {
                     <h1 className="font-semibold text-lg border-b pb-2">Thông tin</h1>
                     <div className="space-y-4">
                         <span className="text-xl sm:text-2xl font-bold block">{groups.groupName}</span>
-                        <span className="font-semibold block">Giới thiệu</span>
-                        {groups.typegroup === 'public' ? (
-                            <div className="bg-blue-50 p-3 rounded-lg">
-                                <div className="flex items-center gap-2 text-blue-500 mb-1">
-                                    <span className="font-semibold">Nhóm công khai</span>
-                                    <GlobeAltIcon className="h-5 w-5" />
-                                </div>
-                                <span className="text-sm">Bất kỳ ai cũng có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!</span>
+
+                        {groups.introduction?.summary && (
+                            <div>
+                                <span className="font-semibold block">Giới thiệu</span>
+                                <p className="text-gray-600 mt-1">{groups.introduction.summary}</p>
                             </div>
-                        ) : (
-                            <div className="bg-gray-50 p-3 rounded-lg">
-                                <div className="flex items-center gap-2 text-gray-500 mb-1">
-                                    <span className="font-semibold">Nhóm riêng tư</span>
+                        )}
+
+                        <div className={`bg-${groups.introduction?.visibility === 'public' ? 'blue' : 'gray'}-50 p-3 rounded-lg`}>
+                            <div className={`flex items-center gap-2 text-${groups.introduction?.visibility === 'public' ? 'blue' : 'gray'}-500 mb-1`}>
+                                <span className="font-semibold">
+                                    {groups.introduction?.visibility === 'public' ? 'Nhóm công khai' : 'Nhóm riêng tư'}
+                                </span>
+                                {groups.introduction?.visibility === 'public' ? (
+                                    <GlobeAltIcon className="h-5 w-5" />
+                                ) : (
                                     <LockClosedIcon className="h-5 w-5" />
+                                )}
+                            </div>
+                            <span className="text-sm">
+                                {groups.introduction?.visibility === 'public'
+                                    ? 'Bất kỳ ai cũng có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!'
+                                    : 'Chỉ thành viên trong nhóm mới có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!'}
+                            </span>
+                        </div>
+
+                        {groups.introduction?.tags && groups.introduction.tags.length > 0 && (
+                            <div>
+                                <span className="font-semibold block">Thẻ</span>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {groups.introduction.tags.map((tag, index) => (
+                                        <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                                            {tag}
+                                        </span>
+                                    ))}
                                 </div>
-                                <span className="text-sm">Chỉ thành viên trong nhóm mới có thể nhìn thấy mọi người trong nhóm và những gì họ đăng!</span>
+                            </div>
+                        )}
+
+                        {groups.rules && groups.rules.length > 0 && (
+                            <div>
+                                <span className="font-semibold block">Quy tắc nhóm</span>
+                                <ul className="list-disc list-inside text-gray-600 mt-1 pl-1">
+                                    {groups.rules.map((rule, index) => (
+                                        <li key={index}>{rule.replace(/[\[\]"]/g, '')}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {groups.createdAt && (
+                            <div className="text-sm text-gray-500 mt-4 pt-2 border-t">
+                                <p>Tạo ngày: {new Date(groups.createdAt).toLocaleDateString('vi-VN')}</p>
                             </div>
                         )}
                     </div>

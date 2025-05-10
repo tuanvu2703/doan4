@@ -13,6 +13,9 @@ export default function Member() {
         fetchMembers();
     }, [groupid]);
 
+    // Check if there are any members with role === 'member'
+    const hasMemberRole = members.some(m => m.role === 'member');
+
     return (
         <div className=" min-h-screen">
             <h1 className="text-3xl font-bold text-center text-sky-600 mb-6">Chủ nhóm</h1>
@@ -26,15 +29,19 @@ export default function Member() {
                 ))}
             </div>
             <h1 className="text-3xl font-bold text-center text-stone-600 mb-6">Thành viên nhóm</h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {members.map((m) => (
-                    m.role === 'member' && (
-                        <Link to={`/user/${m.member._id}`} key={m._id} className="bg-white shadow-md rounded-lg p-4 text-center border-[1px] flex justify-center">
-                            <h2 className="text-lg font-semibold text-gray-800 flex hover:underline hover:text-blue-500">{m.member.lastName} {m.member.firstName}</h2>
-                        </Link>
-                    )
-                ))}
-            </div>
+            {!hasMemberRole ? (
+                <div className="text-center text-xl text-gray-500">Chưa có thành viên</div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {members.map((m) => (
+                        m.role === 'member' && (
+                            <Link to={`/user/${m.member._id}`} key={m._id} className="bg-white shadow-md rounded-lg p-4 text-center border-[1px] flex justify-center">
+                                <h2 className="text-lg font-semibold text-gray-800 flex hover:underline hover:text-blue-500">{m.member.lastName} {m.member.firstName}</h2>
+                            </Link>
+                        )
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

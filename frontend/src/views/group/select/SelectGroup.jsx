@@ -13,7 +13,8 @@ export default function SelectGroup() {
         async function fetchGroups() {
             try {
                 const response = await getPublicGroupParticipated();
-                setGroups(response);
+                const sortedGroups = response.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setGroups(sortedGroups);
             } catch (error) {
                 console.error("Error fetching groups:", error);
             }
