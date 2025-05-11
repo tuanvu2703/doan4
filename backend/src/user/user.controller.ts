@@ -24,7 +24,7 @@ import { OptionalAuthGuard } from './guard/optional.guard';
 import { Types, Model } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { APIS } from 'googleapis/build/src/apis';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { InjectModel } from '@nestjs/mongoose';
 
@@ -380,6 +380,25 @@ export class UserController {
     const swageUserId = new Types.ObjectId(currentUser._id.toString())
     return this.userService.findAllMySenderFriendRequest(swageUserId);
   }
+
+  @ApiBearerAuth()
+  @Get('getStatusFriend/:friendId')
+  @UseGuards(AuthGuardD)
+  @ApiOperation({ summary: 'CHECK STATUS FRIEND WITH ANOTHER USER' })
+  @ApiParam({
+    name: 'friendId',
+    description: 'ID of the friend to check status with',
+    required: true,
+    type: String,
+  })
+  async getAllMyReceiverFriendRequest(
+    @CurrentUser() currentUser: User,
+    @Param('friendId') friendId: Types.ObjectId,
+  ) {
+    const userId = new Types.ObjectId(currentUser._id.toString())
+    return this.userService.checkFriendStatus(userId, friendId);
+  }
+
 
   @Delete('removeFriendRequest/:friendRequestId')
   @ApiBearerAuth()

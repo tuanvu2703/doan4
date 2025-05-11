@@ -591,6 +591,20 @@ export class UserService {
     return this.UserModel.find().select('-password -refreshToken -createdAt -updatedAt -otp -otpExpirationTime -bookmarks').exec();
   }
 
+  async checkFriendStatus(userId : Types.ObjectId, anotherUser: Types.ObjectId): Promise<{status : string}>{
+    const status = await this.FriendModel.findOne({
+      $or: [
+        { sender: userId, receiver: anotherUser },
+        { sender: anotherUser, receiver: userId },
+      ],
+    });
+    if(!status){
+      return {status: 'no friend'}
+    }
+    return {status: 'friend'}
+  }
+
+
   async findAllUsers(userId: string): Promise<any[]> {
     try {
       // Fetch user data, excluding sensitive fields

@@ -25,6 +25,6 @@ import { ProducerModule } from '../kafka/producer/producer.module';
 
   ],
   controllers: [ChatController],
-  providers: [ChatService, JwtModule, JwtService, AuththenticationSoket],
+  providers: [ChatService,],
 })
 export class ChatModule {}  

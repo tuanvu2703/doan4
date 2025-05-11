@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, UploadedFiles, UseGuards, UseInterceptors,Logger } from '@nestjs/common';
 import { PublicGroupService } from './public-group.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuardD } from 'src/user/guard/auth.guard';
@@ -11,6 +11,7 @@ import { Types } from 'mongoose';
 @ApiTags('Public Group')
 @Controller('PublicGroup')
 export class PublicGroupController {
+    private readonly logger = new Logger(PublicGroupController.name);
     constructor(
         private readonly publicGroupService: PublicGroupService,
     ) {}
@@ -108,11 +109,11 @@ export class PublicGroupController {
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async acceptJoinGroup(
     @CurrentUser() currentUser: User,
-    @Param('requestId') requestId: string
+    @Param('requestId') requestId: Types.ObjectId 
   ) {
-
+    const userId = new Types.ObjectId(currentUser._id.toString());
     const convertedRequestId = new Types.ObjectId(requestId);
-    return this.publicGroupService.acceptRequestJoinGroup(convertedRequestId, currentUser._id.toString());
+    return this.publicGroupService.acceptRequestJoinGroup(requestId, userId);
   }
     
 
@@ -209,6 +210,34 @@ export class PublicGroupController {
       data: updatedMembers,
     };
   }
+
+  @Get('getAllPublicGroup')
+  @UseGuards(AuthGuardD)
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, description: 'Lấy tất cả nhóm công khai thành công' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  async getAllPublicGroup(
+    @CurrentUser() currentUser: User
+  ){
+    return this.publicGroupService.getAllPublicGroup();
+  }
+
+  @Get('getPublicGroupsForFriends')
+  @UseGuards(AuthGuardD)
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, description: 'Lấy thông tin nhóm công khai cho bạn bè thành công' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  async getPublicGroupsForFriends(
+    @CurrentUser() currentUser: User,
+  ){
+    if(!currentUser){
+      this.logger.error('Unauthorized access attempt');
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+    const userId = new Types.ObjectId(currentUser._id.toString());
+    return this.publicGroupService.getPublicGroupsForFriends(userId);
+  }
+
 
 }
   
