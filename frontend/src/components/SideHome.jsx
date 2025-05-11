@@ -9,7 +9,6 @@ export default function SideHome() {
   const [myFriend, setMyFriend] = useState([]) // Initialize as array
   const [loading, setLoading] = useState(true)
   const [onlineUsers, setOnlineUsers] = useState([]) // Lưu danh sách người dùng đang online
-
   useEffect(() => {
     const fetchdata = async () => {
       setLoading(true)
@@ -25,47 +24,36 @@ export default function SideHome() {
       }
     }
     fetchdata()
-  }, [])
 
-  // Theo dõi trạng thái online/offline của người dùng
-  useEffect(() => {
-    // Xử lý khi có người dùng mới kết nối
-    socket.on('connect', () => {
-      // Khi kết nối thành công, yêu cầu danh sách người dùng đang online
-      console.log('Connected to socket server:', socket.id)
-    })
+    // Lắng nghe sự kiện người dùng online
+    socket.on("userOnline", (data) => {
+      console.log("User online:", data);
+      if (data && data.userId) {
+        setOnlineUsers(prev => {
+          if (!prev.includes(data.userId)) {
+            return [...prev, data.userId];
+          }
+          return prev;
+        });
+      }
+    });
 
-    // Lắng nghe khi có người kết nối mới
-    const handleUserConnected = (userId) => {
-      setOnlineUsers(prev => {
-        if (!prev.includes(userId)) {
-          return [...prev, userId]
-        }
-        return prev
-      })
-    }
+    // Lắng nghe sự kiện người dùng offline
+    socket.on("userOffline", (data) => {
+      console.log("User offline:", data);
+      if (data && data.userId) {
+        setOnlineUsers(prev => prev.filter(id => id !== data.userId));
+      }
+    });
 
-    // Lắng nghe khi có người ngắt kết nối
-    const handleUserDisconnected = ({ userId }) => {
-      setOnlineUsers(prev => prev.filter(id => id !== userId))
-    }
-
-    // Đăng ký các event listener
-    socket.on('userConnected', handleUserConnected)
-    socket.on('userDisconnected', handleUserDisconnected)
-
-    // Cleanup khi component bị unmount
+    // Cleanup listeners khi component unmount
     return () => {
-      socket.off('connect')
-      socket.off('userConnected')
-      socket.off('userDisconnected')
-    }
+      socket.off("userOnline");
+      socket.off("userOffline");
+    };
   }, [])
 
-  // Kiểm tra xem người dùng có đang online không
-  const isUserOnline = (userId) => {
-    return onlineUsers.includes(userId)
-  }
+
 
   return (
     <div className='fixed right-0 bg-white h-screen w-64 lg:w-72 xl:w-80 shadow-sm overflow-y-auto'>
@@ -83,30 +71,30 @@ export default function SideHome() {
               myFriend.map((item, index) => {
                 const userId = item.sender?._id || item.receiver?._id
                 const avatar = item.sender?.avatar || item.receiver?.avatar
-                const isOnline = isUserOnline(userId)
                 const userName = item.sender
                   ? `${item.sender.lastName} ${item.sender.firstName}`
                   : `${item.receiver?.lastName} ${item.receiver?.firstName}`
 
-                return (
-                  <li key={index} className='flex items-center justify-between p-2 hover:bg-gray-100 transition-colors duration-200'>
-                    <Link to={`/user/${userId}`} className='flex items-center gap-2 sm:gap-3 max-w-[70%]'>
-                      {isOnline ? (
-                        <AvatarOnline avt={avatar} />
-                      ) : (
-                        <AvatarOffline avt={avatar} />
-                      )}
-                      <span className="truncate text-sm sm:text-base" title={userName}>
-                        {userName}
-                      </span>
-                    </Link>
-                    <Link
-                      to={`/messenger/inbox/?iduser=${userId}`}
-                      className='text-blue-500 hover:text-blue-600 text-xs sm:text-sm transition-colors duration-200 px-2 py-1 rounded-md hover:bg-blue-50'
-                    >
-                      Nhắn tin
-                    </Link>
-                  </li>
+                return (<li key={index} className='flex items-center justify-between p-2 hover:bg-gray-100 transition-colors duration-200'>
+                  <Link to={`/user/${userId}`} className='flex items-center gap-2 sm:gap-3 max-w-[70%]'>
+                    {/* Avatar with online/offline status */}
+
+                    {onlineUsers.includes(userId) ? (
+                      <AvatarOnline avatar={avatar} />
+                    ) : (
+                      <AvatarOffline avatar={avatar} />
+                    )}
+                    <span className="truncate text-sm sm:text-base" title={userName}>
+                      {userName}
+                    </span>
+                  </Link>
+                  <Link
+                    to={`/messenger/inbox/?iduser=${userId}`}
+                    className='text-blue-500 hover:text-blue-600 text-xs sm:text-sm transition-colors duration-200 px-2 py-1 rounded-md hover:bg-blue-50'
+                  >
+                    Nhắn tin
+                  </Link>
+                </li>
                 )
               })
             ) : (

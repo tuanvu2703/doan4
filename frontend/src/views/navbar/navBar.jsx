@@ -17,11 +17,16 @@ export default function Navbar() {
     const [unreadNoti, setUnreadReadNoti] = useState([]);
     const [notificationOpen, setNotificationOpen] = useState(false);
     const { userContext, setUserContext } = useUser(); // Access user data from context
+
+    const fetchNotifications = async () => {
+        const notiUnread = await getUnReadNoti();
+        setUnreadReadNoti(notiUnread);
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             const response = await profileUserCurrent(); // Assume profileUserCurrent fetches user data
-            const notiUnread = await getUnReadNoti();
-            setUnreadReadNoti(notiUnread);
+            await fetchNotifications();
             if (response && response.data) {
                 setUserContext(response.data); // Update the user state in context
             } else {
@@ -29,7 +34,22 @@ export default function Navbar() {
             }
         };
         fetchData();
+
+        // Set up polling for notifications
+        const notificationInterval = setInterval(fetchNotifications, 30000); // Check every 30 seconds
+
+        return () => {
+            clearInterval(notificationInterval);
+        };
     }, []);
+
+    // Refresh notifications when dropdown opens
+    useEffect(() => {
+        if (notificationOpen) {
+            fetchNotifications();
+        }
+    }, [notificationOpen]);
+
     const location = useLocation();
     const isActiveTab = (path) => location.pathname === path;
     const isActiveString = (path) => window.location.pathname.startsWith(path);
@@ -157,7 +177,10 @@ export default function Navbar() {
                                 <AllNotification closeDropdown={closeNotification} />
                             </div> */}
                             <div className="hidden sm:block">
-                                <Notification closeDropdown={closeNotification} />
+                                <Notification
+                                    closeDropdown={closeNotification}
+                                    refreshNotifications={fetchNotifications}
+                                />
                             </div>
                         </ul>
                     )}

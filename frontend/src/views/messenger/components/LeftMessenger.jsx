@@ -42,11 +42,17 @@ const LeftMessenger = () => {
                             exclusive
                             aria-label="Platform"
                         >
-                            <ToggleButton
+                            {/* <ToggleButton
                                 onClick={() => handleChange('inbox')}
                                 value="inbox" className="flex-1 font-medium transition-all hover:bg-blue-50">
                                 <InboxIcon className="h-6 w-6 text-orange-300" />
                                 <span className="ml-2 text-nowrap">Tin nhắn</span>
+                            </ToggleButton> */}
+                            <ToggleButton
+                                onClick={() => handleChange('friend')}
+                                value="friend" className="flex-1 font-medium transition-all hover:bg-blue-50">
+                                <UsersIcon className="h-6 w-6 text-green-400" />
+                                <span className="ml-2 text-nowrap">Bạn Bè</span>
                             </ToggleButton>
                             <ToggleButton
                                 onClick={() => handleChange('group')}
@@ -54,12 +60,7 @@ const LeftMessenger = () => {
                                 <UserGroupIcon className="h-6 w-6 text-blue-400" />
                                 <span className="ml-2 text-nowrap">Nhóm</span>
                             </ToggleButton>
-                            <ToggleButton
-                                onClick={() => handleChange('friend')}
-                                value="friend" className="flex-1 font-medium transition-all hover:bg-blue-50">
-                                <UsersIcon className="h-6 w-6 text-green-400" />
-                                <span className="ml-2 text-nowrap">Bạn Bè</span>
-                            </ToggleButton>
+
                         </ToggleButtonGroup>
                     </div>
 

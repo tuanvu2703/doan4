@@ -12,7 +12,8 @@ import SideBar from "./sidebar/SideBar";
 import { ToastContainer } from "react-toastify";
 import Call from "../components/Call";
 import { CallProvider, useCall } from "../components/CallContext";
-
+import user from "../service/user";
+import { set } from "lodash";
 // Main Layout component
 export default function Layout() {
   return (
@@ -29,6 +30,7 @@ function LayoutContent() {
   const navigate = useNavigate();
   const [userCurrent, setUserCurrent] = useState({});
   const [disconnect, setDisconnect] = useState(true);
+  const [users, setUsers] = useState([]);
   const { callState, acceptIncomingCall, endCall } = useCall();
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState(null);
@@ -53,6 +55,8 @@ function LayoutContent() {
   const getDataUser = async () => {
     try {
       const response = await profileUserCurrent();
+      const reponseUser = await user.getAllUser();
+      setUsers(reponseUser.data);
       if (response && response.data) {
         setUserCurrent(response.data);
       } else {
@@ -94,7 +98,7 @@ function LayoutContent() {
       socket.off("callRejected");
     };
   }, [endCall]);
-
+  console.log("users", users);
   // Handle call acceptance
   const handleAcceptCall = () => {
     if (incomingCallData) {
@@ -214,9 +218,25 @@ function LayoutContent() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
             <h3 className="text-lg font-bold mb-4">Cuộc gọi đến</h3>
-            <p className="mb-6">
-              Bạn có cuộc gọi từ {incomingCallData?.firtName}. Bạn có muốn chấp nhận không?
-            </p>
+            <div className="flex items-center gap-4 mb-6">
+              {users.find(user => user._id === incomingCallData?.from) && (
+                <img
+                  src={users.find(user => user._id === incomingCallData?.from).avatar || imgUser}
+                  alt="Caller"
+                  className="w-16 h-16 rounded-full border-2 border-gray-200"
+                />
+              )}
+              <p>
+                Bạn có cuộc gọi từ
+              </p>
+              <p className="font-bold">{
+                users.find(user => user._id === incomingCallData?.from)
+                  ? `${users.find(user => user._id === incomingCallData?.from).lastName || ''} ${users.find(user => user._id === incomingCallData?.from).firstName || ''}`.trim()
+                  : incomingCallData?.from
+              }
+              </p>
+
+            </div>
             <div className="flex justify-end gap-3 sm:gap-4">
               <button
                 onClick={handleRejectCall}

@@ -69,7 +69,7 @@ function routers() {
                     <Route path="messenger" element={<LayoutMessenger />}>
                         <Route index element={<MessengerInbox />} />
                         <Route path="inbox" element={<MessengerInbox />} />
-                        <Route path="friend" element={<MessengerInbox />} />
+                        {/* <Route path="friend" element={<MessengerInbox />} /> */}
                         <Route path="group" element={<MessengerGroup />} />
                     </Route>
                     <Route path="user/:id" element={<OtherProfiles />}>

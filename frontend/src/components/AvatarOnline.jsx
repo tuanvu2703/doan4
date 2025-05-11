@@ -1,10 +1,10 @@
 import React from 'react'
 
-export default function AvatarOnline({ avt }) {
+export default function AvatarOnline({ avatar }) {
     return (
         <div className="avatar online">
             <div className="w-12 rounded-full">
-                <img src={avt || "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"} alt='' />
+                <img src={avatar ? avatar : "https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain"} alt='' />
             </div>
         </div>
     )

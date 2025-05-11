@@ -48,7 +48,7 @@ const UserFriendCard = ({ iduser }) => {
                 </h3>
 
 
-                <p className="text-gray-500 line-clamp-1">ô no không có tin xem trướcccccccccccccc</p>
+
             </div>
 
         </>
