@@ -213,7 +213,7 @@ export class PostService {
      * @throws {NotFoundException} If the post with the given ID does not exist.
      * @throws {BadRequestException} If the user has not liked the post.
      */
-    async unlikePost(postId: string, userId: string): Promise<Post> {
+    async unlikePost(postId: Types.ObjectId, userId: Types.ObjectId): Promise<Post> {
         this.logger.log(`Attempting to unlike post ${postId} by user ${userId}`);
 
         const post = await this.PostModel.findOneAndUpdate(
@@ -251,7 +251,7 @@ export class PostService {
      * @throws {NotFoundException} If the post with the given ID does not exist.
      * @throws {HttpException} If the user has already disliked the post.
      */
-    async dislikePost(postId: string, userId: string): Promise<Post> {
+    async dislikePost(postId: Types.ObjectId, userId: Types.ObjectId): Promise<Post> {
         this.logger.log(`Attempting to dislike post ${postId} by user ${userId}`);
 
         const post = await this.PostModel.findOneAndUpdate(
@@ -289,7 +289,7 @@ export class PostService {
      * @throws {NotFoundException} If the post with the given ID does not exist.
      * @throws {HttpException} If the user has not disliked the post.
      */
-    async undislikePost(postId: string, userId: string): Promise<Post> {
+    async undislikePost(postId: Types.ObjectId, userId: Types.ObjectId): Promise<Post> {
         this.logger.log(`Attempting to undislike post ${postId} by user ${userId}`);
 
         const post = await this.PostModel.findOneAndUpdate(

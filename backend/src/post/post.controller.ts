@@ -165,34 +165,44 @@ export class PostController {
     @Put(':id/unlike')
     @ApiBearerAuth() 
     @UseGuards(AuthGuardD)
-    async unlikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
+    async unlikePost(
+        @Param('id') id: Types.ObjectId, 
+        @CurrentUser() currentUser: User
+    ) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-
-        return await this.postService.unlikePost(id, currentUser._id.toString());
+        const convertedUserId = new Types.ObjectId(currentUser._id.toString());
+        return await this.postService.unlikePost(id, convertedUserId);
     }
 
     @Put(':id/dislike')
     @UseGuards(AuthGuardD)
     @ApiBearerAuth() 
-    async dislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
+    async dislikePost(
+        @Param('id') id: Types.ObjectId,
+        @CurrentUser() currentUser: User
+    ) {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-
-        return await this.postService.dislikePost(id, currentUser._id.toString());
+        const convertedUserId = new Types.ObjectId(currentUser._id.toString());
+        return await this.postService.dislikePost(id, convertedUserId);
     }
 
     @Put(':id/undislike')
     @UseGuards(AuthGuardD)
     @ApiBearerAuth() 
-    async undislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
+    async undislikePost(
+        @Param('id') id: Types.ObjectId, 
+        @CurrentUser() currentUser: User
+    ) {
         if (!currentUser) {
+            
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-
-        return await this.postService.undislikePost(id, currentUser._id.toString());
+        const convertedUserId = new Types.ObjectId(currentUser._id.toString());
+        return await this.postService.undislikePost(id, convertedUserId);
     }
 
 
