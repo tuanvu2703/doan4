@@ -27,9 +27,9 @@ export class CommentController {
   @UseGuards(AuthGuardD)
   @Post(':postId')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'files', maxCount: 2 }]))
-      @ApiBearerAuth() 
-      @ApiConsumes('multipart/form-data') 
-      @ApiOperation({ summary: 'Upload your image' })
+  @ApiBearerAuth() 
+  @ApiConsumes('multipart/form-data') 
+  @ApiOperation({ summary: 'Upload your image' })
   async createCmt(
     @Param('postId') postId: string,
     @CurrentUser() currentUser: User,

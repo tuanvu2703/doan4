@@ -246,17 +246,28 @@ export class NotificationService {
   }
 
   async getUserNotifications(userId: Types.ObjectId) {
-    return await this.notificationModel
-      .find({
-        $or: [
-          { targetUserId: userId },
-          { targetUserIds: userId },
-        ], 
-      })
-      .select('_id type ownerId data createdAt') 
-      .populate('ownerId', 'firstName lastName avatar') 
-      .sort({ createdAt: -1 })
-      .exec();
+   const notifications = await this.notificationModel
+    .find({
+      $or: [
+        { targetUserId: userId },
+        { targetUserIds: userId },
+      ],
+    })
+    .select('_id type ownerId data createdAt readBy') // Thêm readBy vào select
+    .populate('ownerId', 'firstName lastName avatar')
+    .sort({ createdAt: -1 })
+    .exec();
+
+  return notifications.map(notification => {
+    const isRead = notification.readBy.includes(userId);
+    return {
+      _id: notification._id,
+      type: notification.type,
+      ownerId: notification.ownerId,
+      data: notification.data,
+      isRead, // Thêm isRead: true nếu userId có trong readBy, false nếu không
+    };
+  });
   }
 
   async getUnreadNotifications(userId: Types.ObjectId) {

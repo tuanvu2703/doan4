@@ -3,6 +3,7 @@ export const KAFKA_TOPICS = {
     GROUP: 'group',
     MYPOST: 'mypost',
     REPORT : 'report',
+    USER : 'user',
   };
   
   export const KAFKA_GROUPS = {
@@ -10,4 +11,5 @@ export const KAFKA_TOPICS = {
     GROUP: 'GRgroup',
     MYPOST: 'GRmypost',
     REPORT : 'GRreport',
+    USER : 'GRuser',
   };

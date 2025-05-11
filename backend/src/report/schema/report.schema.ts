@@ -9,7 +9,7 @@ import { Post } from '../../post/schemas/post.schema';
 
 export class Report extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  sender: User;
+  sender: Types.ObjectId[];
 
   @Prop({ type: String, enum: ['User', 'Post'], required: true })
   type: 'User' | 'Post';

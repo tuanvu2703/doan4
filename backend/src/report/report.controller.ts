@@ -30,8 +30,8 @@ export class ReportController {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-        const swageUserId = new Types.ObjectId(currentUser._id.toString());
-        return await this.reportService.createReport(currentUser._id.toString(),createReportDto);
+        const userId = new Types.ObjectId(currentUser._id.toString());
+        return await this.reportService.createReport(userId ,createReportDto);
     }
 
     @Get('getReports')
