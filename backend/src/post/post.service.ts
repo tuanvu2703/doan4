@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException, Logger, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage, Types } from 'mongoose';
 import { Post } from './schemas/post.schema';
@@ -160,70 +160,163 @@ export class PostService {
     }
 
 
+    /**
+     * Like a post by a user.
+     * @param postId - The ID of the post to like (MongoDB ObjectId).
+     * @param userId - The ID of the user who likes the post (MongoDB ObjectId).
+     * @returns A promise that resolves to an object containing the updated post and the author's ID.
+     * @throws {NotFoundException} If the post with the given ID does not exist.
+     * @throws {BadRequestException} If the user has already liked the post.
+     */
     async likePost(postId: Types.ObjectId, userId: Types.ObjectId): Promise<{ post: Post; authorId: string }> {
+        this.logger.log(`Attempting to like post ${postId} by user ${userId}`);
 
-        const post = await this.PostModel.findByIdAndUpdate(
+        const post = await this.PostModel.findById(postId);
+
+        if (!post) {
+            this.logger.warn(`Post with ID "${postId}" not found when user ${userId} tried to like`);
+            throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+        }
+
+        const user = userId.toString();
+        const hasLiked = post.likes.includes(user);
+        if (hasLiked) {
+            this.logger.warn(`User ${userId} has already liked post ${postId}`);
+            throw new BadRequestException(`User ${userId} đã like bài viết ${postId} rồi`);
+        }
+
+        const updatedPost = await this.PostModel.findByIdAndUpdate(
             postId,
             {
-                $addToSet: { likes: userId }, 
-                $inc: { likesCount: 1 }, 
+                $addToSet: { likes: userId },
+                $inc: { likesCount: 1 },
+            },
+            { new: true }
+        );
+
+        if (!updatedPost) {
+            this.logger.error(`Failed to update post ${postId} for user ${userId}`);
+            throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+        }
+
+        const authorId = updatedPost.author.toString();
+        this.logger.log(`User ${userId} successfully liked post ${postId} by author ${authorId}`);
+
+        return { post: updatedPost, authorId };
+    }
+
+    /**
+     * Unlike a post by a user.
+     * @param postId - The ID of the post to unlike (string representation of MongoDB ObjectId).
+     * @param userId - The ID of the user who unlikes the post (string representation of MongoDB ObjectId).
+     * @returns A promise that resolves to the updated post after unliking.
+     * @throws {NotFoundException} If the post with the given ID does not exist.
+     * @throws {BadRequestException} If the user has not liked the post.
+     */
+    async unlikePost(postId: string, userId: string): Promise<Post> {
+        this.logger.log(`Attempting to unlike post ${postId} by user ${userId}`);
+
+        const post = await this.PostModel.findOneAndUpdate(
+            {
+                _id: postId,
+                likes: userId,
+            },
+            {
+                $pull: { likes: userId },
+                $inc: { likesCount: -1 },
             },
             { new: true }
         );
 
         if (!post) {
-            throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+            const postExists = await this.PostModel.findById(postId);
+            if (!postExists) {
+                this.logger.warn(`Post with ID "${postId}" not found when user ${userId} tried to unlike`);
+                throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+            }
+            this.logger.warn(`User ${userId} has not liked post ${postId} to unlike`);
+            throw new BadRequestException(`Bạn chưa like bài viết ${postId} để thực hiện unlike`);
         }
-    
 
-        const authorId = post.author.toString();
-    
-        return { post, authorId };
-    }
-    
-
-    async unlikePost(postId: string, userId: string): Promise<Post> {
-        const post = await this.PostModel.findByIdAndUpdate(
-            postId,
-            {
-                $pull: { likes: userId },
-                $inc: { likesCount: -1 },
-            },
-            { new: true },
-        );
-
-        if (!post) {
-            throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
-        }
+        this.logger.log(`User ${userId} successfully unliked post ${postId}`);
 
         return post;
     }
 
+    /**
+     * Dislike a post by a user.
+     * @param postId - The ID of the post to dislike (string representation of MongoDB ObjectId).
+     * @param userId - The ID of the user who dislikes the post (string representation of MongoDB ObjectId).
+     * @returns A promise that resolves to the updated post after disliking.
+     * @throws {NotFoundException} If the post with the given ID does not exist.
+     * @throws {HttpException} If the user has already disliked the post.
+     */
     async dislikePost(postId: string, userId: string): Promise<Post> {
-        const post = await this.PostModel.findById(postId);
+        this.logger.log(`Attempting to dislike post ${postId} by user ${userId}`);
+
+        const post = await this.PostModel.findOneAndUpdate(
+            {
+                _id: postId,
+                dislikes: { $ne: userId },
+            },
+            {
+                $push: { dislikes: userId },
+                $inc: { dislikesCount: 1 },
+            },
+            { new: true }
+        );
 
         if (!post) {
-            throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
-        }
-
-        if (post.dislikes.includes(userId)) {
+            const postExists = await this.PostModel.findById(postId);
+            if (!postExists) {
+                this.logger.warn(`Post with ID "${postId}" not found when user ${userId} tried to dislike`);
+                throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+            }
+            this.logger.warn(`User ${userId} has already disliked post ${postId}`);
             throw new HttpException('Bạn đã không thích bài viết này', HttpStatus.BAD_REQUEST);
         }
 
-        post.dislikes.push(userId);
+        this.logger.log(`User ${userId} successfully disliked post ${postId}`);
 
-        return await post.save();
+        return post;
     }
+
+    /**
+     * Undislike a post by a user.
+     * @param postId - The ID of the post to undislike (string representation of MongoDB ObjectId).
+     * @param userId - The ID of the user who undislikes the post (string representation of MongoDB ObjectId).
+     * @returns A promise that resolves to the updated post after undisliking.
+     * @throws {NotFoundException} If the post with the given ID does not exist.
+     * @throws {HttpException} If the user has not disliked the post.
+     */
     async undislikePost(postId: string, userId: string): Promise<Post> {
-        const post = await this.PostModel.findById(postId);
+        this.logger.log(`Attempting to undislike post ${postId} by user ${userId}`);
+
+        const post = await this.PostModel.findOneAndUpdate(
+            {
+                _id: postId,
+                dislikes: userId,
+            },
+            {
+                $pull: { dislikes: userId },
+                $inc: { dislikesCount: -1 },
+            },
+            { new: true }
+        );
+
         if (!post) {
-            throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+            const postExists = await this.PostModel.findById(postId);
+            if (!postExists) {
+                this.logger.warn(`Post with ID "${postId}" not found when user ${userId} tried to undislike`);
+                throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+            }
+            this.logger.warn(`User ${userId} has not disliked post ${postId} to undislike`);
+            throw new HttpException('Bạn chưa không thích bài viết này để thực hiện undislike', HttpStatus.BAD_REQUEST);
         }
-        if (!post.dislikes.includes(userId)) {
-            throw new HttpException('Bạn đã không thích bài viết này', HttpStatus.BAD_REQUEST);
-        }
-        post.dislikes = post.dislikes.filter(dislike => dislike !== userId);
-        return await post.save();
+
+        this.logger.log(`User ${userId} successfully undisliked post ${postId}`);
+
+        return post;
     }
 
     async settingPrivacy(postId: Types.ObjectId, settingPrivacyDto: settingPrivacyDto, userId: Types.ObjectId): Promise<Post> {

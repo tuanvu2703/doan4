@@ -1,5 +1,5 @@
 
-import { HttpException, HttpStatus, Injectable, NotFoundException, Type } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, Type, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CommentDto } from './dto/comment.dto';
@@ -12,6 +12,7 @@ import { Post } from '../post/schemas/post.schema';
 
 @Injectable()
 export class CommentService {
+  private readonly logger = new Logger(CommentService.name);
   constructor(
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
     @InjectModel(User.name) private readonly UserModel: Model<User>,
@@ -166,37 +167,156 @@ export class CommentService {
 
     return await newReply.save();
   }
-  async likeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<{ comment: Comment; authorId: string }> {
-    const comment = await this.commentModel.findById(commentId);
-  
-    if (!comment) {
-      throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
+  /**
+     * Like a comment by a user.
+     * @param commentId - The ID of the comment to like (MongoDB ObjectId).
+     * @param userId - The ID of the user who likes the comment (MongoDB ObjectId).
+     * @returns A promise that resolves to an object containing the updated comment and the author's ID.
+     * @throws {NotFoundException} If the comment with the given ID does not exist.
+     * @throws {HttpException} If the user has already liked the comment.
+     */
+    async likeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<{ comment: Comment; authorId: string }> {
+        this.logger.log(`Attempting to like comment ${commentId} by user ${userId}`);
+
+        const comment = await this.commentModel.findOneAndUpdate(
+            {
+                _id: commentId,
+                likes: { $ne: userId.toString() }, // Chỉ cập nhật nếu user chưa like
+            },
+            {
+                $push: { likes: userId.toString() },
+                $inc: { likesCount: 1 }, // Tăng likesCount (nếu có trường này trong schema)
+            },
+            { new: true }
+        );
+
+        if (!comment) {
+            const commentExists = await this.commentModel.findById(commentId);
+            if (!commentExists) {
+                this.logger.warn(`Comment with ID "${commentId}" not found when user ${userId} tried to like`);
+                throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
+            }
+            this.logger.warn(`User ${userId} has already liked comment ${commentId}`);
+            throw new HttpException('Bạn đã thích bình luận này', HttpStatus.BAD_REQUEST);
+        }
+
+        const authorId = comment.author.toString();
+        this.logger.log(`User ${userId} successfully liked comment ${commentId} by author ${authorId}`);
+
+        return { comment, authorId };
     }
 
-    if (comment.likes.includes(userId.toString())) {
-      throw new HttpException('Bạn đã thích bình luận này', HttpStatus.BAD_REQUEST);
-    }
-  
-    // Thêm userId vào danh sách likes
-    comment.likes.push(userId.toString());
-    const updatedComment = await comment.save();
-  
-    // Lấy ID của người đã viết bình luận
-    const authorId = comment.author.toString();
-  
-    return { comment: updatedComment, authorId };
-  }
-  
+    /**
+     * Unlike a comment by a user.
+     * @param commentId - The ID of the comment to unlike (MongoDB ObjectId).
+     * @param userId - The ID of the user who unlikes the comment (MongoDB ObjectId).
+     * @returns A promise that resolves to the updated comment after unliking.
+     * @throws {NotFoundException} If the comment with the given ID does not exist.
+     * @throws {HttpException} If the user has not liked the comment.
+     */
+    async unlikeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<Comment> {
+        this.logger.log(`Attempting to unlike comment ${commentId} by user ${userId}`);
 
-  async unlikeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<Comment> {
-    const comment = await this.commentModel.findById(commentId);
-    if (!comment) {
-      throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
+        const comment = await this.commentModel.findOneAndUpdate(
+            {
+                _id: commentId,
+                likes: userId.toString(), // Chỉ cập nhật nếu user đã like
+            },
+            {
+                $pull: { likes: userId.toString() },
+                $inc: { likesCount: -1 }, // Giảm likesCount (nếu có trường này trong schema)
+            },
+            { new: true }
+        );
+
+        if (!comment) {
+            const commentExists = await this.commentModel.findById(commentId);
+            if (!commentExists) {
+                this.logger.warn(`Comment with ID "${commentId}" not found when user ${userId} tried to unlike`);
+                throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
+            }
+            this.logger.warn(`User ${userId} has not liked comment ${commentId} to unlike`);
+            throw new HttpException('Bạn chưa thể unlike', HttpStatus.BAD_REQUEST);
+        }
+
+        this.logger.log(`User ${userId} successfully unliked comment ${commentId}`);
+
+        return comment;
     }
-    if (!comment.likes.includes(userId.toString())) {
-      throw new HttpException('Bạn chưa thể unlike', HttpStatus.BAD_REQUEST);
+
+    /**
+     * Dislike a comment by a user.
+     * @param commentId - The ID of the comment to dislike (MongoDB ObjectId).
+     * @param userId - The ID of the user who dislikes the comment (MongoDB ObjectId).
+     * @returns A promise that resolves to the updated comment after disliking.
+     * @throws {NotFoundException} If the comment with the given ID does not exist.
+     * @throws {HttpException} If the user has already disliked the comment.
+     */
+    async dislikeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<{ comment: Comment; authorId: string }> {
+        this.logger.log(`Attempting to dislike comment ${commentId} by user ${userId}`);
+
+        const comment = await this.commentModel.findOneAndUpdate(
+            {
+                _id: commentId,
+                dislikes: { $ne: userId.toString() }, // Chỉ cập nhật nếu user chưa dislike
+            },
+            {
+                $push: { dislikes: userId.toString() },
+                $inc: { dislikesCount: 1 }, // Tăng dislikesCount (nếu có trường này trong schema)
+            },
+            { new: true }
+        );
+
+        if (!comment) {
+            const commentExists = await this.commentModel.findById(commentId);
+            if (!commentExists) {
+                this.logger.warn(`Comment with ID "${commentId}" not found when user ${userId} tried to dislike`);
+                throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
+            }
+            this.logger.warn(`User ${userId} has already disliked comment ${commentId}`);
+            throw new HttpException('Bạn đã không thích bình luận này', HttpStatus.BAD_REQUEST);
+        }
+
+        const authorId = comment.author.toString();
+        this.logger.log(`User ${userId} successfully disliked comment ${commentId} by author ${authorId}`);
+
+        return { comment, authorId };
     }
-    comment.likes = comment.likes.filter((id) => id !== userId.toString());
-    return await comment.save();
-  }
+
+    /**
+     * Undislike a comment by a user.
+     * @param commentId - The ID of the comment to undislike (MongoDB ObjectId).
+     * @param userId - The ID of the user who undislikes the comment (MongoDB ObjectId).
+     * @returns A promise that resolves to the updated comment after undisliking.
+     * @throws {NotFoundException} If the comment with the given ID does not exist.
+     * @throws {HttpException} If the user has not disliked the comment.
+     */
+    async undislikeComment(commentId: Types.ObjectId, userId: Types.ObjectId): Promise<Comment> {
+        this.logger.log(`Attempting to undislike comment ${commentId} by user ${userId}`);
+
+        const comment = await this.commentModel.findOneAndUpdate(
+            {
+                _id: commentId,
+                dislikes: userId.toString(), // Chỉ cập nhật nếu user đã dislike
+            },
+            {
+                $pull: { dislikes: userId.toString() },
+                $inc: { dislikesCount: -1 }, // Giảm dislikesCount (nếu có trường này trong schema)
+            },
+            { new: true }
+        );
+
+        if (!comment) {
+            const commentExists = await this.commentModel.findById(commentId);
+            if (!commentExists) {
+                this.logger.warn(`Comment with ID "${commentId}" not found when user ${userId} tried to undislike`);
+                throw new NotFoundException(`Bình luận có ID "${commentId}" không tồn tại`);
+            }
+            this.logger.warn(`User ${userId} has not disliked comment ${commentId} to undislike`);
+            throw new HttpException('Bạn chưa không thích bình luận này để thực hiện undislike', HttpStatus.BAD_REQUEST);
+        }
+
+        this.logger.log(`User ${userId} successfully undisliked comment ${commentId}`);
+        return comment;
+    }
 }
