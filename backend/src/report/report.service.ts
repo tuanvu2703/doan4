@@ -24,28 +24,45 @@ export class ReportService {
         @InjectModel(Post.name) private PostModel : Model<Post>,
     ) {}
 
-    async createReport(userId: string, createReportDto: CreateReportDto): Promise<Report> {
+    async createReport(userId: Types.ObjectId, createReportDto: CreateReportDto): Promise<Report> {
         const { type, reportedId, reason } = createReportDto;
 
         const existingReport = await this.ReportModel.findOne({
-            sender: new Types.ObjectId(userId),
-            reportedId: new Types.ObjectId(reportedId),
-            type: { $eq: type }, 
-        });
+          reportedId: new Types.ObjectId(reportedId),
+          type: { $eq: type },
+          status: 'pending',
+        }).exec();
         
 
         if (existingReport) {
+        // Kiểm tra xem userId đã báo cáo chưa
+        if (existingReport.sender.includes(userId)) {
+            this.logger.warn(`User ${userId} has already reported this item.`);
             throw new ConflictException('You have already reported this item.');
         }
+        // Sử dụng $addToSet để thêm userId vào mảng sender
+        const updatedReport = await this.ReportModel.findOneAndUpdate(
+            {
+                reportedId: new Types.ObjectId(reportedId),
+                type: { $eq: type },
+                status: 'pending',
+            },
+            { $addToSet: { sender: userId } },
+            { new: true } // Trả về document sau khi cập nhật
+        ).exec();
+
+        this.logger.log(`Added user ${userId} to existing report ${updatedReport._id}`);
+        return updatedReport;
+    }
 
         const report = new this.ReportModel({
-            sender: new Types.ObjectId(userId),
+            sender: [userId],
             type,
             reportedId: new Types.ObjectId(reportedId),
             reason,
             status: 'pending',
         });
-        this.producerService.sendMessage('notification', report);
+        this.logger.log(`Creating report: ${JSON.stringify(report)}`);
         return await report.save();
     }
 
@@ -53,7 +70,7 @@ export class ReportService {
         const reports = await this.ReportModel.find()
           .populate('sender', 'username email avatar')
 
-          for (const report of reports) {
+          for (const report of reports) { 
             if (report.type === 'User') {
                 await report.populate({
                     path: 'reportedId',
@@ -123,21 +140,43 @@ export class ReportService {
                 report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
     
                 await this.producerService.sendMessage('report', {
-                    userId: report.sender,
-                    owner: post.author,
-                    type: 'report approve',
-                    message: 'Your post has been reported and removed due to violation of community guidelines. If you believe this is a mistake, you can appeal within 7 days.',
-                });
+                type: 'report approve thank',
+                ownerId: post.author, // Chủ bài viết là "nguyên nhân" của thông báo
+                targetUserIds: report.sender, // Gửi đến tất cả người báo cáo trong mảng sender
+                data: {
+                    postId: post._id,
+                    message: `Thank you for your report. The reported post has been reviewed and removed as of ${new Date().toISOString().split('T')[0]}.`,
+                    timestamp: new Date(),
+                },
+            });
+
+            // Thông báo cho chủ bài viết (post.author)
+            await this.producerService.sendMessage('report', {
+                type: 'report approve',
+                ownerId: report.sender[0], // Người báo cáo đầu tiên trong mảng sender
+                targetUserId: post.author, // Người nhận thông báo: chủ bài viết
+                data: {
+                    postId: post._id,
+                    message: `Your post has been removed due to a report for violating community guidelines. You can appeal this decision within 7 days until ${report.appealDeadline.toISOString().split('T')[0]}.`,
+                    timestamp: new Date(),
+                },
+            });
     
             } else if (implementationDto.implementation === 'reject') {
                 report.status = 'resolved';
+                
                 await this.producerService.sendMessage('report', {
-                    userId: post.author,
-                    owner: report.sender,
-                    type: 'report reject',
-                    message: 'Your report has been rejected',
-                });
-            }
+                type: 'report reject',
+                ownerId: post.author, // Chủ bài viết là người "gây ra" thông báo
+                targetUserId: report.sender, // Người nhận thông báo: người gửi báo cáo
+                data: {
+                    postId: post._id,
+                    message: `Your report against a post has been reviewed and rejected by the moderation team as of ${new Date().toISOString().split('T')[0]}.`,
+                    // avatar: post.authorAvatar || '', // Giả định có trường avatar
+                    timestamp: new Date(),
+                },
+            });
+        }
         } else if (report.type === 'User') {
             const user = await this.UserModel.findById(report.reportedId).exec();
             if (!user) {
@@ -153,25 +192,45 @@ export class ReportService {
                 report.appealDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
 
-                await this.producerService.sendMessage('report', {
-                    userId: report.sender,
-                    owner: user._id,
-                    type: 'report',
-                    message: 'Your account has been deactivated due to violation of community guidelines. If you believe this is a mistake, you can appeal within 7 days.',
-                });
+               await this.producerService.sendMessage('report', {
+                type: 'report approve thank',
+                ownerId: user._id, // Người bị báo cáo là "nguyên nhân" của thông báo
+                targetUserIds: report.sender, // Gửi đến tất cả người báo cáo trong mảng sender
+                data: {
+                    userId: user._id,
+                    message: `Thank you for your report. The reported account has been reviewed and deactivated as of ${new Date().toISOString().split('T')[0]}.`,
+                    timestamp: new Date(),
+                },
+            });
+
+            // Thông báo cho người bị báo cáo (user._id)
+            await this.producerService.sendMessage('report', {
+                type: 'report approve',
+                ownerId: report.sender[0], // Người báo cáo đầu tiên trong mảng sender
+                targetUserId: user._id, // Người nhận thông báo: người bị báo cáo
+                data: {
+                    userId: user._id,
+                    message: `Your account has been deactivated due to a report for violating community guidelines. You can appeal within 7 days until ${report.appealDeadline.toISOString().split('T')[0]}.`,
+                    timestamp: new Date(),
+                },
+            });
 
     
             } else if (implementationDto.implementation === 'reject') {
                 report.status = 'rejected';
                 await this.producerService.sendMessage('report', {
+                type: 'report reject',
+                ownerId: user._id, // Người bị báo cáo là người "gây ra" thông báo
+                targetUserId: report.sender, // Người nhận thông báo: người gửi báo cáo
+                data: {
                     userId: user._id,
-                    owner: report.sender,
-                    type: 'report',
-                    message: 'Your report has been rejected',
-                });
-            }
+                    message: `Your report against a user has been reviewed and rejected by the moderation team.`,
+                    avatar: user.avatar || '', // Giả định có trường avatar
+                    timestamp: new Date(),
+                },
+            });
         }
-    
+      }
         return await report.save();
     }
 
@@ -314,11 +373,15 @@ export class ReportService {
             await report.save();
     
             // Gửi thông báo cho người kháng cáo
-            await this.producerService.sendMessage('mypost', {
-              userId: appeal.appellant,
-              owner: report.sender,
-              type: 'appeal',
-              message: 'Your appeal has been approved. The post has been restored.',
+           await this.producerService.sendMessage('mypost', {
+                type: 'appeal approve',
+                ownerId: report.sender, // Người gửi báo cáo
+                targetUserId: appeal.appellant, // Người kháng cáo
+                data: {
+                    postId: post._id,
+                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been approved. The post has been restored as of ${new Date().toISOString().split('T')[0]}.`,
+                    timestamp: new Date(),
+                },
             });
     
           } else if (implementationDto.implementation === 'reject') {
@@ -327,13 +390,16 @@ export class ReportService {
     
             // Gửi thông báo cho người kháng cáo
             await this.producerService.sendMessage('mypost', {
-              userId: appeal.appellant,
-              owner: report.sender,
-              type: 'appeal',
-              message: 'Your appeal has been rejected. The post remains removed.',
+                type: 'appeal reject',
+                ownerId: report.sender, // Người gửi báo cáo
+                targetUserId: appeal.appellant, // Người kháng cáo
+                data: {
+                    postId: post._id,
+                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been rejected. The post remains removed as of ${new Date().toISOString().split('T')[0]}.`,
+                    timestamp: new Date(),
+                },
             });
-
-          }
+        }
         } else if (report.type === 'User') {
           const user = await this.UserModel.findById(report.reportedId).exec();
           if (!user) {
@@ -349,11 +415,16 @@ export class ReportService {
             await report.save();
     
             // Gửi thông báo cho người kháng cáo
-            await this.producerService.sendMessage('myuser', {
-              userId: appeal.appellant,
-              owner: report.sender,
-              type: 'appeal',
-              message: 'Your appeal has been approved. Your account has been restored.',
+            await this.producerService.sendMessage('report', {
+                type: 'appeal approve',
+                ownerId: report.sender, // Người gửi báo cáo
+                targetUserId: appeal.appellant, // Người kháng cáo
+                data: {
+                    userId: user._id,
+                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been approved. Your account has been restored as of ${new Date().toISOString().split('T')[0]}.`,
+                    avatar: user.avatar || '', // Giả định có trường avatar
+                    timestamp: new Date(),
+                },
             });
     
           } else if (implementationDto.implementation === 'reject') {
@@ -361,16 +432,19 @@ export class ReportService {
             appeal.status = 'rejected';
     
             // Gửi thông báo cho người kháng cáo
-            await this.producerService.sendMessage('myuser', {
-              userId: appeal.appellant,
-              owner: report.sender,
-              type: 'appeal',
-              message: 'Your appeal has been rejected. Your account remains deactivated.',
+            await this.producerService.sendMessage('report', {
+                type: 'appeal reject',
+                ownerId: report.sender, // Người gửi báo cáo
+                targetUserId: appeal.appellant, // Người kháng cáo
+                data: {
+                    userId: user._id,
+                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been rejected. Your account remains deactivated as of ${new Date().toISOString().split('T')[0]}.`,
+                    avatar: user.avatar || '', // Giả định có trường avatar
+                    timestamp: new Date(),
+                },
             });
-    
-           
-          }
         }
+    }
     
         // Lưu kháng cáo
         return await appeal.save();
