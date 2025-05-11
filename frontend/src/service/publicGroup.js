@@ -67,8 +67,37 @@ async function getAllPostInGroup(groupId) {
         })
         return request.data;
     } catch (error) {
-
+        console.error("Error fetching posts in group:", error);
+        throw error;
     }
 }
 
-export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById, getAllPostInGroup }
+async function getAllGroup() {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/PublicGroup/getAllPublicGroup`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+        console.error("Error fetching posts in group:", error);
+        throw error;
+    }
+}
+
+async function requestJoinGroup(groupId) {
+    try {
+        const request = await API.post(`${process.env.REACT_APP_API_URL}/PublicGroup/requestJoinGroup/${groupId}`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+        console.error("Error fetching posts in group:", error);
+        throw error;
+    }
+}
+
+export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById, getAllPostInGroup, getAllGroup, requestJoinGroup }

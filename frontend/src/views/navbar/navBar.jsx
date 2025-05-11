@@ -10,12 +10,18 @@ import { useUser } from '../../service/UserContext';
 import { ToastContainer } from 'react-toastify';
 import Notification from '../Notification/Notification';
 import AllNotification from '../Notification/AllNotification';
+import { getUnReadNoti } from '../../service/noti';
+
 export default function Navbar() {
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [unreadNoti, setUnreadReadNoti] = useState([]);
+    const [notificationOpen, setNotificationOpen] = useState(false);
     const { userContext, setUserContext } = useUser(); // Access user data from context
     useEffect(() => {
         const fetchData = async () => {
             const response = await profileUserCurrent(); // Assume profileUserCurrent fetches user data
+            const notiUnread = await getUnReadNoti();
+            setUnreadReadNoti(notiUnread);
             if (response && response.data) {
                 setUserContext(response.data); // Update the user state in context
             } else {
@@ -36,6 +42,15 @@ export default function Navbar() {
     // Add function to close dropdown
     const closeDropdown = () => {
         setDropdownOpen(false);
+    };
+
+    // Add function to toggle and close notification dropdown
+    const toggleNotification = () => {
+        setNotificationOpen(!notificationOpen);
+    };
+
+    const closeNotification = () => {
+        setNotificationOpen(false);
     };
 
     return (
@@ -109,7 +124,12 @@ export default function Navbar() {
             </div>
             <div className="navbar-end">
                 <div className="dropdown dropdown-end">
-                    <div role="button" tabIndex={0} className="btn btn-ghost btn-circle">
+                    <div
+                        role="button"
+                        tabIndex={0}
+                        className="btn btn-ghost btn-circle"
+                        onClick={toggleNotification}
+                    >
                         <div className="indicator">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -123,22 +143,24 @@ export default function Navbar() {
                                     strokeWidth="2"
                                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
-                            <span className="badge badge-xs badge-primary indicator-item"></span>
+                            {unreadNoti.length > 0 && (
+                                <span className="badge badge-xs badge-primary indicator-item"></span>
+                            )}
                         </div>
                     </div>
-                    <ul
-                        tabIndex={0}
-                        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-auto max-w-[90vw] sm:w-96 p-2 shadow"
-                    >
-                        <div className="block sm:hidden">
-                            <AllNotification />
-                        </div>
-                        <div className="hidden sm:block">
-                            <Notification />
-                        </div>
-                    </ul>
-
-
+                    {notificationOpen && (
+                        <ul
+                            tabIndex={0}
+                            className="dropdown-content menu bg-base-100 rounded-box z-[1] w-auto max-w-[90vw] sm:w-96 p-2 shadow"
+                        >
+                            {/* <div className="block sm:hidden">
+                                <AllNotification closeDropdown={closeNotification} />
+                            </div> */}
+                            <div className="hidden sm:block">
+                                <Notification closeDropdown={closeNotification} />
+                            </div>
+                        </ul>
+                    )}
                 </div>
                 {authToken.getToken() !== null ? (
                     <DropdownProfile user={userContext} />

@@ -66,11 +66,11 @@ export default function FriendCard({ iduser, idrequest }) {
         }
     };
     return (
-        <div className="border border-gray-300 shadow-md max-w-52 w-screen rounded-lg flex justify-between flex-col ">
+        <div className="border border-gray-300 shadow-md w-full max-w-60 rounded-lg flex flex-col justify-between h-full bg-white">
 
-            <Link onClick={() => handDetailUser(userdata?._id)}>
+            <Link onClick={() => handDetailUser(userdata?._id)} className="block overflow-hidden border-b-[1px]">
                 <img
-                    className={`${userdata?.avatar ? '' : ''} w-full aspect-square rounded-t-lg  bg-gray-400`}
+                    className="w-full aspect-square rounded-t-lg object-cover"
                     src={
                         userdata?.avatar
                             ? userdata.avatar
@@ -80,29 +80,27 @@ export default function FriendCard({ iduser, idrequest }) {
                 />
             </Link>
 
-            <div className="p-2 text-center">
-                <strong>
+            <div className="p-3 text-center">
+                <strong className="block text-sm overflow-hidden text-ellipsis">
                     {userdata
                         ? `${(userdata.lastName || '').slice(0, 10)} ${(userdata.firstName || '').slice(0, 10)}`
                         : "No Name"}
                 </strong>
-
             </div>
 
-            <div className="flex flex-row gap-2 px-2 mb-2 items-center">
+            <div className="flex flex-row gap-2 p-3 items-center">
                 <button
                     onClick={() => handDetailUser(userdata?._id)}
-                    className="w-full  bg-gray-300 py-2 text-black rounded-lg transition-transform transform hover:scale-105"
+                    className="w-full bg-gray-300 py-2 text-black text-sm rounded-lg transition-transform transform hover:scale-105"
                 >
                     Xem trang cá nhân
                 </button>
-                <div className='flex justify-center items-center'>
-                    <div className="dropdown">
+                <div className='flex justify-center items-center flex-shrink-0'>
+                    <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="p-2 hover:bg-gray-300 rounded-full">
                             <ChevronDownIcon className="size-4 fill-gray-500" />
                         </div>
-                        <ul tabIndex={0} className="dropdown-content  menu bg-base-100  rounded-box z-[1] w-52 p-2 shadow-md shadow-gray-500">
-
+                        <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-md shadow-gray-500">
                             <li>
                                 <Link
                                     onClick={userdata?._id ? () => chaneUrl(`/messenger/?iduser=${userdata._id}`) : undefined}
@@ -123,8 +121,6 @@ export default function FriendCard({ iduser, idrequest }) {
                     </div>
                 </div>
             </div>
-
         </div>
-
     )
 }

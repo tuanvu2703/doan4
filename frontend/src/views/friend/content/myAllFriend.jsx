@@ -42,14 +42,15 @@ export default function MyAllFriend() {
                     Chưa có bạn bè nào
                 </div>
             ) : (
-                // Render Friend Cards in a responsive grid
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 custom ">
+                // Render Friend Cards in a responsive grid with proper spacing
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4">
                     {requests.map((request, index) => (
-                        <MyFriendCard
-                            iduser={request?.receiver?._id || request?.sender?._id}
-                            idrequest={request._id}
-                            key={index}
-                        />
+                        <div className="flex justify-center" key={index}>
+                            <MyFriendCard
+                                iduser={request?.receiver?._id || request?.sender?._id}
+                                idrequest={request._id}
+                            />
+                        </div>
                     ))}
                 </div>
             )}

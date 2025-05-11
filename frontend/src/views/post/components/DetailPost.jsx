@@ -192,7 +192,13 @@ export default function DetailPost() {
             </div>
 
             {/* Nội dung bài viết */}
-            <p className="mt-2">{posts.content}</p>
+            {posts.isActive === false ? (
+              <div className="mt-2 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
+                <p className="font-medium">Bài viết này đã bị báo cáo hoặc tạm khóa.</p>
+              </div>
+            ) : (
+              <p className="mt-2">{posts.content}</p>
+            )}
 
             {/* Carousel hiển thị hình ảnh (nếu có) */}
             {posts?.img?.length > 0 && (
@@ -281,7 +287,7 @@ export default function DetailPost() {
           <FormComment postId={posts._id} onCommentAdded={fetchComments} />
           <div className="mt-4 border-t pt-4">
             <h3 className="font-medium text-lg mb-4">Bình luận</h3>
-            <Comment postId={posts._id} user={userLogin} /> 
+            <Comment postId={posts._id} user={userLogin} />
           </div>
         </div>
       </div>
