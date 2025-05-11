@@ -109,11 +109,11 @@ export class PublicGroupController {
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async acceptJoinGroup(
     @CurrentUser() currentUser: User,
-    @Param('requestId') requestId: string
+    @Param('requestId') requestId: Types.ObjectId 
   ) {
-
+    const userId = new Types.ObjectId(currentUser._id.toString());
     const convertedRequestId = new Types.ObjectId(requestId);
-    return this.publicGroupService.acceptRequestJoinGroup(convertedRequestId, currentUser._id.toString());
+    return this.publicGroupService.acceptRequestJoinGroup(requestId, userId);
   }
     
 

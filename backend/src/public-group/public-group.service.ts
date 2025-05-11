@@ -143,12 +143,12 @@ export class PublicGroupService {
     
         
 
-    async acceptRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: string): Promise<MemberGroup> {
-      const Logeer = new Logger(this.acceptRequestJoinGroup.name);
+    async acceptRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: Types.ObjectId): Promise<MemberGroup> {
+      
       try {
         const requestJoinGroup = await this.RequestJoinGroupModel.findById(requestJoinGroupId);
       if (!requestJoinGroup) {
-        Logger.warn('Request not found', HttpStatus.NOT_FOUND);
+        this.logger.warn('Request not found', HttpStatus.NOT_FOUND);
         throw new HttpException('Request not found', HttpStatus.NOT_FOUND);
       }
 
@@ -157,7 +157,7 @@ export class PublicGroupService {
         throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
       }
     
-      const user = await this.userService.findById(userId);
+      const user = await this.userService.findById(userId.toString());
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
@@ -181,7 +181,7 @@ export class PublicGroupService {
         member,
         role: 'member',
       };
-      Logeer.log('newMemberGroup', newMemberGroup);
+      this.logger.log('newMemberGroup', newMemberGroup);
     
       const createdMemberGroup = new this.MemberGroupModel(newMemberGroup);
       await createdMemberGroup.save();
@@ -189,6 +189,7 @@ export class PublicGroupService {
     
       return createdMemberGroup;
       } catch (error) {
+        this.logger.error('Error accepting join request: ',error)
         console.error('Error accepting join request:', error);
       }
     }
@@ -325,24 +326,50 @@ export class PublicGroupService {
             throw new NotFoundException(`Không tìm thấy bạn bè cho người dùng có ID "${userId}"`);
         }
 
+        // Chuyển đổi friendIds từ string thành Types.ObjectId
+        const friendObjectIds = friendIds.map((id) => new Types.ObjectId(id));
+        this.logger.log(`Converted friend IDs to ObjectId: ${friendObjectIds}`);
+
         // Lấy danh sách các nhóm mà bạn bè đã tham gia
         const memberGroups = await this.MemberGroupModel
-            .find({ member: { $in: friendIds }, group: { $exists: true } })
+            .find({ 
+                member: { $in: friendObjectIds }, 
+                group: { $exists: true },
+                blackList: false,
+            })
             .select('group')
             .lean();
 
-        const groupIds = memberGroups.map((mg) => mg.group.toString()).filter((id, index, self) => self.indexOf(id) === index);
+        if (!memberGroups || memberGroups.length === 0) {
+            this.logger.log(`No member groups found for friends of user ${userId}`);
+            return { groups: [], total: 0, page, totalPages: 0 };
+        }
+
+        const groupIds = memberGroups
+            .map((mg) => mg.group.toString())
+            .filter((id, index, self) => self.indexOf(id) === index);
 
         if (groupIds.length === 0) {
             this.logger.log(`No groups found for friends of user ${userId}`);
             return { groups: [], total: 0, page, totalPages: 0 };
         }
 
+        // Chuyển đổi groupIds thành Types.ObjectId
+        const groupObjectIds = groupIds.map((id) => new Types.ObjectId(id));
+        this.logger.log(`Group IDs for friends: ${groupObjectIds}`);
+
+        // Kiểm tra tất cả các nhóm trước khi lọc visibility
+        const allGroups = await this.PublicGroupModel
+            .find({ _id: { $in: groupObjectIds } })
+            .lean();
+        
+        this.logger.log(`All groups before visibility filter: ${JSON.stringify(allGroups.map(g => ({ id: g._id, visibility: g.introduction?.visibility })))}`);
+
         // Lấy các nhóm công khai từ danh sách groupIds
         const skip = (page - 1) * limit;
         const publicGroups = await this.PublicGroupModel
             .find({
-                _id: { $in: groupIds },
+                _id: { $in: groupObjectIds },
                 'introduction.visibility': 'public',
             })
             .skip(skip)
@@ -350,9 +377,13 @@ export class PublicGroupService {
             .lean();
 
         const total = await this.PublicGroupModel.countDocuments({
-            _id: { $in: groupIds },
+            _id: { $in: groupObjectIds },
             'introduction.visibility': 'public',
         });
+
+        if (publicGroups.length === 0 && allGroups.length > 0) {
+            this.logger.warn(`Found ${allGroups.length} groups, but none are public for friends of user ${userId}`);
+        }
 
         const totalPages = Math.ceil(total / limit);
 
