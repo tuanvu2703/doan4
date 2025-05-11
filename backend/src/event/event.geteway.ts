@@ -117,6 +117,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
                 this.userConnectionsOnInstance.set(userId, new Set());
             }
             const userSocketsOnThisInstance = this.userConnectionsOnInstance.get(userId);
+            this.logger.log(`🔌 Client ${client.id} authenticated as User ${userId}.`);
 
             // Chỉ gọi notifyUserOnline nếu đây là kết nối đầu tiên của user trên instance này
             // và có khả năng user này chưa được đánh dấu online toàn cục.
@@ -126,7 +127,6 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
                 await this.eventService.notifyUserOnline(userId);
             }
             userSocketsOnThisInstance.add(client.id);
-
             // Client join vào room của chính mình
             client.join(`user:${userId}`);
             this.logger.log(`✅ Client ${client.id} (User ${userId}) connected and joined room user:${userId}. Total on instance: ${userSocketsOnThisInstance.size}`);

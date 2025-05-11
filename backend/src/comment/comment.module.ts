@@ -9,7 +9,6 @@ import { UserModule } from 'src/user/user.module';
 import { JwtService } from '@nestjs/jwt';
 import { PostSchema } from 'src/post/schemas/post.schema';
 import { User,UserSchema } from '../user/schemas/user.schemas';
-import { EventService } from 'src/event/event.service';
 
 @Module({
   imports: [
