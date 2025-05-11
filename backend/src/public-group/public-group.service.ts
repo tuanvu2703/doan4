@@ -1,4 +1,6 @@
-import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException,
+UnauthorizedException,
+ } from '@nestjs/common';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UserService } from 'src/user/user.service';
 import { InjectModel } from '@nestjs/mongoose';
@@ -396,5 +398,83 @@ export class PublicGroupService {
             totalPages,
         };
     }
+
+
+    /**
+     * Get all join requests for a specific group.
+     * @param groupId - The ID of the group (MongoDB ObjectId).
+     * @returns A promise that resolves to an object containing group information and list of join requests.
+     * @throws {HttpException} If the group with the given ID does not exist.
+     */
+
+    async getAllRequestJoinGroup(groupId: Types.ObjectId, userId): Promise<{
+      group: { _id: string; groupName: string; avatargroup: string };
+        requests: { sender: { firstName: string; lastName: string; avatar?: string } }[];
+    }>{
+      const group = await this.PublicGroupModel
+        .findById(groupId)
+        .select('groupName avatargroup')
+        .lean();
+
+      if (!group){
+        this.logger.warn('Group not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (group.introduction.visibility === 'private') {
+            const member = await this.MemberGroupModel
+                .findOne({ group: groupId, member: userId })
+                .select('role')
+                .lean();
+
+            if (!member || !['owner', 'admin'].includes(member.role)) {
+                this.logger.warn(`User ${userId} is not authorized to access private group ${groupId} requests`);
+                throw new UnauthorizedException('Only admins or owners can access requests for private groups');
+            }
+      }
+
+      const requests = await this.RequestJoinGroupModel.find({ group: groupId })
+      .populate({
+      path : 'sender',
+      select: 'firstName lastName avatar'
+      })
+      .lean();
+      if (!requests || requests.length === 0) {
+        this.logger.warn('No join requests found for group', HttpStatus.NOT_FOUND);
+        throw new HttpException('No join requests found for group', HttpStatus.NOT_FOUND);
+      }
+      this.logger.log(`Found ${requests.length} join requests for group ${groupId}`);
+      this.logger.log('request :', requests);
+      const result = {
+            group: {
+                _id: group._id.toString(),
+                groupName: group.groupName,
+                avatargroup: group.avatargroup || '', // Đảm bảo không trả về undefined
+            },
+            requests: requests.map(request => ({
+                sender: {
+                    firstName: request.sender.firstName,
+                    lastName: request.sender.lastName,
+                    avatar: request.sender.avatar || undefined,
+                },
+            })),
+        };
+      this.logger.log(`Successfully fetched ${requests.length} join requests for group ${groupId}`);
+      return result;
+    }
+
+    async removeRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: Types.ObjectId): Promise<RequestJoinGroup> {
+      const requestJoinGroup = await this.RequestJoinGroupModel.findById(requestJoinGroupId);
+      if (!requestJoinGroup) {
+        throw new HttpException('Request not found', HttpStatus.NOT_FOUND);
+      }
+      if( requestJoinGroup.sender.toString() !== userId.toString()) {
+        this.logger.warn('Unauthorized access attempt', HttpStatus.FORBIDDEN);
+        throw new HttpException('You are not the sender of this request', HttpStatus.FORBIDDEN);
+      }
+      await this.RequestJoinGroupModel.findByIdAndDelete(requestJoinGroupId);
+      return requestJoinGroup;
+    }
+
 
 }

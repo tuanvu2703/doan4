@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, UploadedFiles, UseGuards, UseInterceptors,Logger } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, UploadedFiles, UseGuards, UseInterceptors,Logger, Delete } from '@nestjs/common';
 import { PublicGroupService } from './public-group.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuardD } from 'src/user/guard/auth.guard';
@@ -237,6 +237,49 @@ export class PublicGroupController {
     const userId = new Types.ObjectId(currentUser._id.toString());
     return this.publicGroupService.getPublicGroupsForFriends(userId);
   }
+
+  @Get('getAllRequestJoinGroup/:groupId')
+  @UseGuards(AuthGuardD)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'groupId',
+    required: true,
+    description: 'Nhập _id của nhóm',
+    example: '65fc4e5a4d3a7f1f2a1c9c10'
+  })
+  @ApiResponse({ status: 200, description: 'Lấy tất cả yêu cầu tham gia nhóm thành công' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  async getAllRequestJoinGroup(
+    @CurrentUser() currentUser: User,
+    @Param('groupId') group: Types.ObjectId
+  ){  
+    const userId = new Types.ObjectId(currentUser._id.toString());
+    return this.publicGroupService.getAllRequestJoinGroup(group, userId);
+  }
+
+  @Delete('removeRequestJoinGroup/:requestId')
+  @UseGuards(AuthGuardD)
+  @ApiBearerAuth()
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'Nhập _id của yêu cầu',
+    example: '65fc4e5a4d3a7f1f2a1c9c10'
+  })
+  @ApiResponse({ status: 200, description: 'Xóa yêu cầu tham gia nhóm thành công' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  async removeRequestJoinGroup(
+    @CurrentUser() currentUser: User,
+    @Param('requestId') requestId: Types.ObjectId
+  ){
+    const userId = new Types.ObjectId(currentUser._id.toString());
+    return this.publicGroupService.removeRequestJoinGroup(requestId, userId);
+  }
+
+  
+  
+
+
 
 
 }
