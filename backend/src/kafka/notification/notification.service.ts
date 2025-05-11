@@ -245,7 +245,7 @@ export class NotificationService {
     }
   }
 
-  async getUserNotifications(userId: Types.ObjectId) {
+  async getUserNotifications(userId: Types.ObjectId):Promise<any[]> {
    const notifications = await this.notificationModel
     .find({
       $or: [
@@ -253,19 +253,20 @@ export class NotificationService {
         { targetUserIds: userId },
       ],
     })
-    .select('_id type ownerId data createdAt readBy') // Thêm readBy vào select
+    .select('_id type ownerId data createdAt readBy')
     .populate('ownerId', 'firstName lastName avatar')
     .sort({ createdAt: -1 })
     .exec();
 
-  return notifications.map(notification => {
+  return notifications.map((notification : any) => {
     const isRead = notification.readBy.includes(userId);
     return {
       _id: notification._id,
       type: notification.type,
       ownerId: notification.ownerId,
       data: notification.data,
-      isRead, // Thêm isRead: true nếu userId có trong readBy, false nếu không
+      createdAt: notification.createdAt,
+      isRead, 
     };
   });
   }
