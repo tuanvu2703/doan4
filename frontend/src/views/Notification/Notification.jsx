@@ -123,18 +123,24 @@ export default function Notification({ closeDropdown }) {
         }
     };
 
+    // Helper function to format user name
+    const formatUserName = (owner) => {
+        if (!owner) return '';
+        return `${owner.firstName} ${owner.lastName}`;
+    };
+
     return (
-        <div role="tabpanel" className="tabs tabs-bordered tabs-lg grid grid-cols-1 sm:grid-cols-2 justify-center w-full overflow-auto">
+        <div role="tabpanel" className="tabs tabs-bordered tabs-lg grid grid-cols-1 justify-center w-full overflow-auto max-h-[80vh]">
             <input
                 type="radio"
                 name="my_tabs_1"
                 role="tab"
-                className="tab"
+                className="tab tab-bordered"
                 aria-label="Tất cả"
                 defaultChecked
                 onClick={() => setActiveTab("all")}
             />
-            <div role="tabpanel" className="tab-content m-2 p-2 rounded-md">
+            <div role="tabpanel" className="tab-content p-1 md:p-3">
                 <div className='flex flex-col gap-2'>
                     {isLoadingAll ? (
                         <div className="text-center py-8">
@@ -146,19 +152,22 @@ export default function Notification({ closeDropdown }) {
                         </div>
                     ) : (
                         AllNotification.map((noti) => (
-                            isReadByCurrentUser(noti) ? (
+                            noti.isRead ? (
                                 <Link
                                     to={`/post/${noti.data.postId}`}
                                     key={noti._id}
-                                    className='block w-full p-3 rounded-md hover:bg-gray-100'
+                                    className='block w-full p-2 md:p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-l-4 border-blue-400 bg-white'
                                     onClick={closeDropdown}
                                 >
                                     <div className='w-full'>
-                                        <div className='flex justify-between items-center mb-1'>
-                                            <span className='font-medium'>{noti.data.message}</span>
-                                            <span className='text-xs text-blue-500 ml-2'>Đã đọc</span>
+                                        <div className='flex flex-wrap justify-between items-start gap-1 mb-1'>
+                                            <div className='grid min-w-0'>
+                                                <span className='font-semibold text-blue-600'>{formatUserName(noti.ownerId)}</span>
+                                                <span className='text-gray-700'> {noti.data.message}</span>
+                                            </div>
+                                            <span className='text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium shrink-0'>Đã đọc</span>
                                         </div>
-                                        <div className='text-xs text-gray-500 text-right'>
+                                        <div className='text-xs text-gray-500 text-right mt-1'>
                                             {formatTimeAgo(noti.createdAt)}
                                         </div>
                                     </div>
@@ -167,18 +176,21 @@ export default function Notification({ closeDropdown }) {
                                 <Link
                                     to={`/post/${noti.data.postId}`}
                                     key={noti._id}
-                                    className='block w-full p-3 bg-gray-50 border-l-4 border-gray-500 rounded-md hover:gray-blue-100'
+                                    className='block w-full p-2 md:p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-l-4 border-gray-400 bg-white'
                                     onClick={() => {
                                         handleReadNotification(noti._id);
                                         closeDropdown();
                                     }}
                                 >
                                     <div className='w-full'>
-                                        <div className='flex justify-between items-center mb-1'>
-                                            <span className='font-medium'>{noti.data.message}</span>
-                                            <span className='text-xs text-gray-500 ml-2'>Chưa đọc</span>
+                                        <div className='flex flex-wrap justify-between items-start gap-1 mb-1'>
+                                            <div className='grid min-w-0'>
+                                                <span className='font-semibold text-gray-700'>{formatUserName(noti.ownerId)}</span>
+                                                <span className='text-gray-700'> {noti.data.message}</span>
+                                            </div>
+                                            <span className='text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium shrink-0'>Chưa đọc</span>
                                         </div>
-                                        <div className='text-xs text-gray-500 text-right'>
+                                        <div className='text-xs text-gray-500 text-right mt-1'>
                                             {formatTimeAgo(noti.createdAt)}
                                         </div>
                                     </div>
@@ -193,11 +205,11 @@ export default function Notification({ closeDropdown }) {
                 type="radio"
                 name="my_tabs_1"
                 role="tab"
-                className="tab"
+                className="tab tab-bordered"
                 aria-label="Chưa đọc"
                 onClick={() => setActiveTab("unread")}
             />
-            <div role="tablist" className="tab-content  m-2 p-2 rounded-md">
+            <div role="tablist" className="tab-content p-1 md:p-3">
                 <div className='flex flex-col gap-2'>
                     {isLoadingUnread && activeTab === "unread" ? (
                         <div className="text-center py-8">
@@ -212,18 +224,21 @@ export default function Notification({ closeDropdown }) {
                             <Link
                                 to={`/post/${noti.data.postId}`}
                                 key={noti._id}
-                                className='block w-full p-3 bg-gray-50 border-l-4 border-gray-500 rounded-md hover:gray-blue-100'
+                                className='block w-full p-2 md:p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-l-4 border-gray-400 bg-white'
                                 onClick={() => {
                                     handleReadNotification(noti._id);
                                     closeDropdown();
                                 }}
                             >
                                 <div className='w-full'>
-                                    <div className='flex justify-between items-center mb-1'>
-                                        <span className='font-medium'>{noti.data.message}</span>
-                                        <span className='text-xs text-gray-500 ml-2'>Chưa đọc</span>
+                                    <div className='flex flex-wrap justify-between items-start gap-1 mb-1'>
+                                        <div className='grid min-w-0'>
+                                            <span className='font-semibold text-gray-700'>{formatUserName(noti.ownerId)}</span>
+                                            <span className='text-gray-700'> {noti.data.message}</span>
+                                        </div>
+                                        <span className='text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium shrink-0'>Chưa đọc</span>
                                     </div>
-                                    <div className='text-xs text-gray-500 text-right'>
+                                    <div className='text-xs text-gray-500 text-right mt-1'>
                                         {formatTimeAgo(noti.createdAt)}
                                     </div>
                                 </div>
@@ -237,11 +252,11 @@ export default function Notification({ closeDropdown }) {
                 type="radio"
                 name="my_tabs_1"
                 role="tab"
-                className="tab"
+                className="tab tab-bordered"
                 aria-label="Đã đọc"
                 onClick={() => setActiveTab("read")}
             />
-            <div role="tabpanel" className="tab-content m-2 p-2 rounded-md">
+            <div role="tabpanel" className="tab-content p-1 md:p-3">
                 <div className='flex flex-col gap-2'>
                     {isLoadingRead && activeTab === "read" ? (
                         <div className="text-center py-8">
@@ -256,15 +271,18 @@ export default function Notification({ closeDropdown }) {
                             <Link
                                 to={`/post/${noti.data.postId}`}
                                 key={noti._id}
-                                className='block w-full p-3 bg-blue-50 border-l-4 border-blue-500 rounded-md hover:bg-blue-100'
+                                className='block w-full p-2 md:p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-l-4 border-blue-400 bg-white'
                                 onClick={closeDropdown}
                             >
                                 <div className='w-full'>
-                                    <div className='flex justify-between items-center mb-1'>
-                                        <span className='font-medium'>{noti.data.message}</span>
-                                        <span className='text-xs text-blue-500 ml-2'>Đã đọc</span>
+                                    <div className='flex flex-wrap justify-between items-start gap-1 mb-1'>
+                                        <div className='grid min-w-0'>
+                                            <span className='font-semibold text-blue-600'>{formatUserName(noti.ownerId)}</span>
+                                            <span className='text-gray-700'> {noti.data.message}</span>
+                                        </div>
+                                        <span className='text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium shrink-0'>Đã đọc</span>
                                     </div>
-                                    <div className='text-xs text-gray-500 text-right'>
+                                    <div className='text-xs text-gray-500 text-right mt-1'>
                                         {formatTimeAgo(noti.createdAt)}
                                     </div>
                                 </div>
@@ -274,5 +292,5 @@ export default function Notification({ closeDropdown }) {
                 </div>
             </div>
         </div>
-    )
+    );
 }
