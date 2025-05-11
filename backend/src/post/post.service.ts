@@ -853,9 +853,12 @@ export class PostService {
               img: 1,
               gif: 1,
               privacy: 1,
+              likes: 1,
+              dislikes: 1,
               createdAt: 1,
               likesCount: 1,
               commentsCount: 1,
+              dislikesCount: 1,
               author: {
                 _id: '$authorInfo._id',
                 firstName: '$authorInfo.firstName',
