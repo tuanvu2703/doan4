@@ -124,6 +124,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
             // notifyUserOnline trong EventService đã có logic NX (set if not exists) nên khá an toàn.
             if (userSocketsOnThisInstance.size === 0) {
                 // Thông báo user online. EventService sẽ lo việc ghi vào Redis và publish sự kiện.
+                this.logger.log(`👉 First connection for user ${userId} on this instance, calling notifyUserOnline`);
                 await this.eventService.notifyUserOnline(userId);
             }
             userSocketsOnThisInstance.add(client.id);

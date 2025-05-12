@@ -174,9 +174,11 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
         try {
             const redisKey = `${USER_ONLINE_KEY_PREFIX}${userId}`;
             // SET key value NX (set only if not exists) EX (expire in seconds)
+            this.logger.log(`👉 Attempting to set online key ${redisKey} for ${userId}`);
             const setResult = await this.redisClient.set(redisKey, '1', { EX: 3600, NX: true });
 
             if (setResult === 'OK') { // User chuyển từ offline sang online
+                this.logger.log(`✅ Set online key ${redisKey} successfully, publishing userOnline for ${userId}`);
                 await this.redisClient.publish(
                     USER_STATUS_CHANGE_CHANNEL,
                     JSON.stringify({ event: 'userOnline', userId, timestamp: Date.now() }),

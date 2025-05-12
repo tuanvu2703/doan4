@@ -986,5 +986,19 @@ export class PostService {
             );
         }
     }
+
+    async ActivePost(postId: Types.ObjectId, userId: Types.ObjectId): Promise<Post> {
+        this.logger.log(`Attempting to deactivate post ${postId} by user ${userId}`);
+        const post = await this.PostModel.findById(postId);
+        if (!post) {
+            this.logger.warn(`Post with ID "${postId}" not found when user ${userId} tried to deactivate`);
+            throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
+        }
+        post.isActive = !post.isActive;
+        await post.save();
+        this.logger.log(`User ${userId} successfully deactivated post ${postId}`);
+        return post;
+    }
+
     
 }
