@@ -1,15 +1,24 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { getPublicGroupById } from '../../service/publicGroup';
+import { getMemberGroup, getPublicGroupById } from '../../service/publicGroup';
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { GlobeAltIcon, LockClosedIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
 import { useLocation } from 'react-router-dom';
+import { checkLogin } from '../../service/user';
 export default function Layoutgr() {
     const [groups, setGroups] = useState({});
     const [showMobileInfo, setShowMobileInfo] = useState(false);
     const { groupid } = useParams();
     const location = useLocation();
+    const [member, setMember] = useState([]);
+    const [userCurrent, setUserCurrent] = useState({});
     const basePath = location.pathname.split('/').slice(0, 3).join('/');
+
+    // Check if current user is the group owner
+    const isOwner = member.some(m =>
+        m.member?._id === userCurrent._id && m.role === "owner"
+    );
+
     const tabs = [
         {
             name: 'Bài đăng',
@@ -19,12 +28,21 @@ export default function Layoutgr() {
             name: 'Thành viên',
             href: `${basePath}/member`
         },
+        // Conditionally add review members tab for group owner
+        ...(isOwner ? [{
+            name: 'Duyệt thành viên',
+            href: `${basePath}/review-members`
+        }] : [])
     ];
     const currentTab = tabs.find((tab) => location.pathname === tab.href);
     useEffect(() => {
         async function fetchGroups() {
             try {
                 const response = await getPublicGroupById(groupid);
+                const responseUserCurrent = await checkLogin();
+                const responseMember = await getMemberGroup(groupid);
+                setUserCurrent(responseUserCurrent.data)
+                setMember(responseMember);
                 setGroups(response);
             } catch (error) {
                 console.error("Error fetching groups:", error);
@@ -32,7 +50,6 @@ export default function Layoutgr() {
         }
         fetchGroups();
     }, [groupid])
-
     return (
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 px-2 sm:px-4">
             <div className="col-span-1 md:col-span-6">

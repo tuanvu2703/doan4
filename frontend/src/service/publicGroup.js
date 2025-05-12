@@ -100,4 +100,49 @@ async function requestJoinGroup(groupId) {
     }
 }
 
-export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById, getAllPostInGroup, getAllGroup, requestJoinGroup }
+
+async function getAllMyRequestJoinGroup() {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/PublicGroup/getAllmyRequestJoinGroup`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+        console.error("Error fetching posts in group:", error);
+        throw error;
+    }
+}
+
+async function removeRequestJoinGroup(requestId) {
+    try {
+        const request = await API.delete(`${process.env.REACT_APP_API_URL}/PublicGroup/removeRequestJoinGroup/${requestId}`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+        console.error("Error fetching posts in group:", error);
+        throw error;
+    }
+}
+
+
+async function getAllRequestMyGroup(groupId) {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/PublicGroup/getAllRequestJoinGroup/${groupId}`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+        console.error("Error fetching posts in group:", error);
+        throw error;
+    }
+}
+
+
+export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById, getAllPostInGroup, getAllGroup, requestJoinGroup, getAllMyRequestJoinGroup, removeRequestJoinGroup }

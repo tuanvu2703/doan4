@@ -92,6 +92,7 @@ function routers() {
                     <Route path="/group/:groupid" element={<Layoutgr />}>
                         <Route index element={<Group />} />
                         <Route path="member" element={<Member />} />
+                        <Route path="review-members" element={<Member />} />
                     </Route>
                 </Route>
                 {/* Redirect to login if not authenticated */}

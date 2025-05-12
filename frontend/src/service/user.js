@@ -41,7 +41,7 @@ const checkLogin = async () => {
             headers: { Authorization: `Bearer ${authToken.getToken()}` },
         });
 
-        if (response && response.data) {
+        if (response ) {
             return { success: true, data: response.data };
         } else {
             return { success: false };

@@ -191,17 +191,18 @@ export default function HomePost({ onPostsUpdated }) {
         const isExpanded = expandedPosts[post._id];
         // Check if content exists before trying to access its length
         const content = post.content || '';
-        const shouldTruncate = content.length > 60 && !isExpanded;
 
         return (
-            <div className="break-words text-gray-800 py-2 px-1 leading-relaxed max-w-2xl text-base mt-1 mb-2">
-                <div className={`whitespace-pre-wrap ${!isExpanded ? 'h-auto max-h-20 overflow-hidden' : 'h-auto'}`}>
+            <div className="break-words text-gray-800 py-1 sm:py-2 px-0 sm:px-1 leading-relaxed w-full max-w-2xl text-sm sm:text-base mt-0.5 sm:mt-1 mb-1 sm:mb-2">
+                <div className={`whitespace-pre-wrap ${!isExpanded ?
+                    'h-auto max-h-16 sm:max-h-20 md:max-h-24 overflow-hidden' :
+                    'h-auto'}`}>
                     {content}
                 </div>
                 {content.length > 60 && (
                     <button
                         onClick={() => toggleContentExpansion(post._id)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-1"
+                        className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm font-medium mt-0.5 sm:mt-1 transition-colors duration-200"
                     >
                         {isExpanded ? "Thu gọn" : "Xem thêm"}
                     </button>
@@ -209,6 +210,7 @@ export default function HomePost({ onPostsUpdated }) {
             </div>
         );
     };
+
     // Add this handler function to remove deleted posts
     const handlePostDeleted = (deletedPostId) => {
         const updatedPosts = posts.filter(post => post._id !== deletedPostId);

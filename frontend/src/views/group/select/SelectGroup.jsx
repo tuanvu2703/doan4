@@ -2,13 +2,14 @@ import React from 'react'
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'
 import ModalCreateGroup from '../../../components/ModalCreateGroup';
-import { getAllGroup, getPublicGroupParticipated, requestJoinGroup } from '../../../service/publicGroup';
+import { getAllGroup, getAllMyRequestJoinGroup, getPublicGroupParticipated, removeRequestJoinGroup, requestJoinGroup } from '../../../service/publicGroup';
 import { getMemberGroup } from '../../../service/publicGroup';
 export default function SelectGroup() {
     const [myGroups, setMyGroups] = useState([]);
     const [members, setMembers] = useState([]);
     const [refresh, setRefresh] = useState(false); // Add refresh state
     const [allGroups, setAllGroups] = useState([]);
+    const [myRequestJoinGroup, setMyRequestJoinGroup] = useState([]);
     useEffect(() => {
         async function fetchGroups() {
             try {
@@ -18,11 +19,24 @@ export default function SelectGroup() {
                 const sortedAllGroups = allGroupsResponse.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 setMyGroups(sortedGroups);
                 setAllGroups(sortedAllGroups);
+
             } catch (error) {
                 console.error("Error fetching groups:", error);
             }
         }
         fetchGroups();
+    }, [refresh]); // Add refresh as a dependency
+
+    useEffect(() => {
+        async function fetchresponseMyRequestJoinGroup() {
+            try {
+                const responseMyRequestJoinGroup = await getAllMyRequestJoinGroup();
+                setMyRequestJoinGroup(responseMyRequestJoinGroup);
+            } catch (error) {
+                console.error("Error fetching groups:", error);
+            }
+        }
+        fetchresponseMyRequestJoinGroup();
     }, [refresh]); // Add refresh as a dependency
 
     useEffect(() => {
@@ -72,6 +86,28 @@ export default function SelectGroup() {
         setRefresh((prev) => !prev); // Trigger refresh
     };
 
+    //handle remove request join group
+    const handleRemoveRequestJoinGroup = async (requestId) => {
+        try {
+            const response = await removeRequestJoinGroup(requestId);
+            if (response) {
+                // Immediately update local state to show UI change without reload
+                setMyRequestJoinGroup(prevRequests =>
+                    prevRequests.filter(request => request._id !== requestId)
+                );
+
+                // Still trigger refresh for complete data update
+                setRefresh((prev) => !prev);
+            }
+            else {
+                // Handle error case
+                console.error("Failed to remove request:", response);
+            }
+        }
+        catch (error) {
+            console.error("Error removing request:", error);
+        }
+    };
     // Check if the user is already a member of a group
     const isGroupMember = (groupId) => {
         return myGroups.some(group => group._id === groupId);
@@ -93,6 +129,18 @@ export default function SelectGroup() {
             console.error("Error joining group:", error);
         }
     };
+
+    // Add function to check if user has a pending request for a specific group
+    const hasRequestedToJoin = (groupId) => {
+        return myRequestJoinGroup.some(request => request.group._id === groupId);
+    };
+
+    // Add function to get request ID for a specific group
+    const getRequestId = (groupId) => {
+        const request = myRequestJoinGroup.find(request => request.group._id === groupId);
+        return request ? request._id : null;
+    };
+
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 w-full">
             <div className="flex flex-col gap-8 bg-white rounded-lg shadow-md p-6">
@@ -140,12 +188,25 @@ export default function SelectGroup() {
                                         {/* <span className="text-sm text-gray-500">Tạo bởi {getGroupOwner(r._id)}</span> */}
                                     </div>
 
-                                    <button
-                                        onClick={(e) => handleJoinGroup(r._id)}
-                                        className="ml-auto px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
-                                    >
-                                        Yêu cầu tham gia
-                                    </button>
+                                    {isGroupMember(r._id) ? (
+                                        <span className="ml-auto px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-md">
+                                            Đã tham gia
+                                        </span>
+                                    ) : hasRequestedToJoin(r._id) ? (
+                                        <button
+                                            onClick={(e) => handleRemoveRequestJoinGroup(getRequestId(r._id))}
+                                            className="ml-auto px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+                                        >
+                                            Hủy yêu cầu
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => handleJoinGroup(r._id)}
+                                            className="ml-auto px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
+                                        >
+                                            Yêu cầu tham gia
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

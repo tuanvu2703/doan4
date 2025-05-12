@@ -98,7 +98,7 @@ function LayoutContent() {
       socket.off("callRejected");
     };
   }, [endCall]);
-  console.log("users", users);
+
   // Handle call acceptance
   const handleAcceptCall = () => {
     if (incomingCallData) {
