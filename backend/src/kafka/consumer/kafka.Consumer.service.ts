@@ -40,10 +40,10 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     });
 
     try {
-      this.logger.log(`🔄 Connecting consumer for ${topic} (group: ${groupId})...`);
+      this.logger.log(`😴 Connecting consumer for ${topic} (group: ${groupId})...`);
       await consumer.connect();
       await consumer.subscribe({ topic, fromBeginning: false });
-      this.logger.log(`✅ Consumer connected for ${topic}`);
+      this.logger.log(`😎 Consumer connected for ${topic}`);
 
       await consumer.run({
         autoCommit: true, // Sử dụng autoCommit để đơn giản hóa
@@ -51,7 +51,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
           try {
             await this.notificationService.handleKafkaEvent(topic, message);
           } catch (error) {
-            this.logger.error(`❌ Error processing message from ${topic}`, error.stack);
+            this.logger.error(`😵 Error processing message from ${topic}`, error.stack);
             await consumer.pause([{ topic }]);
             setTimeout(() => consumer.resume([{ topic }]), 5000);
           }
@@ -60,7 +60,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
 
       this.consumers.set(topic, consumer);
     } catch (error) {
-      this.logger.error(`❌ Failed to connect consumer for ${topic}`, error.stack);
+      this.logger.error(`😵 Failed to connect consumer for ${topic}`, error.stack);
       setTimeout(() => this.createConsumer({ topic, groupId }), 5000);
     }
   }
