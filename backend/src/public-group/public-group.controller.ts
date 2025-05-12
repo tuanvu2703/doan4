@@ -276,6 +276,18 @@ export class PublicGroupController {
     return this.publicGroupService.removeRequestJoinGroup(requestId, userId);
   }
 
+  @Get('getAllmyRequestJoinGroup')
+  @UseGuards(AuthGuardD)
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, description: 'Lấy tất cả yêu cầu tham gia nhóm của tôi thành công' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  async getAllMyRequestJoinGroup(
+    @CurrentUser() currentUser: User
+  ){
+    const userId = new Types.ObjectId(currentUser._id.toString());
+    return this.publicGroupService.getAllmyRequestJoinGroup(userId);
+  }
+
   
   
 

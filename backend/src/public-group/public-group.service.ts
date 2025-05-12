@@ -476,5 +476,19 @@ export class PublicGroupService {
       return requestJoinGroup;
     }
 
+    async getAllmyRequestJoinGroup(userId : Types.ObjectId): Promise<RequestJoinGroup[]> {
+      const requestJoinGroup = await this.RequestJoinGroupModel.find({ sender: userId })
+      .populate({
+        path : 'group',
+        select: 'groupName avatargroup'
+      })
+      .lean();
+      if (!requestJoinGroup || requestJoinGroup.length === 0) {
+        this.logger.warn('No join requests found for user', HttpStatus.NOT_FOUND);
+        throw new HttpException('No join requests found for user', HttpStatus.NOT_FOUND);
+      }
+      return requestJoinGroup;
+    }
+
 
 }

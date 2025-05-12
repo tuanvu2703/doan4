@@ -4,6 +4,7 @@ import { Put, Body, Controller, Get, HttpException, HttpStatus,
     Inject,
     ParseIntPipe,
     DefaultValuePipe,
+    Patch,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { AuthGuardD } from '../user/guard/auth.guard';
@@ -28,6 +29,7 @@ import { AuthorDto } from './dto/author.dto';
 import { GroupDto } from './dto/group.dto';
 import { ProjectedPostDto } from './dto/projected-post.dto';
 import { PaginatedFeedResultDto } from './dto/paginated-feed-result.dto';
+import { RolesGuard } from 'src/user/guard/role.guard';
 
 
 @ApiTags('post')
@@ -398,6 +400,21 @@ export class PostController {
         } catch (error) {
             console.error('error in getPostByContent', error);
         }
+    }
+
+    @Patch('acctivePost/:postId')
+    @UseGuards(new RolesGuard(true))
+    @UseGuards(AuthGuardD)
+    @ApiBearerAuth()
+    async acctivePost(
+        @Param('postId') postId: Types.ObjectId,
+        @CurrentUser() currentUser: User
+    ) {
+        if (!currentUser) {
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        const UserId = new Types.ObjectId(currentUser._id.toString());
+        return await this.postService.ActivePost(postId, UserId);
     }
 
 

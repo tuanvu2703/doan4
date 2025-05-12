@@ -40,13 +40,13 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
     async onModuleInit() {
         try {
             await this.redisClient.connect();
-            this.logger.log('✅ EventService Redis client connected');
+            this.logger.log('🤡 EventService Redis client connected');
             await this.redisSubClient.connect();
-            this.logger.log('✅ EventService Redis subscriber client connected');
+            this.logger.log('🤡 EventService Redis subscriber client connected');
 
             // Lắng nghe kênh chung cho các thay đổi trạng thái user
             await this.redisSubClient.subscribe(USER_STATUS_CHANGE_CHANNEL, this.handleUserStatusChange.bind(this));
-            this.logger.log(`✅ EventService subscribed to Redis channel: ${USER_STATUS_CHANGE_CHANNEL}`);
+            this.logger.log(`🤡 EventService subscribed to Redis channel: ${USER_STATUS_CHANGE_CHANNEL}`);
         } catch (err) {
             this.logger.error('❌ Failed to connect EventService Redis clients or subscribe', err.stack);
         }
@@ -70,7 +70,7 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
 
     public setSocketServer(server: Server): void {
         this.socketServer = server;
-        this.logger.log('✅ Socket.IO Server instance set in EventService');
+        this.logger.log('☑️ Socket.IO Server instance set in EventService');
     }
 
     private async handleUserStatusChange(message: string, channel: string): Promise<void> {
@@ -174,9 +174,11 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
         try {
             const redisKey = `${USER_ONLINE_KEY_PREFIX}${userId}`;
             // SET key value NX (set only if not exists) EX (expire in seconds)
+            this.logger.log(`👉 Attempting to set online key ${redisKey} for ${userId}`);
             const setResult = await this.redisClient.set(redisKey, '1', { EX: 3600, NX: true });
 
             if (setResult === 'OK') { // User chuyển từ offline sang online
+                this.logger.log(`✔️ Set online key ${redisKey} successfully, publishing userOnline for ${userId}`);
                 await this.redisClient.publish(
                     USER_STATUS_CHANGE_CHANNEL,
                     JSON.stringify({ event: 'userOnline', userId, timestamp: Date.now() }),
@@ -188,13 +190,13 @@ export class EventService implements OnModuleInit, OnModuleDestroy {
                 this.logger.log(`User ${userId} already online or recently reconnected, refreshed TTL.`);
             }
         } catch (error) {
-            this.logger.error(`❌ Error notifying user online: ${userId}`, error.stack);
+            this.logger.error(`❎ Error notifying user online: ${userId}`, error.stack);
         }
     }
 
     async notifyUserOffline(userId: string): Promise<void> {
         if (!this.redisClient.isOpen) {
-            this.logger.error('❌ Redis client is not connected. Cannot notify user offline.');
+            this.logger.error('❎ Redis client is not connected. Cannot notify user offline.');
             return;
         }
         try {
