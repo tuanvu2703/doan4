@@ -53,16 +53,14 @@ export default function FriendCard({ iduser, idrequest }) {
     const handRemoveFriend = async (id) => {
         try {
             const rs = await friend.cancelFriend(id);
-            if (rs.success) {
+            if (rs) {
                 toast.success(rs?.message ? rs.message : 'Đã hủy kết bạn', NotificationCss.Success);
                 setFriendStatus("pending");
                 setFriends(friends.filter(friend => friend.id !== id)); // Update the friends list
-            } else {
-                toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
             }
 
         } catch (error) {
-            toast.error('hủy kết bạn thất bại', NotificationCss.Fail);
+            console.error('Error removing friend:', error);
         }
     };
     return (

@@ -171,20 +171,22 @@ const MessengerInbox = () => {
             console.log(newMessage.forGroup)
             console.log(idGroup)
             if (newMessage.forGroup == idGroup) {
-
-                if (
-                    newMessage
-                )
-                    if (!newMessage.receiver) {
-                        newMessage.receiver = userContext._id;
-                    }
+                if (!newMessage.receiver) {
+                    newMessage.receiver = userContext._id;
+                }
                 if (!newMessage.createdAt) {
                     newMessage.createdAt = new Date().toISOString();
                 }
 
-                if (newMessage.receiver === userContext._id && newMessage.sender !== userContext._id) {
-                    setMessengerdata((prevMessages) => [...prevMessages, newMessage]);
-                }
+                // Modified condition to check if message already exists by its ID
+                setMessengerdata((prevMessages) => {
+                    // Check if the message already exists to prevent duplicates
+                    const messageExists = prevMessages.some(msg => msg._id === newMessage._id);
+                    if (!messageExists) {
+                        return [...prevMessages, newMessage];
+                    }
+                    return prevMessages;
+                });
             }
         },
         [userContext._id, socket, idGroup]
@@ -212,12 +214,17 @@ const MessengerInbox = () => {
         try {
             const res = await group.sendMessGroup(idGroup, message.trim(), file);
             if (res.success) {
+                // If response contains the new message, add it immediately to prevent duplicates
+                if (res.data && res.data.message) {
+                    setMessengerdata(prevMessages => [...prevMessages, res.data.message]);
+                }
+
                 setMessage("");
                 setFile(null);
                 setPreview(null);
                 setTextareaHeight(40);
             } else {
-                alert(res.data.message);
+                alert(res.message || 'Failed to send message');
             }
             // socket.emit("sendMessage", { idGroup, content: message.trim() });
         } catch (error) {
@@ -350,7 +357,7 @@ const MessengerInbox = () => {
 
                                         onMouseEnter={() => {
                                             if (message?.sender?._id === userContext._id
-                                                
+
                                             ) {
                                                 setHoveredMessageId(message._id);
                                             }
