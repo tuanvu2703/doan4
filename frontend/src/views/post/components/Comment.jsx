@@ -7,17 +7,15 @@ import { Link } from 'react-router-dom';
 import FormReply from './FormReply';
 import CommentReply from './CommentReply';
 import { HeartIcon, ChatBubbleLeftIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
-
-
-
-export default function Comment({ postId, user }) {
+import { useParams } from 'react-router-dom';
+export default function Comment({ user, refreshComments }) {
   const [comment, setComment] = useState([])
   const [openReplyId, setOpenReplyId] = useState(null);
   const [isReplyOpen, setIsReplyOpen] = useState(false);
-
+  const { id } = useParams();
   const fetchComments = async () => {
     try {
-      const response = await getComment(postId)
+      const response = await getComment(id)
       if (response) {
         const sortedComments = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setComment(sortedComments)
@@ -29,7 +27,14 @@ export default function Comment({ postId, user }) {
 
   useEffect(() => {
     fetchComments();
-  }, [postId]);
+  }, [id]);
+
+  // Add a refresher effect when the refreshComments prop changes
+  useEffect(() => {
+    if (refreshComments) {
+      fetchComments();
+    }
+  }, [refreshComments]);
 
   //format Time CreateAt Comment
   const formatDate = (date) => {
@@ -77,6 +82,10 @@ export default function Comment({ postId, user }) {
     setIsReplyOpen(isReplyOpen === cmtId ? null : cmtId);
   }
 
+  const handleCommentAdded = () => {
+    fetchComments();
+    if (refreshComments) refreshComments();
+  };
   return (
     <div className="space-y-4">
       {comment.filter((com_e) => com_e.replyTo.length === 0).map((e) => (
@@ -123,12 +132,14 @@ export default function Comment({ postId, user }) {
                 </div>
               </div>
             </div>
-
             <div className="mt-2">
-              <FormReply open={openReplyId === e._id} keycmt={e} />
+              <FormReply
+                open={openReplyId === e._id}
+                keycmt={e}
+                onCommentAdded={handleCommentAdded}
+              />
             </div>
-
-            {e.replies && e.replies.length > 0 && (
+            {e?.replies && e?.replies?.length > 0 && (
               <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                 <button
                   onClick={() => handleReplyList(e._id)}
@@ -140,9 +151,16 @@ export default function Comment({ postId, user }) {
 
                 {isReplyOpen === e._id &&
                   <div className="mt-2 pl-2 border-l-2 border-gray-200 dark:border-gray-700">
-                    <CommentReply open={true} postId={postId} user={user} cmtId={e._id} />
+
+                    <CommentReply
+                      open={true}
+                      user={user}
+                      cmtId={e._id}
+                      onCommentAdded={handleCommentAdded}
+                    />
                   </div>
                 }
+
               </div>
             )}
           </div>

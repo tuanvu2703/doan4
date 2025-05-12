@@ -23,9 +23,10 @@ export default function FormComment({ postId, onCommentAdded }) {
 
         setIsSubmitting(true);
         try {
-            await createComment(postId, formdata.content);
+            const response = await createComment(postId, formdata.content);
             setFormdata({ ...formdata, content: '' });
-            if (onCommentAdded) onCommentAdded();
+            // Call onCommentAdded with the new comment data if available
+            if (onCommentAdded) onCommentAdded(response?.data);
         } catch (error) {
             console.log(error)
         } finally {
