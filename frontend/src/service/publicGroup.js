@@ -145,4 +145,20 @@ async function getAllRequestMyGroup(groupId) {
 }
 
 
-export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById, getAllPostInGroup, getAllGroup, requestJoinGroup, getAllMyRequestJoinGroup, removeRequestJoinGroup }
+
+async function acceptJoinGroup(requestId) {
+    try {
+        const request = await API.post(`${process.env.REACT_APP_API_URL}/PublicGroup/acceptJoinGroup/${requestId}`, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
+            }
+        })
+        return request.data;
+    } catch (error) {
+        console.error("Error fetching posts in group:", error);
+        throw error;
+    }
+}
+
+
+export { createPublicGroup, getPublicGroupParticipated, getMemberGroup, getPublicGroupById, getAllPostInGroup, getAllGroup, requestJoinGroup, getAllMyRequestJoinGroup, removeRequestJoinGroup, getAllRequestMyGroup, acceptJoinGroup }

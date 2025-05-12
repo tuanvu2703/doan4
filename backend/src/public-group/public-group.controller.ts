@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, UploadedFiles, UseGuards, UseInterceptors,Logger, Delete } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Patch, Post, UploadedFiles, UseGuards, UseInterceptors, Logger, Delete } from '@nestjs/common';
 import { PublicGroupService } from './public-group.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuardD } from 'src/user/guard/auth.guard';
@@ -11,10 +11,10 @@ import { Types } from 'mongoose';
 @ApiTags('Public Group')
 @Controller('PublicGroup')
 export class PublicGroupController {
-    private readonly logger = new Logger(PublicGroupController.name);
-    constructor(
-        private readonly publicGroupService: PublicGroupService,
-    ) {}
+  private readonly logger = new Logger(PublicGroupController.name);
+  constructor(
+    private readonly publicGroupService: PublicGroupService,
+  ) { }
 
 
 
@@ -30,7 +30,7 @@ export class PublicGroupController {
     @CurrentUser() currentUser: User,
     @Body() createPublicGroupDto: CreatePublicGroupDto,
     @UploadedFiles() files: { files?: Express.Multer.File[] },
-  ){
+  ) {
     if (!files || !files.files || files.files.length === 0) {
       throw new HttpException('No file uploaded', HttpStatus.BAD_REQUEST);
     }
@@ -43,25 +43,25 @@ export class PublicGroupController {
   @Get('getGroupId/:groupId')
   @UseGuards(AuthGuardD)
   @ApiBearerAuth()
-  @ApiParam({name: 'groupId', required: true, description: 'nhập _id nhóm', example: '67d6819042f199104709c4de' })
+  @ApiParam({ name: 'groupId', required: true, description: 'nhập _id nhóm', example: '67d6819042f199104709c4de' })
   @ApiResponse({ status: 200, description: 'Lấy thông tin nhóm thành công' })
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async getPublicGroupById(@CurrentUser() currentUser: User,
-  @Param('groupId') groupId: string
-  ){
+    @Param('groupId') groupId: string
+  ) {
     return this.publicGroupService.getPublicGroupById(groupId);
   }
 
   @Get('getGroupbyname/:groupName')
   @UseGuards(AuthGuardD)
   @ApiBearerAuth()
-  @ApiParam({name: 'groupName', required: true, description: 'nhập tên của nhóm', example: 'IT' })
+  @ApiParam({ name: 'groupName', required: true, description: 'nhập tên của nhóm', example: 'IT' })
   @ApiResponse({ status: 200, description: 'Lấy thông tin nhóm thành công' })
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async getGroupByName(
     @CurrentUser() currentUser: User,
     @Param('groupName') groupName: string
-  ){
+  ) {
     return this.publicGroupService.getGroupByName(groupName);
   }
 
@@ -109,13 +109,13 @@ export class PublicGroupController {
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async acceptJoinGroup(
     @CurrentUser() currentUser: User,
-    @Param('requestId') requestId: Types.ObjectId 
+    @Param('requestId') requestId: Types.ObjectId
   ) {
     const userId = new Types.ObjectId(currentUser._id.toString());
     const convertedRequestId = new Types.ObjectId(requestId);
     return this.publicGroupService.acceptRequestJoinGroup(requestId, userId);
   }
-    
+
 
   @Get('getMemberGroup/:groupId')
   @UseGuards(AuthGuardD)
@@ -150,11 +150,11 @@ export class PublicGroupController {
   async getPostInGroup(
     @CurrentUser() currentUser: User,
     @Param('groupId') group: string
-  ){
+  ) {
     const groupId = new Types.ObjectId(group)
     return this.publicGroupService.getPostInGroup(groupId)
   }
-  
+
   @Patch('empowerMember/:groupId')
   @UseGuards(AuthGuardD)
   @ApiBearerAuth()
@@ -170,7 +170,7 @@ export class PublicGroupController {
   async empowerMember(
     @CurrentUser() currentUser: User,
     @Param('groupId') group: string,
-    @Body('member') members: string[], 
+    @Body('member') members: string[],
   ) {
     const groupId = new Types.ObjectId(group);
     const memberIds = members.map((id) => new Types.ObjectId(id));
@@ -198,7 +198,7 @@ export class PublicGroupController {
   async unEmpowerMember(
     @CurrentUser() currentUser: User,
     @Param('groupId') group: string,
-    @Body('member') members: string[], 
+    @Body('member') members: string[],
   ) {
     const groupId = new Types.ObjectId(group);
     const memberIds = members.map((id) => new Types.ObjectId(id));
@@ -218,7 +218,7 @@ export class PublicGroupController {
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async getAllPublicGroup(
     @CurrentUser() currentUser: User
-  ){
+  ) {
     return this.publicGroupService.getAllPublicGroup();
   }
 
@@ -229,8 +229,8 @@ export class PublicGroupController {
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async getPublicGroupsForFriends(
     @CurrentUser() currentUser: User,
-  ){
-    if(!currentUser){
+  ) {
+    if (!currentUser) {
       this.logger.error('Unauthorized access attempt');
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
@@ -248,13 +248,13 @@ export class PublicGroupController {
     example: '65fc4e5a4d3a7f1f2a1c9c10'
   })
   @ApiResponse({ status: 200, description: 'Lấy tất cả yêu cầu tham gia nhóm thành công' })
-  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
-  async getAllRequestJoinGroup(
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' }) async getAllRequestJoinGroup(
     @CurrentUser() currentUser: User,
-    @Param('groupId') group: Types.ObjectId
-  ){  
+    @Param('groupId') groupIdParam: string
+  ) {
     const userId = new Types.ObjectId(currentUser._id.toString());
-    return this.publicGroupService.getAllRequestJoinGroup(group, userId);
+    const groupId = new Types.ObjectId(groupIdParam);
+    return this.publicGroupService.getAllRequestJoinGroup(groupId, userId);
   }
 
   @Delete('removeRequestJoinGroup/:requestId')
@@ -271,7 +271,7 @@ export class PublicGroupController {
   async removeRequestJoinGroup(
     @CurrentUser() currentUser: User,
     @Param('requestId') requestId: Types.ObjectId
-  ){
+  ) {
     const userId = new Types.ObjectId(currentUser._id.toString());
     return this.publicGroupService.removeRequestJoinGroup(requestId, userId);
   }
@@ -283,19 +283,19 @@ export class PublicGroupController {
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   async getAllMyRequestJoinGroup(
     @CurrentUser() currentUser: User
-  ){
+  ) {
     const userId = new Types.ObjectId(currentUser._id.toString());
     return this.publicGroupService.getAllmyRequestJoinGroup(userId);
   }
 
-  
-  
+
+
 
 
 
 
 }
-  
+
 
 
 

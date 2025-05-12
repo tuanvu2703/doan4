@@ -44,6 +44,7 @@ import Group from "../views/group/index.jsx";
 import Layoutgr from "../views/group/layoutgr.jsx";
 import SelectGroup from "../views/group/select/SelectGroup.jsx";
 import Member from "../views/group/Member.jsx";
+import ReviewMember from "../views/group/ReviewMember.jsx";
 
 function routers() {
     return (
@@ -92,7 +93,7 @@ function routers() {
                     <Route path="/group/:groupid" element={<Layoutgr />}>
                         <Route index element={<Group />} />
                         <Route path="member" element={<Member />} />
-                        <Route path="review-members" element={<Member />} />
+                        <Route path="review-members" element={<ReviewMember />} />
                     </Route>
                 </Route>
                 {/* Redirect to login if not authenticated */}
