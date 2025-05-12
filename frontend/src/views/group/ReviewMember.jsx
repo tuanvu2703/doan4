@@ -27,6 +27,11 @@ export default function ReviewMember() {
       const response = await acceptJoinGroup(requestId)
       if (response) {
         toast.success(response?.message ? response.message : 'Đã duyệt yêu cầu thành công!', NotificationCss.Success);
+        // Xóa yêu cầu đã duyệt khỏi danh sách
+        setAllRequestMyGroup(prev => ({
+          ...prev,
+          requests: prev.requests.filter(req => req._id !== requestId)
+        }));
       }
     } catch (error) {
       console.error('Error accepting request:', error)
