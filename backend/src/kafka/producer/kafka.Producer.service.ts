@@ -10,7 +10,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ProducerService.name);
   constructor() {
     if (!process.env.KAFKA_BROKER) {
-      throw new Error('❌ Kafka environment variables are missing!');
+      throw new Error('😵 Kafka environment variables are missing!');
     }
 
     this.kafka = new Kafka({
@@ -28,11 +28,11 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     try {
-      this.logger.log('🔄 Connecting Kafka Producer...');
+      this.logger.log('😴 Connecting Kafka Producer...');
       await this.producer.connect();
-      this.logger.log('✅ Kafka Producer connected!');
+      this.logger.log('😎 Kafka Producer connected!');
     } catch (error) {
-      this.logger.error('❌ Kafka Producer connection failed:', error);
+      this.logger.error('😵 Kafka Producer connection failed:', error);
       setTimeout(() => this.onModuleInit(), 5000);
     }
   }

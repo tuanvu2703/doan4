@@ -78,7 +78,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
         try {
             await Promise.all([this.adapterPubClient.connect(), this.adapterSubClient.connect()]);
             this.server.adapter(createAdapter(this.adapterPubClient, this.adapterSubClient));
-            this.logger.log('✅ WebSocket server initialized with Upstash Redis Adapter');
+            this.logger.log('🔝 WebSocket server initialized with Upstash Redis Adapter');
         } catch (error) {
             this.logger.error('❌ Failed to connect adapter Redis clients or set up adapter', error.stack);
             // Nếu lỗi kết nối adapter, server vẫn có thể chạy nhưng không scale được.
@@ -130,7 +130,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
             userSocketsOnThisInstance.add(client.id);
             // Client join vào room của chính mình
             client.join(`user:${userId}`);
-            this.logger.log(`✅ Client ${client.id} (User ${userId}) connected and joined room user:${userId}. Total on instance: ${userSocketsOnThisInstance.size}`);
+            this.logger.log(`☑️ Client ${client.id} (User ${userId}) connected and joined room user:${userId}. Total on instance: ${userSocketsOnThisInstance.size}`);
 
             // Lấy danh sách bạn bè và cho client join vào room của họ
             // để nhận cập nhật trạng thái (userOnline, userOffline) do EventService phát đi
@@ -138,7 +138,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
             friends.forEach((friendId: string) => {
                 client.join(`user:${friendId}`); // Join room của bạn để nhận status update
             });
-            this.logger.log(`User ${userId} joined rooms for ${friends.length} friends to receive their status updates.`);
+            this.logger.log(`😶‍🌫️ User ${userId} joined rooms for ${friends.length} friends to receive their status updates.`);
 
             // Gửi trạng thái online hiện tại của bạn bè cho client vừa kết nối
             if (friends.length > 0) {
@@ -177,7 +177,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
 
         if (userSocketsOnThisInstance) {
             userSocketsOnThisInstance.delete(client.id);
-            this.logger.log(`🔌 Client ${client.id} (User ${userId}) disconnected. Sockets remaining on instance for user: ${userSocketsOnThisInstance.size}`);
+            this.logger.log(`🟡 Client ${client.id} (User ${userId}) disconnected. Sockets remaining on instance for user: ${userSocketsOnThisInstance.size}`);
 
             if (userSocketsOnThisInstance.size === 0) {
                 this.userConnectionsOnInstance.delete(userId); // Xóa user khỏi map của instance này
