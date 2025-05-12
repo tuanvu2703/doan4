@@ -80,4 +80,21 @@ async function handleReport(reportId, implementation) {
     }
 }
 
-export { getAllUser, getAllPost, getALlReport, activeUser, handleReport }
+
+async function unactivePost(postId) {
+    try {
+        const request = await API.patch(`${process.env.REACT_APP_API_URL}/post/acctivePost/${postId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+        return request
+    } catch (error) {
+        return error
+    }
+}
+
+export { getAllUser, getAllPost, getALlReport, activeUser, handleReport, unactivePost }

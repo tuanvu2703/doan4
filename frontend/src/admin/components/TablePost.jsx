@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState, useEffect } from 'react';
-import { getAllPost } from '../../service/admin';
+import { getAllPost, unactivePost } from '../../service/admin';
 import Loading from '../../components/Loading'
 import FilePreview from '../../components/fileViewer';
 import FileViewer from '../../components/fileViewer';
@@ -43,6 +43,22 @@ export default function TablePost({ query }) {
     const isBlockedContent = (content) => {
         return listWordBlock.some(word => content && content.toLowerCase().includes(word));
     };
+    const handleUnactivePost = async (postId, currentState) => {
+        try {
+            const response = await unactivePost(postId);
+            if (response) {
+                setPosts((prevPosts) => prevPosts.map((post) => {
+                    if (post._id === postId) {
+                        return { ...post, isActive: !currentState };
+                    }
+                    return post;
+                }));
+            }
+        }
+        catch (error) {
+            console.error("Error unactive post:", error);
+        }
+    }
 
     return (
         <tbody>
@@ -91,7 +107,11 @@ export default function TablePost({ query }) {
                         </td>
                         <td>{post.isActive ? "true" : "false"}</td>
                         <th>
-                            <button className="btn btn-error btn-xs">Hidden</button>
+                            <button
+                                onClick={(e) => { handleUnactivePost(post._id, post.isActive) }}
+                                className={`btn btn-xs ${post.isActive ? 'btn-error' : 'btn-success'}`}>
+                                {post.isActive ? "unactive" : "active"}
+                            </button>
                         </th>
                     </tr>
                 ))
