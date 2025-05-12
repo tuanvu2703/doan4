@@ -411,7 +411,8 @@ export class PublicGroupService {
       group: { _id: string; groupName: string; avatargroup: string };
         requests: { sender: { firstName: string; lastName: string; avatar?: string } }[];
     }>{
-      const group = await this.PublicGroupModel
+      try {
+        const group = await this.PublicGroupModel
         .findById(groupId)
         .select('groupName avatargroup')
         .lean();
@@ -461,6 +462,9 @@ export class PublicGroupService {
         };
       this.logger.log(`Successfully fetched ${requests.length} join requests for group ${groupId}`);
       return result;
+      } catch (error) {
+        throw new HttpException('Error fetching join requests', HttpStatus.INTERNAL_SERVER_ERROR, error);
+      }
     }
 
     async removeRequestJoinGroup(requestJoinGroupId: Types.ObjectId, userId: Types.ObjectId): Promise<RequestJoinGroup> {
