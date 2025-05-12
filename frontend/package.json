@@ -19,6 +19,7 @@
     "config": "^3.3.12",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "emoji-picker-react": "^4.12.2",
     "heroicons": "^2.1.5",
     "https-browserify": "^1.0.0",
     "lodash": "^4.17.21",

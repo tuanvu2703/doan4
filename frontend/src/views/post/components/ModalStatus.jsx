@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import PublicIcon from '@mui/icons-material/Public';
 import GroupIcon from '@mui/icons-material/Group';
@@ -9,10 +9,10 @@ import authToken from '../../../components/authToken';
 import { PhotoIcon, FaceSmileIcon, GifIcon, GlobeAltIcon } from '@heroicons/react/24/solid';
 import Loading from '../../../components/Loading';
 import FileViewChane from '../../../components/fileViewChane';
-import DropdownEmoji from '../../../components/DropdownEmoji';
 import Gif from './Gif';
 import { useNavigate } from 'react-router-dom';
-import { set } from 'date-fns';
+import EmojiPicker from 'emoji-picker-react';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 
 export default function ModalStatus({ user, onCloseModal, addNewPost, group }) {
     const navigate = useNavigate();
@@ -33,11 +33,26 @@ export default function ModalStatus({ user, onCloseModal, addNewPost, group }) {
         gif: null,
         privacy: privacy,
     });
+    const emojiPickerRef = useRef(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(() => {
         setFormData({ "privacy": privacy });
     }, [privacy]);
 
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target) &&
+                event.target.id !== "emoji-button") {
+                setShowEmojiPicker(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const maxRows = 12;
 
@@ -184,6 +199,15 @@ export default function ModalStatus({ user, onCloseModal, addNewPost, group }) {
         setFilePreview(null); // Remove image preview if a GIF is selected
         setShowGifDropdown(false); // Close the GIF dropdown after selecting a GIF
     };
+
+    const onEmojiClick = (emojiObject) => {
+        const emoji = emojiObject.emoji;
+        setFormData({
+            ...formData,
+            content: (formData.content || '') + emoji
+        });
+    };
+
     return (
         <dialog id="my_modal_1" className="modal">
             <form className="modal-box w-11/12 max-w-3xl mx-auto" method='POST' encType="multipart/form-data" onSubmit={handleSubmit}>
@@ -305,11 +329,35 @@ export default function ModalStatus({ user, onCloseModal, addNewPost, group }) {
                                     </div>
                                 </label>
                             </div>
-                            <div className="dropdown dropdown-top dropdown-end">
-                                <FaceSmileIcon tabIndex={0} className='size-6 sm:size-8 fill-yellow-500' />
-                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-36 sm:w-52 p-1 sm:p-2 shadow">
-                                    <DropdownEmoji onEmojiClick={handleEmojiClick} />
-                                </ul>
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    id="emoji-button"
+                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    className='p-1 rounded-full hover:bg-gray-200 transition-colors'
+                                    aria-label="Insert emoji"
+                                >
+                                    <EmojiEmotionsIcon className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
+                                </button>
+
+                                {showEmojiPicker && (
+                                    <div
+                                        ref={emojiPickerRef}
+                                        className="absolute bottom-12 right-0 z-10 bg-white rounded-lg shadow-lg p-1"
+                                        style={{
+                                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                                            border: '1px solid #e0e0e0',
+                                        }}
+                                    >
+                                        <EmojiPicker
+                                            onEmojiClick={onEmojiClick}
+                                            width={300}
+                                            height={400}
+                                            previewConfig={{ showPreview: false }}
+                                            emojiStyle="native"
+                                        />
+                                    </div>
+                                )}
                             </div>
                             <div className="relative">
                                 <GifIcon

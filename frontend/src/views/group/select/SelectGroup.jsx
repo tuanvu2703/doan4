@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import ModalCreateGroup from '../../../components/ModalCreateGroup';
 import { getAllGroup, getAllMyRequestJoinGroup, getPublicGroupParticipated, removeRequestJoinGroup, requestJoinGroup } from '../../../service/publicGroup';
 import { getMemberGroup } from '../../../service/publicGroup';
+import { toast } from 'react-toastify';
+import NotificationCss from '../../../module/cssNotification/NotificationCss';
 export default function SelectGroup() {
     const [myGroups, setMyGroups] = useState([]);
     const [members, setMembers] = useState([]);
@@ -17,6 +19,7 @@ export default function SelectGroup() {
                 const sortedGroups = response.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 const allGroupsResponse = await getAllGroup();
                 const sortedAllGroups = allGroupsResponse.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
                 setMyGroups(sortedGroups);
                 setAllGroups(sortedAllGroups);
 
@@ -92,6 +95,7 @@ export default function SelectGroup() {
             const response = await removeRequestJoinGroup(requestId);
             if (response) {
                 // Immediately update local state to show UI change without reload
+                toast.success(response?.message ? response.message : 'Đã hủy yêu cầu tham gia nhóm', NotificationCss.Success);
                 setMyRequestJoinGroup(prevRequests =>
                     prevRequests.filter(request => request._id !== requestId)
                 );
@@ -119,6 +123,7 @@ export default function SelectGroup() {
             const response = await requestJoinGroup(groupId);
             if (response) {
                 // Successfully joined the group
+                toast.success(response?.message ? response.message : 'Đã gửi yêu cầu tham gia nhóm', NotificationCss.Success);
                 setRefresh((prev) => !prev); // Trigger refresh
             } else {
                 // Handle error case

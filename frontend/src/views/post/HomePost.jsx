@@ -246,12 +246,25 @@ export default function HomePost({ onPostsUpdated }) {
                                         <div className="flex flex-col w-full">
                                             <div className="flex justify-between items-center w-full">
                                                 <article className="flex flex-col">
-                                                    <Link
-                                                        className="font-semibold text-sm sm:text-base md:text-lg hover:text-blue-600 transition-colors duration-200 text-gray-800"
-                                                        to={`/user/${postData.author._id}`}
-                                                    >
-                                                        {postData.author.lastName} {postData.author.firstName}
-                                                    </Link>
+                                                    <div className="flex flex-wrap items-center">
+                                                        <Link
+                                                            className="font-semibold text-sm sm:text-base md:text-lg hover:text-blue-600 transition-colors duration-200 text-gray-800"
+                                                            to={`/user/${postData.author._id}`}
+                                                        >
+                                                            {postData.author.lastName} {postData.author.firstName}
+                                                        </Link>
+                                                        {postData.group && (
+                                                            <>
+                                                                <span className="mx-1 text-gray-500">▸</span>
+                                                                <Link
+                                                                    className="font-semibold text-sm sm:text-base md:text-lg hover:text-blue-600 transition-colors duration-200 text-gray-800"
+                                                                    to={`/group/${postData.group._id}`}
+                                                                >
+                                                                    {postData.group.groupName}
+                                                                </Link>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                     <div className="flex items-center gap-2 text-xs text-gray-500">
                                                         <span>{formatDate(postData.createdAt)}</span>
                                                         <span>•</span>

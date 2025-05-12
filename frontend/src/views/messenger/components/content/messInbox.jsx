@@ -22,6 +22,7 @@ import FileViewChane from '../../../../components/fileViewChane';
 import { FaceSmileIcon } from '@heroicons/react/24/outline';
 import DropdownEmoji from '../../../../components/DropdownEmoji';
 import { useCall } from '../../../../components/CallContext';
+import EmojiPicker from 'emoji-picker-react'; // Add EmojiPicker import
 const MessengerInbox = () => {
     const { userContext } = useUser();
     const { RightShow, handleHiddenRight, setContent, setInboxData } = useContext(MessengerContext);
@@ -48,6 +49,8 @@ const MessengerInbox = () => {
     const [socket, setSocket] = useState(null); // Trạng thái kết nối socket
     // Call
     const { startCall } = useCall();
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false); // State to toggle emoji picker
+    const emojiPickerRef = useRef(null); // Reference for emoji picker
 
 
     useEffect(() => {
@@ -179,11 +182,23 @@ const MessengerInbox = () => {
                 newMessage.createdAt = new Date().toISOString();
             }
 
-            if (newMessage.receiver === userContext._id && newMessage.sender !== userContext._id) {
-                setMessengerdata((prevMessages) => [...prevMessages, newMessage]);
-            }
+            // Check if this message already exists in the state
+            // Only add the message if it's not already in the message list
+            setMessengerdata((prevMessages) => {
+                // Check if message with same ID already exists
+                const messageExists = prevMessages.some(msg => msg._id === newMessage._id);
+
+                // If message doesn't exist and it's either from someone else to current user
+                // or from current user to someone else, add it
+                if (!messageExists &&
+                    ((newMessage.receiver === userContext._id && newMessage.sender !== userContext._id) ||
+                        (newMessage.sender === userContext._id && newMessage.receiver !== userContext._id))) {
+                    return [...prevMessages, newMessage];
+                }
+                return prevMessages;
+            });
         },
-        [userContext._id, socket]
+        [userContext._id]
     );
     // useWebSocket(onMessageReceived);
     useEffect(() => {
@@ -252,6 +267,19 @@ const MessengerInbox = () => {
                 setFile(null);
                 setPreview(null);
                 setTextareaHeight(40);
+
+                // Add the sent message to the message list immediately
+                // This ensures we don't rely solely on the WebSocket for displaying sent messages
+                if (res.data && res.data._id) {
+                    setMessengerdata((prevMessages) => {
+                        // Check for duplicates before adding
+                        const messageExists = prevMessages.some(msg => msg._id === res.data._id);
+                        if (!messageExists) {
+                            return [...prevMessages, res.data];
+                        }
+                        return prevMessages;
+                    });
+                }
             } else {
                 alert(res.data.message);
             }
@@ -274,9 +302,25 @@ const MessengerInbox = () => {
 
 
     // Emoji
-    const handleEmojiClick = (emoji) => {
+    const handleEmojiClick = (emojiObject) => {
+        const emoji = emojiObject.emoji;
         setMessage((prevMessage) => prevMessage + emoji);
+        setShowEmojiPicker(false); // Close emoji picker after selection
     };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target) &&
+                event.target.id !== "emoji-button") {
+                setShowEmojiPicker(false); // Close emoji picker when clicking outside
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
 
     if (loading) {
@@ -537,11 +581,30 @@ const MessengerInbox = () => {
                                 onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
                             />
-                            <div className="dropdown dropdown-top dropdown-end ">
-                                <FaceSmileIcon tabIndex={0} role="button" className='size-7 fill-yellow-500 text-white' />
-                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                    <DropdownEmoji onEmojiClick={handleEmojiClick} />
-                                </ul>
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    id="emoji-button"
+                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                    className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                                    aria-label="Insert emoji"
+                                >
+                                    <FaceSmileIcon className="h-6 w-6 fill-yellow-500 text-white" />
+                                </button>
+                                {showEmojiPicker && (
+                                    <div
+                                        ref={emojiPickerRef}
+                                        className="absolute bottom-12 left-0 z-10"
+                                        style={{ boxShadow: '0 0 10px rgba(0,0,0,0.2)' }}
+                                    >
+                                        <EmojiPicker
+                                            onEmojiClick={handleEmojiClick}
+                                            width={280}
+                                            height={350}
+                                            previewConfig={{ showPreview: false }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                             <button onClick={handleSendMessenger} className="ml-2" disabled={sending}>
                                 <PaperAirplaneIcon className="h-8 w-8 fill-sky-500" />

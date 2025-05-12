@@ -66,36 +66,48 @@ export default function Bookmark() {
         }));
     };
     return (
-        <div className="container mx-auto">
-            <h1 className="text-2xl font-semibold text-center my-5">
-                Tất cả bài viết đã lưu
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
+            <h1 className="text-3xl font-bold text-center my-8 text-gray-800">
+                Bài viết đã lưu
             </h1>
-            <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {loading ? (
-                    <Loading />
+                    <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex justify-center">
+                        <Loading />
+                    </div>
                 ) : data.length > 0 ? (
                     data.map((post, index) => (
                         <div
                             key={index}
-                            className=" bg-base-100 shadow-xl  rounded-md w-full"
+                            className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300"
                         >
                             <div>
                                 {(post?.img?.length > 0) || (post.gif) ? (
-
-                                    <div className="relative w-full h-48 md:h-64 overflow-hidden">
+                                    <div className="relative w-full h-56 md:h-64 overflow-hidden group">
                                         {post?.img?.length > 1 && (
-                                            <button
-                                                onClick={() => handlePrev(post)}
-                                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10 hover:bg-gray-700 transition-colors"
-                                            >
-                                                ‹
-                                            </button>
+                                            <>
+                                                <button
+                                                    onClick={() => handlePrev(post)}
+                                                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white w-8 h-8 flex items-center justify-center rounded-full z-10 opacity-70 hover:opacity-100 hover:bg-black/70 transition-all duration-200"
+                                                >
+                                                    <span className="text-xl font-bold">‹</span>
+                                                </button>
+                                                <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                                                    {post.img.map((_, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className={`w-2 h-2 rounded-full ${currentIndexes[post._id] === i ? 'bg-white' : 'bg-white/50'}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </>
                                         )}
-                                        <div className="carousel-item w-full h-full flex items-center justify-center">
+                                        <div className="carousel-item w-full h-full flex items-center justify-center bg-gray-100">
                                             <FilePreview file={post.img} />
                                             {post.gif && (
                                                 <div className='flex justify-center'>
                                                     <img
+                                                        className="object-cover w-full h-full"
                                                         style={{ maxWidth: '100%', maxHeight: '400px' }}
                                                         src={post.gif}
                                                         alt="" />
@@ -105,59 +117,64 @@ export default function Bookmark() {
                                         {post?.img?.length > 1 && (
                                             <button
                                                 onClick={() => handleNext(post)}
-                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full z-10 hover:bg-gray-700 transition-colors"
+                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 text-white w-8 h-8 flex items-center justify-center rounded-full z-10 opacity-70 hover:opacity-100 hover:bg-black/70 transition-all duration-200"
                                             >
-                                                ›
+                                                <span className="text-xl font-bold">›</span>
                                             </button>
                                         )}
                                     </div>
-
                                 ) : (
-                                    <div className="relative w-full h-48 md:h-64 flex items-center justify-center bg-slate-400 rounded-t-md">
-                                        <span className="text-slate-700">NO IMAGE/VIDEO</span>
+                                    <div className="relative w-full h-48 md:h-64 flex items-center justify-center bg-gray-200 rounded-t-lg">
+                                        <span className="text-gray-500 font-medium">Không có hình ảnh</span>
                                     </div>
                                 )}
-                                <h2 className="card-title text-lg p-2">
-                                    {post.content ? post.content : "không có nội dung"}
-                                </h2>
 
-                                <div className=" m-2">
-                                    <span className="text-sm text-gray-600">Bài viết đã lưu của: </span>
-                                    <Link
-                                        onClick={() => handDetailUser(post.author?._id)}
-                                        className="font-semibold text-blue-500 hover:underline"
-                                    >
-                                        {post.author.firstName} {post.author.lastName}
-                                    </Link>
-                                </div>
+                                <div className="p-4">
+                                    <h2 className="font-semibold text-lg line-clamp-2 mb-2 text-gray-800">
+                                        {post.content ? post.content : "Không có nội dung"}
+                                    </h2>
 
-                                <div className="card-actions justify-between m-2">
-                                    <button
-                                        onClick={() => handleBookmarkClick(post._id)}
-                                        className="btn btn-error text-white"
-                                    >
-                                        Bỏ lưu
-                                    </button>
-                                    <button
-                                        onClick={() => handDetailPost(post._id)}
-                                        className="btn btn-primary "
-                                    >
-                                        Xem bài viết
-                                    </button>
+                                    <div className="mb-4 text-sm flex items-center gap-2">
+                                        <span className="text-gray-600">Bài viết của: </span>
+                                        <Link
+                                            onClick={() => handDetailUser(post.author?._id)}
+                                            className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                                        >
+                                            {post.author.firstName} {post.author.lastName}
+                                        </Link>
+                                    </div>
+
+                                    <div className="flex justify-between gap-3 mt-3 pt-3 border-t border-gray-100">
+                                        <button
+                                            onClick={() => handleBookmarkClick(post._id)}
+                                            className="flex-1 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors duration-200"
+                                        >
+                                            Bỏ lưu
+                                        </button>
+                                        <button
+                                            onClick={() => handDetailPost(post._id)}
+                                            className="flex-1 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors duration-200"
+                                        >
+                                            Xem chi tiết
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <div className="flex items-center justify-center w-full col-span-1 sm:col-span-2 lg:col-span-3 h-48">
-                        <span className="text-center text-lg font-semibold text-gray-500">
-                            Chưa lưu bài viết nào!
-                        </span>
+                    <div className="flex items-center justify-center w-full col-span-1 sm:col-span-2 lg:col-span-3 h-60 bg-gray-50 rounded-lg">
+                        <div className="text-center">
+                            <span className="block text-xl font-semibold text-gray-500 mb-2">
+                                Chưa có bài viết nào được lưu
+                            </span>
+                            <p className="text-gray-400">
+                                Các bài viết bạn đánh dấu sẽ xuất hiện ở đây
+                            </p>
+                        </div>
                     </div>
                 )}
             </div>
         </div>
-
-
     )
 }

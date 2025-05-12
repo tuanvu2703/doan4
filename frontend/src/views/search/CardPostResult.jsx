@@ -13,6 +13,7 @@ export default function CardPostResult({ query }) {
     const [albums, setAlbums] = useState([]);
     const [allPosts, setAllPosts] = useState([]); // State to store all posts
     const [loading, setLoading] = useState(true);
+    const [expandedPosts, setExpandedPosts] = useState({});
 
     useEffect(() => {
         async function fetchAllPosts() {
@@ -82,7 +83,38 @@ export default function CardPostResult({ query }) {
             [post._id]: (prevIndexes[post._id] + 1) % post.img.length
         }));
     };
-    console.log(albums)
+
+    const toggleContentExpansion = (postId) => {
+        setExpandedPosts(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
+    const renderPostContent = (post) => {
+        const isExpanded = expandedPosts[post._id];
+        // Check if content exists before trying to access its length
+        const content = post.content || '';
+
+        return (
+            <div className="break-words text-gray-800 py-1 sm:py-2 px-0 sm:px-1 leading-relaxed w-full max-w-3xl text-sm sm:text-base mt-0.5 sm:mt-1 mb-1 sm:mb-2">
+                <div className={`whitespace-pre-wrap ${!isExpanded ?
+                    'h-auto max-h-16 sm:max-h-20 md:max-h-24 overflow-hidden' :
+                    'h-auto'}`}>
+                    {content}
+                </div>
+                {content.length > 60 && (
+                    <button
+                        onClick={() => toggleContentExpansion(post._id)}
+                        className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm font-medium mt-0.5 sm:mt-1 transition-colors duration-200"
+                    >
+                        {isExpanded ? "Thu gọn" : "Xem chi tiết"}
+                    </button>
+                )}
+            </div>
+        );
+    };
+
     return (
         <ul className=' grid gap-3 my-3'>
             {albums.map(album => (
@@ -98,7 +130,7 @@ export default function CardPostResult({ query }) {
                                         <h2 className="card-title justify-center">{album.author.lastName} {album.author.firstName}</h2>
                                     )}
                                 </div>
-                                <p className='text-center'>{album.content}</p>
+                                {renderPostContent(album)}
                             </div>
                             {album.img.length > 0 && (
                                 <div className='flex justify-center'>
