@@ -14,7 +14,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.kafka = new Kafka({
-      brokers: [process.env.KAFKA_BROKER],
+      brokers: [process.env.KAFKA_BROKER], 
       clientId: process.env.KAFKA_CLIENT_ID || 'my-app',
       logLevel: logLevel.INFO,
       retry: {
