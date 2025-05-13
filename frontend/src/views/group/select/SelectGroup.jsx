@@ -16,9 +16,14 @@ export default function SelectGroup() {
         async function fetchGroups() {
             try {
                 const response = await getPublicGroupParticipated();
-                const sortedGroups = response.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                // Bỏ qua dữ liệu null
+                const filteredGroups = response.filter(g => g !== null && g !== undefined);
+                const sortedGroups = filteredGroups.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
                 const allGroupsResponse = await getAllGroup();
-                const sortedAllGroups = allGroupsResponse.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                // Bỏ qua dữ liệu null
+                const filteredAllGroups = allGroupsResponse.filter(g => g !== null && g !== undefined);
+                const sortedAllGroups = filteredAllGroups.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 setMyGroups(sortedGroups);
                 setAllGroups(sortedAllGroups);
@@ -29,6 +34,7 @@ export default function SelectGroup() {
         }
         fetchGroups();
     }, [refresh]); // Add refresh as a dependency
+
 
     useEffect(() => {
         async function fetchresponseMyRequestJoinGroup() {
@@ -145,7 +151,7 @@ export default function SelectGroup() {
         const request = myRequestJoinGroup.find(request => request.group._id === groupId);
         return request ? request._id : null;
     };
-
+    console.log(myRequestJoinGroup);
     return (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 w-full">
             <div className="flex flex-col gap-8 bg-white rounded-lg shadow-md p-6">
@@ -184,7 +190,7 @@ export default function SelectGroup() {
                     <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Tất cả các nhóm</h2>
                     <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-1">
                         {allGroups.map((r) => (
-                            <div key={r.id} className="block w-full">
+                            <div key={r._id} className="block w-full">
                                 <div className='flex gap-3 items-center p-3 rounded-md border border-transparent transition-all duration-200'>
                                     <img src={r.avatargroup} alt="" className='w-12 h-12 rounded-full object-cover border-[1px]' />
                                     <div className="flex flex-col flex-grow">

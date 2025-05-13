@@ -22,45 +22,45 @@ export class PostService {
     constructor(
         @InjectModel(Post.name) private PostModel: Model<Post>,
         @InjectModel(User.name) private UserModel: Model<User>,
-        @InjectModel(PublicGroup.name) private PublicGroupModel : Model<PublicGroup>,
+        @InjectModel(PublicGroup.name) private PublicGroupModel: Model<PublicGroup>,
         @InjectModel(MemberGroup.name) private MemberGroupModel: Model<MemberGroup>,
         @InjectModel(Friend.name) private FriendModel: Model<Friend>,
         private cloudinaryService: CloudinaryService,
         private jwtService: JwtService
     ) { }
 
-    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId,files?: Express.Multer.File[]): Promise<Post> {
+    async createPost(createPostDto: CreatePostDto, userId: Types.ObjectId, files?: Express.Multer.File[]): Promise<Post> {
 
-    
+
         let allowedUsers: Types.ObjectId[] = [];
 
         let groupId: Types.ObjectId | undefined;
         if (createPostDto.group) {
-          try {
-            groupId = new Types.ObjectId(createPostDto.group);
-          } catch (error) {
-            throw new HttpException('Invalid group ID', HttpStatus.BAD_REQUEST);
-          }
+            try {
+                groupId = new Types.ObjectId(createPostDto.group);
+            } catch (error) {
+                throw new HttpException('Invalid group ID', HttpStatus.BAD_REQUEST);
+            }
         }
-    
+
         if (groupId) {
-          const membership = await this.MemberGroupModel.findOne({
-            group: groupId,
-            member: userId,
-          }).exec();
-    
-          if (!membership) {
-            throw new HttpException('You are not a member of this group', HttpStatus.FORBIDDEN);
-          }
-          if (membership.blackList) {
-            throw new HttpException('You are in the blacklist of this group', HttpStatus.FORBIDDEN);
-          }
-          if (membership.role === 'member' && createPostDto.privacy !== 'thisGroup') {
-            throw new HttpException(
-              'Only admins or owners can set privacy for group posts',
-              HttpStatus.FORBIDDEN,
-            );
-          }
+            const membership = await this.MemberGroupModel.findOne({
+                group: groupId,
+                member: userId,
+            }).exec();
+
+            if (!membership) {
+                throw new HttpException('You are not a member of this group', HttpStatus.FORBIDDEN);
+            }
+            if (membership.blackList) {
+                throw new HttpException('You are in the blacklist of this group', HttpStatus.FORBIDDEN);
+            }
+            if (membership.role === 'member' && createPostDto.privacy !== 'thisGroup') {
+                throw new HttpException(
+                    'Only admins or owners can set privacy for group posts',
+                    HttpStatus.FORBIDDEN,
+                );
+            }
         }
 
         if (createPostDto.privacy === 'specific') {
@@ -113,30 +113,30 @@ export class PostService {
         const savedPost = await newPost.save();
         return savedPost
     }
-    
+
 
     async updatePost(postId: string, updatePostDto: UpdatePostDto, userId: string, files?: Express.Multer.File[]): Promise<Post> {
         const post = await this.PostModel.findById(postId);
-    
+
         if (!post) {
             throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
         }
-    
+
         if (post.author.toString() !== userId) {
             throw new HttpException('You are not authorized to update this post', HttpStatus.UNAUTHORIZED);
         }
-    
+
         post.content = updatePostDto.content || post.content;
-    
+
         if (files && files.length > 0) {
-   
+
             try {
                 const uploadedImages = await Promise.all(
                     files.map(file => this.cloudinaryService.uploadFile(file))
                 );
-                post.img = uploadedImages; 
+                post.img = uploadedImages;
             } catch (error) {
-                
+
                 throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
@@ -322,11 +322,11 @@ export class PostService {
     async settingPrivacy(postId: Types.ObjectId, settingPrivacyDto: settingPrivacyDto, userId: Types.ObjectId): Promise<Post> {
         try {
             const post = await this.PostModel.findOne({ _id: postId, author: userId });
-    
+
             if (!post) {
                 throw new HttpException('The post does not exist or you are not authorized', HttpStatus.NOT_FOUND);
             }
-    
+
             let allowedUsers: Types.ObjectId[] = [];
             if (settingPrivacyDto.privacy === 'specific') {
                 if (!Array.isArray(settingPrivacyDto.allowedUsers) || settingPrivacyDto.allowedUsers.length === 0) {
@@ -334,7 +334,7 @@ export class PostService {
                 }
                 allowedUsers = settingPrivacyDto.allowedUsers.map(id => new Types.ObjectId(id));
             }
-    
+
             post.privacy = settingPrivacyDto.privacy;
             post.allowedUsers = allowedUsers;
             return await post.save();
@@ -345,33 +345,33 @@ export class PostService {
             );
         }
     }
-    
-    
+
+
 
     async findPostCurrentUser(userId: Types.ObjectId): Promise<Post[]> {
         try {
             const userPosts = await this.PostModel.find(
-                { 
-                author: userId, 
-                isActive: true,
-                group: { $in : [null, undefined] }
-                 }) 
+                {
+                    author: userId,
+                    isActive: true,
+                    group: { $in: [null, undefined] }
+                })
                 .populate('author', 'username firstName lastName avatar')
                 .exec();
-            
-                this.logger.log(
-                    `User ${userId.toString()} fetched their posts (excluding group posts)`,
-                    userId.toString(),
-                    'FindPostCurrentUser',
-                    { postCount: userPosts.length },
-                  );
-    
+
+            this.logger.log(
+                `User ${userId.toString()} fetched their posts (excluding group posts)`,
+                userId.toString(),
+                'FindPostCurrentUser',
+                { postCount: userPosts.length },
+            );
+
             return userPosts;
         } catch (error) {
             throw new HttpException('Could not retrieve posts', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
+
     async findPostPrivacy(postId: string, userId: string): Promise<Post> {
         try {
             const user = await this.UserModel.findById(userId);
@@ -380,51 +380,57 @@ export class PostService {
             }
             const userIDOBJ = new Types.ObjectId(user._id.toString());
             const postObjectId = new Types.ObjectId(postId);
-    
-            const post = await this.PostModel.findById(postObjectId);
+
+            const post = await this.PostModel.findById(postObjectId)
+                .populate({ path: 'group', select: 'groupName' });
+
             if (!post) {
                 throw new HttpException('The post does not exist', HttpStatus.NOT_FOUND);
             }
-    
+
             if (post.privacy === 'public') {
-                return post;  
+                return post;
             }
-    
+
+            if (post.privacy === 'thisGroup') {
+                return post;
+            }
+
             if (post.privacy === 'private') {
                 if (post.author.equals(userIDOBJ)) {
-                    return post; 
+                    return post;
                 } else {
                     throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
                 }
             }
 
-            if(!post.isActive){
+            if (!post.isActive) {
                 return null;
             }
-    
+
             if (post.privacy === 'friends') {
                 if (post.author.equals(userIDOBJ)) {
-                    return post;  
+                    return post;
                 }
-    
+
                 const isFriend = await this.FriendModel.exists({
                     $or: [
                         { sender: userIDOBJ, receiver: post.author },
                         { sender: post.author, receiver: userIDOBJ }
                     ],
                 });
-    
+
                 if (isFriend) {
-                    return post;  
+                    return post;
                 } else {
                     throw new HttpException('You are not friends with the author', HttpStatus.UNAUTHORIZED);
                 }
             }
-    
+
             if (post.privacy === 'specific') {
-                
+
                 if (post.allowedUsers.some((allowedUser) => allowedUser.toString() === userIDOBJ.toString())) {
-                    return post;  
+                    return post;
                 } else {
                     throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
                 }
@@ -445,11 +451,12 @@ export class PostService {
                     if (!post.isActive) {
                         return null;
                     }
-                   
+
                     if (post.privacy === 'public') {
                         return post;
                     }
-    
+
+
                     if (post.privacy === 'private') {
                         if (userId.equals(currentUserId)) {
                             return post; // Chỉ tác giả mới xem được
@@ -457,43 +464,43 @@ export class PostService {
                         return null;
                     }
 
-                    if(post.group){
+                    if (post.group) {
                         return null;
                     }
 
                     if (post.privacy === 'friends') {
-                       
+
                         if (userId.equals(currentUserId)) {
                             return post;
                         }
-    
+
                         const isFriend = await this.FriendModel.exists({
                             $or: [
-                                { sender: userId, receiver: currentUserId},
+                                { sender: userId, receiver: currentUserId },
                                 { sender: currentUserId, receiver: userId },
                             ],
                         });
-    
+
                         if (isFriend) {
                             return post;
                         }
                         return null;
                     }
-    
+
                     if (post.privacy === 'specific') {
                         if (
                             post.allowedUsers.some((id) =>
                                 id.toString() === currentUserId?.toString()
                             )
                         ) {
-                            return post; 
+                            return post;
                         }
                         return null;
                     }
-                    return null; 
+                    return null;
                 })
             );
-    
+
             return filteredPosts.filter((post) => post !== null);
         } catch (error) {
             console.error('Error in getPostsByUser:', error);
@@ -503,7 +510,7 @@ export class PostService {
             );
         }
     }
-    
+
     async getALlPost(): Promise<Post[]> {
         try {
             const posts = await this.PostModel.find();
@@ -512,7 +519,7 @@ export class PostService {
             throw new HttpException('Could not retrieve posts', HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
-    
+
     //ok thì cái này không còn phù hợp nữa
     //sửa logic lại
     // chỉa thành 4 giai đoạn cho đễ pảo chì
@@ -574,8 +581,8 @@ export class PostService {
                 { $lookup: { from: 'comments', localField: 'comments', foreignField: '_id', as: 'commentObjects', pipeline: [{ $project: { createdAt: 1 } }] } }
             );
 
-             // ----- Giai đoạn 3: $addFields - Tính toán các yếu tố trung gian -----
-             pipeline.push({
+            // ----- Giai đoạn 3: $addFields - Tính toán các yếu tố trung gian -----
+            pipeline.push({
                 $addFields: {
                     latestCommentTime: { $ifNull: [{ $max: '$commentObjects.createdAt' }, '$createdAt'] }, // Thời gian tương tác cuối (comment hoặc post)
                     isFriendPost: { $in: ['$author', friendIds] },
@@ -584,14 +591,16 @@ export class PostService {
                 }
             });
             // Tách riêng $addFields để tránh phụ thuộc vòng tròn tiềm ẩn
-             pipeline.push({
+            pipeline.push({
                 $addFields: {
-                    isPublicFromOther: { $and: [
-                        { $eq: ['$privacy', 'public'] },
-                        { $eq: ['$isOwnPost', false] },
-                        { $eq: ['$isFriendPost', false] },
-                        { $eq: ['$isGroupPost', false] }
-                    ]},
+                    isPublicFromOther: {
+                        $and: [
+                            { $eq: ['$privacy', 'public'] },
+                            { $eq: ['$isOwnPost', false] },
+                            { $eq: ['$isFriendPost', false] },
+                            { $eq: ['$isGroupPost', false] }
+                        ]
+                    },
                     isNewPost: { $gte: ['$createdAt', timeThreshold] }, // Bài viết mới (trong 48h)
                     hasRecentComment: { // Có tương tác gần đây (trong 48h) VÀ khác thời gian tạo bài
                         $and: [
@@ -602,8 +611,8 @@ export class PostService {
                 }
             });
 
-             // ----- Giai đoạn 4: $addFields - Gán Mức Ưu Tiên (priorityLevel) -----
-             pipeline.push({
+            // ----- Giai đoạn 4: $addFields - Gán Mức Ưu Tiên (priorityLevel) -----
+            pipeline.push({
                 $addFields: {
                     priorityLevel: {
                         $switch: {
@@ -625,7 +634,7 @@ export class PostService {
                 }
             });
 
-             // ----- Giai đoạn 5: $addFields - Xác định Khóa Sắp xếp Phụ (sortTime) -----
+            // ----- Giai đoạn 5: $addFields - Xác định Khóa Sắp xếp Phụ (sortTime) -----
             pipeline.push({
                 $addFields: {
                     sortTime: { // Dùng latestCommentTime cho bài cũ có tương tác mới, còn lại dùng createdAt
@@ -674,21 +683,21 @@ export class PostService {
 
             // ----- Giai đoạn 9: $project (Định hình kết quả và giữ lại trường cho cursor) -----
             pipeline.push({
-                 $project: {
-                     // Các trường trả về cho client
-                     _id: 1, content: 1, img: 1, gif: 1, privacy: 1, createdAt: 1, likesCount: 1, commentsCount: 1,
-                     author: { _id: '$authorInfo._id', firstName: '$authorInfo.firstName', lastName: '$authorInfo.lastName', avatar: '$authorInfo.avatar' },
-                     group: { // Xử lý group an toàn
-                         $let: {
-                             vars: { groupDoc: { $ifNull: [ { $arrayElemAt: [ '$groupInfo', 0 ] }, null ] } },
-                             in: { $cond: { if: '$$groupDoc', then: { _id: '$$groupDoc._id', groupName: '$$groupDoc.groupName', avatargroup: '$$groupDoc.avatargroup', typegroup: '$$groupDoc.typegroup'}, else: null } }
-                         }
-                     },
-                     // Các trường dùng để tạo cursor (tên tạm) - LƯU Ý TÊN MỚI
-                     _priorityLevelForCursor: '$priorityLevel',
-                     _sortTimeForCursor: '$sortTime',
-                     // _id đã có sẵn
-                 }
+                $project: {
+                    // Các trường trả về cho client
+                    _id: 1, content: 1, img: 1, gif: 1, privacy: 1, createdAt: 1, likesCount: 1, commentsCount: 1,
+                    author: { _id: '$authorInfo._id', firstName: '$authorInfo.firstName', lastName: '$authorInfo.lastName', avatar: '$authorInfo.avatar' },
+                    group: { // Xử lý group an toàn
+                        $let: {
+                            vars: { groupDoc: { $ifNull: [{ $arrayElemAt: ['$groupInfo', 0] }, null] } },
+                            in: { $cond: { if: '$$groupDoc', then: { _id: '$$groupDoc._id', groupName: '$$groupDoc.groupName', avatargroup: '$$groupDoc.avatargroup', typegroup: '$$groupDoc.typegroup' }, else: null } }
+                        }
+                    },
+                    // Các trường dùng để tạo cursor (tên tạm) - LƯU Ý TÊN MỚI
+                    _priorityLevelForCursor: '$priorityLevel',
+                    _sortTimeForCursor: '$sortTime',
+                    // _id đã có sẵn
+                }
             });
 
             // 4. Thực thi Pipeline
@@ -738,230 +747,230 @@ export class PostService {
 
     async getHomeFeed(userId: Types.ObjectId): Promise<ProjectedPost[]> {
         try {
-          const user = await this.UserModel.findById(userId);
-          if (!user) throw new NotFoundException('User not found');
-      
-          const userIdObject = new Types.ObjectId(userId);
-      
-          // Lấy danh sách bạn bè và nhóm
-          const friends = await this.FriendModel.find({
-            $or: [{ sender: userIdObject, status: 'friend' }, { receiver: userIdObject, status: 'friend' }],
-          })
-            .select('sender receiver')
-            .lean();
-          const friendIds = friends.map((f) => (userIdObject.equals(f.sender.toString()) ? f.receiver : f.sender));
-          const memberships = await this.MemberGroupModel.find({ member: userIdObject, blackList: false })
-            .select('group')
-            .lean();
-          const memberGroupIds = memberships.map((m) => m.group);
-      
-          const timeThreshold = new Date(Date.now() - 48 * 60 * 60 * 1000);
-      
-          // Pipeline Aggregation
-          const pipeline: PipelineStage[] = [];
-      
-          // Giai đoạn 1: $match để lấy bài viết hợp lệ
-          pipeline.push({
-            $match: {
-              isActive: true,
-              $or: [
-                { author: userIdObject },
-                { author: { $in: friendIds }, $or: [{ privacy: 'friends' }, { privacy: 'public' }, { privacy: 'specific', allowedUsers: userIdObject }] },
-                { group: { $in: memberGroupIds } },
-                { author: { $nin: [userIdObject, ...friendIds] }, group: { $in: [null, undefined] }, privacy: 'public' },
-                { author: { $nin: [userIdObject, ...friendIds] }, privacy: 'specific', allowedUsers: userIdObject },
-              ],
-            },
-          });
-      
-          // Giai đoạn 2: $lookup
-          pipeline.push(
-            { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'authorInfo' } },
-            { $unwind: { path: '$authorInfo', preserveNullAndEmptyArrays: false } },
-            { $lookup: { from: 'publicgroups', localField: 'group', foreignField: '_id', as: 'groupInfo' } },
-            { $lookup: { from: 'comments', localField: 'comments', foreignField: '_id', as: 'commentObjects', pipeline: [{ $project: { createdAt: 1 } }] } },
-          );
-      
-          // Giai đoạn 3: Tính toán các yếu tố trung gian
-          pipeline.push({
-            $addFields: {
-              latestCommentTime: { $ifNull: [{ $max: '$commentObjects.createdAt' }, '$createdAt'] },
-              isFriendPost: { $in: ['$author', friendIds] },
-              isGroupPost: { $cond: { if: '$group', then: true, else: false } },
-              isOwnPost: { $eq: ['$author', userIdObject] },
-            },
-          });
-      
-          pipeline.push({
-            $addFields: {
-              isPublicFromOther: {
-                $and: [
-                  { $eq: ['$privacy', 'public'] },
-                  { $eq: ['$isOwnPost', false] },
-                  { $eq: ['$isFriendPost', false] },
-                  { $eq: ['$isGroupPost', false] },
-                ],
-              },
-              isNewPost: { $gte: ['$createdAt', timeThreshold] },
-              hasRecentComment: {
-                $and: [{ $ne: ['$latestCommentTime', '$createdAt'] }, { $gte: ['$latestCommentTime', timeThreshold] }],
-              },
-            },
-          });
-      
-          // Giai đoạn 4: Gán priorityLevel
-          pipeline.push({
-            $addFields: {
-              priorityLevel: {
-                $switch: {
-                  branches: [
-                    { case: { $and: ['$isFriendPost', '$isNewPost'] }, then: 6 },
-                    { case: { $and: ['$isGroupPost', '$isNewPost'] }, then: 5 },
-                    { case: { $and: ['$isFriendPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 4 },
-                    { case: { $and: ['$isGroupPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 3 },
-                    { case: { $and: ['$isOwnPost', '$isNewPost'] }, then: 2 },
-                  ],
-                  default: 1,
+            const user = await this.UserModel.findById(userId);
+            if (!user) throw new NotFoundException('User not found');
+
+            const userIdObject = new Types.ObjectId(userId);
+
+            // Lấy danh sách bạn bè và nhóm
+            const friends = await this.FriendModel.find({
+                $or: [{ sender: userIdObject, status: 'friend' }, { receiver: userIdObject, status: 'friend' }],
+            })
+                .select('sender receiver')
+                .lean();
+            const friendIds = friends.map((f) => (userIdObject.equals(f.sender.toString()) ? f.receiver : f.sender));
+            const memberships = await this.MemberGroupModel.find({ member: userIdObject, blackList: false })
+                .select('group')
+                .lean();
+            const memberGroupIds = memberships.map((m) => m.group);
+
+            const timeThreshold = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+            // Pipeline Aggregation
+            const pipeline: PipelineStage[] = [];
+
+            // Giai đoạn 1: $match để lấy bài viết hợp lệ
+            pipeline.push({
+                $match: {
+                    isActive: true,
+                    $or: [
+                        { author: userIdObject },
+                        { author: { $in: friendIds }, $or: [{ privacy: 'friends' }, { privacy: 'public' }, { privacy: 'specific', allowedUsers: userIdObject }] },
+                        { group: { $in: memberGroupIds } },
+                        { author: { $nin: [userIdObject, ...friendIds] }, group: { $in: [null, undefined] }, privacy: 'public' },
+                        { author: { $nin: [userIdObject, ...friendIds] }, privacy: 'specific', allowedUsers: userIdObject },
+                    ],
                 },
-              },
-            },
-          });
-      
-          // Giai đoạn 5: Xác định sortTime
-          pipeline.push({
-            $addFields: {
-              sortTime: {
-                $cond: {
-                  if: { $in: ['$priorityLevel', [4, 3]] },
-                  then: '$latestCommentTime',
-                  else: '$createdAt',
+            });
+
+            // Giai đoạn 2: $lookup
+            pipeline.push(
+                { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'authorInfo' } },
+                { $unwind: { path: '$authorInfo', preserveNullAndEmptyArrays: false } },
+                { $lookup: { from: 'publicgroups', localField: 'group', foreignField: '_id', as: 'groupInfo' } },
+                { $lookup: { from: 'comments', localField: 'comments', foreignField: '_id', as: 'commentObjects', pipeline: [{ $project: { createdAt: 1 } }] } },
+            );
+
+            // Giai đoạn 3: Tính toán các yếu tố trung gian
+            pipeline.push({
+                $addFields: {
+                    latestCommentTime: { $ifNull: [{ $max: '$commentObjects.createdAt' }, '$createdAt'] },
+                    isFriendPost: { $in: ['$author', friendIds] },
+                    isGroupPost: { $cond: { if: '$group', then: true, else: false } },
+                    isOwnPost: { $eq: ['$author', userIdObject] },
                 },
-              },
-            },
-          });
-      
-          // Giai đoạn 6: Sắp xếp
-          pipeline.push({
-            $sort: { priorityLevel: -1, sortTime: -1, _id: -1 },
-          });
-      
-          // Giai đoạn 7: Định hình kết quả
-          pipeline.push({
-            $project: {
-              _id: 1,
-              content: 1,
-              img: 1,
-              gif: 1,
-              privacy: 1,
-              likes: 1,
-              dislikes: 1,
-              createdAt: 1,
-              likesCount: 1,
-              commentsCount: 1,
-              dislikesCount: 1,
-              author: {
-                _id: '$authorInfo._id',
-                firstName: '$authorInfo.firstName',
-                lastName: '$authorInfo.lastName',
-                avatar: '$authorInfo.avatar',
-              },
-              group: {
-                $let: {
-                  vars: { groupDoc: { $ifNull: [{ $arrayElemAt: ['$groupInfo', 0] }, null] } },
-                  in: {
-                    $cond: {
-                      if: '$$groupDoc',
-                      then: { _id: '$$groupDoc._id', groupName: '$$groupDoc.groupName', avatargroup: '$$groupDoc.avatargroup', typegroup: '$$groupDoc.typegroup' },
-                      else: null,
+            });
+
+            pipeline.push({
+                $addFields: {
+                    isPublicFromOther: {
+                        $and: [
+                            { $eq: ['$privacy', 'public'] },
+                            { $eq: ['$isOwnPost', false] },
+                            { $eq: ['$isFriendPost', false] },
+                            { $eq: ['$isGroupPost', false] },
+                        ],
                     },
-                  },
+                    isNewPost: { $gte: ['$createdAt', timeThreshold] },
+                    hasRecentComment: {
+                        $and: [{ $ne: ['$latestCommentTime', '$createdAt'] }, { $gte: ['$latestCommentTime', timeThreshold] }],
+                    },
                 },
-              },
-            },
-          });
-      
-          // Thực thi pipeline
-          const posts = (await this.PostModel.aggregate(pipeline)) as ProjectedPost[];
-      
-          // Ghi log
-          this.logger.log(
-            `User ${userId.toString()} fetched home feed`,
-            userId.toString(),
-            'GetHomeFeed',
-            { postCount: posts.length },
-          );
-      
-          return posts;
+            });
+
+            // Giai đoạn 4: Gán priorityLevel
+            pipeline.push({
+                $addFields: {
+                    priorityLevel: {
+                        $switch: {
+                            branches: [
+                                { case: { $and: ['$isFriendPost', '$isNewPost'] }, then: 6 },
+                                { case: { $and: ['$isGroupPost', '$isNewPost'] }, then: 5 },
+                                { case: { $and: ['$isFriendPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 4 },
+                                { case: { $and: ['$isGroupPost', { $not: '$isNewPost' }, '$hasRecentComment'] }, then: 3 },
+                                { case: { $and: ['$isOwnPost', '$isNewPost'] }, then: 2 },
+                            ],
+                            default: 1,
+                        },
+                    },
+                },
+            });
+
+            // Giai đoạn 5: Xác định sortTime
+            pipeline.push({
+                $addFields: {
+                    sortTime: {
+                        $cond: {
+                            if: { $in: ['$priorityLevel', [4, 3]] },
+                            then: '$latestCommentTime',
+                            else: '$createdAt',
+                        },
+                    },
+                },
+            });
+
+            // Giai đoạn 6: Sắp xếp
+            pipeline.push({
+                $sort: { priorityLevel: -1, sortTime: -1, _id: -1 },
+            });
+
+            // Giai đoạn 7: Định hình kết quả
+            pipeline.push({
+                $project: {
+                    _id: 1,
+                    content: 1,
+                    img: 1,
+                    gif: 1,
+                    privacy: 1,
+                    likes: 1,
+                    dislikes: 1,
+                    createdAt: 1,
+                    likesCount: 1,
+                    commentsCount: 1,
+                    dislikesCount: 1,
+                    author: {
+                        _id: '$authorInfo._id',
+                        firstName: '$authorInfo.firstName',
+                        lastName: '$authorInfo.lastName',
+                        avatar: '$authorInfo.avatar',
+                    },
+                    group: {
+                        $let: {
+                            vars: { groupDoc: { $ifNull: [{ $arrayElemAt: ['$groupInfo', 0] }, null] } },
+                            in: {
+                                $cond: {
+                                    if: '$$groupDoc',
+                                    then: { _id: '$$groupDoc._id', groupName: '$$groupDoc.groupName', avatargroup: '$$groupDoc.avatargroup', typegroup: '$$groupDoc.typegroup' },
+                                    else: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            // Thực thi pipeline
+            const posts = (await this.PostModel.aggregate(pipeline)) as ProjectedPost[];
+
+            // Ghi log
+            this.logger.log(
+                `User ${userId.toString()} fetched home feed`,
+                userId.toString(),
+                'GetHomeFeed',
+                { postCount: posts.length },
+            );
+
+            return posts;
         } catch (error) {
-          this.logger.error(
-            `Failed to fetch home feed for user ${userId.toString()}`,
-            userId.toString(),
-            'GetHomeFeed',
-            error.stack,
-            {},
-          );
-          if (error instanceof NotFoundException) {
-            throw error;
-          }
-          if (error.name === 'MongoServerError' || error.code) {
-            console.error('MongoDB Aggregation Error:', JSON.stringify(error, null, 2));
-          }
-          throw new HttpException('Error fetching home feed', HttpStatus.INTERNAL_SERVER_ERROR);
+            this.logger.error(
+                `Failed to fetch home feed for user ${userId.toString()}`,
+                userId.toString(),
+                'GetHomeFeed',
+                error.stack,
+                {},
+            );
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            if (error.name === 'MongoServerError' || error.code) {
+                console.error('MongoDB Aggregation Error:', JSON.stringify(error, null, 2));
+            }
+            throw new HttpException('Error fetching home feed', HttpStatus.INTERNAL_SERVER_ERROR);
         }
-      }
+    }
 
     async getPostByContent(content: string, currentUserId?: Types.ObjectId): Promise<Post[]> {
         try {
-            const posts = await this.PostModel.find({ 
-                content: { $regex: content, $options: 'i' } 
+            const posts = await this.PostModel.find({
+                content: { $regex: content, $options: 'i' }
             })
-            .populate({
-                path: 'author',
-                select: 'firstName lastName avatar'
-            })
-            .exec();
-    
+                .populate({
+                    path: 'author',
+                    select: 'firstName lastName avatar'
+                })
+                .exec();
+
             if (!posts.length) {
                 throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
             }
-    
+
             const filteredPosts = await Promise.all(
                 posts.map(async (post) => {
                     const userId = post.author
-    
+
                     if (!post.isActive) {
                         return null; //thêm cái đìu kiệng is active dô  níu là false thì sủi
                     }
-    
+
                     if (post.privacy === 'public') {
                         return post;
                     }
-    
+
                     if (post.privacy === 'private') {
                         if (userId.equals(currentUserId)) {
                             return post; // author xem được còn lại chim xẻ
                         }
                         return null;
                     }
-    
+
                     if (post.privacy === 'friends') {
                         if (userId.equals(currentUserId)) {
                             return post;
                         }
-    
+
                         const isFriend = await this.FriendModel.exists({
                             $or: [
                                 { sender: userId, receiver: currentUserId },
                                 { sender: currentUserId, receiver: userId },
                             ],
                         });
-    
+
                         if (isFriend) {
                             return post;
                         }
                         return null;
                     }
-    
+
                     if (post.privacy === 'specific') {
                         if (
                             post.allowedUsers.some((id) =>
@@ -972,11 +981,11 @@ export class PostService {
                         }
                         return null;
                     }
-    
+
                     return null;
                 })
             );
-    
+
             return filteredPosts.filter((post) => post !== null);
         } catch (error) {
             console.error('Error in getPostByContent:', error);
@@ -1000,5 +1009,5 @@ export class PostService {
         return post;
     }
 
-    
+
 }

@@ -202,12 +202,25 @@ export default function DetailPost() {
                 <AVTUser user={user} />
                 <article className="grid gap-5">
                   <div className="grid">
-                    <Link
-                      className="font-bold text-lg hover:underline"
-                      to={`/user/${user._id}`}
-                    >
-                      {user.lastName} {user.firstName}
-                    </Link>
+                    <div className='flex items-center gap-2'>
+                      <Link
+                        className="font-bold text-lg hover:underline"
+                        to={`/user/${user._id}`}
+                      >
+                        {user.lastName} {user.firstName}
+                      </Link>
+                      {posts.group && (
+                        <>
+                          <span className="mx-1 text-gray-500">▸</span>
+                          <Link
+                            className="font-semibold text-sm sm:text-base md:text-lg hover:underline transition-colors duration-200 text-gray-800"
+                            to={`/group/${posts.group._id}`}
+                          >
+                            {posts.group.groupName}
+                          </Link>
+                        </>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       <span className="text-xs">{formatDate(posts.createdAt)}</span>
                       <span className="text-xs">{formatPrivacy(posts.privacy)}</span>
