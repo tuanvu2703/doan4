@@ -372,68 +372,81 @@ export class PostService {
         }
     }
     
-    async findPostPrivacy(postId: string, userId: string): Promise<Post> {
-        try {
-            const user = await this.UserModel.findById(userId);
-            if (!user) {
-                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-            }
-            const userIDOBJ = new Types.ObjectId(user._id.toString());
-            const postObjectId = new Types.ObjectId(postId);
-    
-            const post = await this.PostModel.findById(postObjectId);
-            if (!post) {
-                throw new HttpException('The post does not exist', HttpStatus.NOT_FOUND);
-            }
-    
-            if (post.privacy === 'public') {
-                return post;  
-            }
-    
-            if (post.privacy === 'private') {
-                if (post.author.equals(userIDOBJ)) {
-                    return post; 
-                } else {
-                    throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
-                }
-            }
+    async findPostPrivacy(postId: string, userId: string): Promise<Post | null> {
+    try {
+      // Kiểm tra user tồn tại
+      const user = await this.UserModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      const userIDOBJ = new Types.ObjectId(user._id.toString());
 
-            if(!post.isActive){
-                return null;
-            }
-    
-            if (post.privacy === 'friends') {
-                if (post.author.equals(userIDOBJ)) {
-                    return post;  
-                }
-    
-                const isFriend = await this.FriendModel.exists({
-                    $or: [
-                        { sender: userIDOBJ, receiver: post.author },
-                        { sender: post.author, receiver: userIDOBJ }
-                    ],
-                });
-    
-                if (isFriend) {
-                    return post;  
-                } else {
-                    throw new HttpException('You are not friends with the author', HttpStatus.UNAUTHORIZED);
-                }
-            }
-    
-            if (post.privacy === 'specific') {
-                
-                if (post.allowedUsers.some((allowedUser) => allowedUser.toString() === userIDOBJ.toString())) {
-                    return post;  
-                } else {
-                    throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
-                }
-            }
-            throw new HttpException('Invalid post privacy setting', HttpStatus.BAD_REQUEST);
-        } catch (error) {
-            throw error;
-        }
+      // Kiểm tra post tồn tại
+      const postObjectId = new Types.ObjectId(postId);
+      const post = await this.PostModel.findById(postObjectId);
+      if (!post) {
+        throw new HttpException('The post does not exist', HttpStatus.NOT_FOUND);
+      }
+
+      // Kiểm tra isActive
+      if (!post.isActive) {
+        return null; // Trả về null nếu post không active
+      }
+
+      // Kiểm tra privacy của bài viết
+      switch (post.privacy) {
+        case 'public':
+          return post; // Ai cũng có thể xem
+
+        case 'thisGroup':
+          // Kiểm tra nhóm và quyền truy cập
+          if (!post.group) {
+            throw new HttpException('Post is not associated with any group', HttpStatus.BAD_REQUEST);
+          }
+          const grouptype = await this.PublicGroupModel.findById(post.group);
+          if (!grouptype) {
+            throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+          }
+          const memberGroup = await this.MemberGroupModel.findOne({ group: post.group, member: userIDOBJ });
+          if (grouptype.introduction.visibility === 'private' && !memberGroup) {
+            throw new HttpException('The post cannot be shown to you (private group)', HttpStatus.FORBIDDEN);
+          }
+          return post; // Nếu nhóm public hoặc user là thành viên, trả về post
+
+        case 'private':
+          if (post.author.equals(userIDOBJ)) {
+            return post; // Chỉ tác giả được xem
+          }
+          throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
+
+        case 'friends':
+          if (post.author.equals(userIDOBJ)) {
+            return post; // Tác giả được xem
+          }
+          const isFriend = await this.FriendModel.exists({
+            $or: [
+              { sender: userIDOBJ, receiver: post.author },
+              { sender: post.author, receiver: userIDOBJ },
+            ],
+          });
+          if (isFriend) {
+            return post; // Bạn bè được xem
+          }
+          throw new HttpException('You are not friends with the author', HttpStatus.UNAUTHORIZED);
+
+        case 'specific':
+          if (post.allowedUsers.some((allowedUser) => allowedUser.toString() === userIDOBJ.toString())) {
+            return post; // Người được chỉ định được xem
+          }
+          throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
+
+        default:
+          throw new HttpException('Invalid post privacy setting', HttpStatus.BAD_REQUEST);
+      }
+    } catch (error) {
+      throw error;
     }
+  }
 
     async getPostsByUser(userId: Types.ObjectId, currentUserId?: Types.ObjectId): Promise<Post[]> {
         try {
