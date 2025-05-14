@@ -259,6 +259,10 @@ export class NotificationService {
           await this.handleChatMessage(parsedMessage);
           return; // Không gọi handleKafkaMessage
 
+        case 'report':
+          await this.handleReportEvent(parsedMessage);
+          return; // Không gọi handleKafkaMessage
+
         default:
           console.warn(`⚠️ Unknown topic: ${topic}`);
       }

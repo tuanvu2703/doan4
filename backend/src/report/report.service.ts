@@ -370,10 +370,10 @@ export class ReportService {
             await report.save();
     
             // Gửi thông báo cho người kháng cáo
-           await this.producerService.sendMessage('mypost', {
+           await this.producerService.sendMessage('report', {
                 type: 'appeal approve',
-                ownerId: report.sender, // Người gửi báo cáo
-                targetUserId: appeal.appellant, // Người kháng cáo
+                ownerId: report.sender[0], 
+                targetUserId: appeal.appellant, 
                 data: {
                     postId: post._id,
                     message: `Kháng cáo của bạn đối với bài viết đã được chấp thuận. Bài đăng đã được khôi phục kể từ ngày ${new Date().toISOString().split('T')[0]} chúng tôi xin lỗi vì sự bất tiện này.`,
@@ -386,13 +386,13 @@ export class ReportService {
             appeal.status = 'resolved';
             appeal.implementation = 'reject';
             
-            await this.producerService.sendMessage('mypost', {
-                type: 'appeal reject',
-                ownerId: report.sender, // Người gửi báo cáo
-                targetUserId: appeal.appellant, // Người kháng cáo
+              await this.producerService.sendMessage('report', {
+                type: 'appeal rejected',
+                ownerId: report.sender[0], 
+                targetUserId: appeal.appellant, 
                 data: {
                     postId: post._id,
-                    message: `Kháng cáo của bạn đối với bài viết đã bị từ chối. Chúng tôi rất tiếc phải thông báo rằng bài viết của bạn hết cứu và nó sẽ chính thức bị gỡ xuống từ ngày ${new Date().toISOString().split('T')[0]}.`,
+                    message: `Bài viết của bạn đã bị xoá do vi phạm quy tắc cộng động bạn có 7 ngày để kháng cáo nếu bạn cho rằng đây là hiểu nhầm ${report.appealDeadline.toISOString().split('T')[0]}.`,
                     timestamp: new Date(),
                 },
             });
