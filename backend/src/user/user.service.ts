@@ -657,15 +657,15 @@ export class UserService {
   }
 
 
-  async resetPassword(email: string, otp: string, resetPasswordDto: ResetPasswordDto): Promise<string> {
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<string> {
     // Xác thực OTP
-    const isOtpValid = await this.otpService.verifyOtp(email, otp);
+    const isOtpValid = await this.otpService.verifyOtp(resetPasswordDto.email, resetPasswordDto.otp);
     if (!isOtpValid) {
       throw new BadRequestException('Invalid or expired OTP');
     }
 
     // Cập nhật mật khẩu (băm mật khẩu mới)
-    const user = await this.UserModel.findOne({ email });
+    const user = await this.UserModel.findOne({ email: resetPasswordDto.email });
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -674,7 +674,7 @@ export class UserService {
     user.password = hashedPassword;
     await user.save();
     // Xóa OTP sau khi xác thực thành công để tránh sử dụng lại
-    await this.UserModel.updateOne({ email }, { otp: null, otpExpirationTime: null });
+    await this.UserModel.updateOne({ email: resetPasswordDto.email }, { otp: null, otpExpirationTime: null });
 
     return 'Password reset successfully';
   }

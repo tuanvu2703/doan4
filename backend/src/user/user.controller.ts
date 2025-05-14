@@ -205,15 +205,11 @@ export class UserController {
   @Post('reset-password')
 
   async resetPassword(
-    @Body('email') email: string,
-    @Body('otp') otp: string,
     @Body() resetPasswordDto: ResetPasswordDto,
   ) {
     try {
       const message = await this.userService.resetPassword(
-        email,
-        otp,
-        resetPasswordDto,
+        resetPasswordDto
       );
       return { message };
     } catch (error) {
