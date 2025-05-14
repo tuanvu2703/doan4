@@ -73,14 +73,42 @@ function LayoutContent() {
       return;
     }
     getDataUser();
-  }, [navigate]);
-
-  // Handle incoming calls
+  }, [navigate]);  // Handle incoming calls
   useEffect(() => {
     // Set up incomingCall handler
     socket.on("incomingCall", ({ from, group }) => {
       console.log("📞 [Socket] Nhận incomingCall từ:", from, "group:", group);
-      // Store incoming call data and show confirmation
+
+      // Get our current user ID (to compare with the caller)
+      const currentUserId = userCurrent?._id;
+      console.log("👤 Current user ID:", currentUserId, "Caller ID:", from);
+
+      // First check if the incoming call is from ourselves 
+      // (this happens due to socket broadcast)
+      if (currentUserId && String(currentUserId) === String(from)) {
+        console.log("🔄 [Socket] Bỏ qua cuộc gọi từ chính mình");
+        return;
+      }
+
+      // Check if we're already in a call with someone else
+      // Only reject if we're not the one making this call
+      if (callState.isOpen && callState.status !== 'calling') {
+        console.log("❌ [Socket] Tự động từ chối cuộc gọi vì đang trong cuộc gọi khác");
+        socket.emit("rejectCall", { callerId: from });
+        return;
+      }
+
+      // Check if this is part of our existing outgoing call
+      // Nếu trạng thái hiện tại là 'calling' và người gọi đến nằm trong danh sách
+      // targetUserIds, thì bỏ qua notification này
+      const targetIds = callState.targetUserIds ? callState.targetUserIds.split(',').map(id => id.trim()) : [];
+      const isPartOfOutgoingCall = callState.status === 'calling' && targetIds.length > 0;
+      if (isPartOfOutgoingCall) {
+        console.log("🔄 [Socket] Bỏ qua incomingCall vì liên quan đến cuộc gọi đi hiện tại");
+        return;
+      }
+      // Hiển thị thông báo cuộc gọi đến
+      console.log("📱 [Socket] Hiển thị thông báo cuộc gọi đến từ:", from);
       setIncomingCallData({ from, group });
       setShowCallConfirm(true);
     });
@@ -90,15 +118,12 @@ function LayoutContent() {
       console.log("❌ [Socket] Nhận callRejected từ:", from);
       toast.error(`Cuộc gọi bị từ chối bởi ${from}`, NotificationCss.Fail);
       endCall(); // Close the call modal
-    });
-
-    // Cleanup event listeners
+    });    // Cleanup event listeners
     return () => {
       socket.off("incomingCall");
       socket.off("callRejected");
     };
-  }, [endCall]);
-
+  }, [endCall, callState.isOpen, callState.targetUserIds, callState.status, userCurrent?._id]);
   // Handle call acceptance
   const handleAcceptCall = () => {
     if (incomingCallData) {
@@ -117,6 +142,13 @@ function LayoutContent() {
       setIncomingCallData(null);
     }
   };
+  // When callState changes, ensure the incoming call dialog is hidden if we're in a call
+  useEffect(() => {
+    if (callState.isOpen && showCallConfirm) {
+      setShowCallConfirm(false);
+      setIncomingCallData(null);
+    }
+  }, [callState.isOpen, showCallConfirm]);
 
   useEffect(() => {
     socket.on("newmessage", (newMessage) => {

@@ -139,6 +139,22 @@ export default function Comment({ user, refreshComments }) {
                 onCommentAdded={handleCommentAdded}
               />
             </div>
+
+            {/* Display direct replies to this comment */}
+            {comment.filter(reply => reply.replyTo.length > 0 && reply.replyTo[0] === e._id).length > 0 && (
+              <div className="mt-3 pt-2 border-t border-gray-300">
+                <div className="ml-5 pl-2 border-l-2 border-gray-300">
+                  <CommentReply
+                    open={true}
+                    user={user}
+                    cmtId={e._id}
+                    onCommentAdded={handleCommentAdded}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Display reply button for viewing all replies if available */}
             {e?.replies && e?.replies?.length > 0 && (
               <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                 <button
@@ -151,7 +167,6 @@ export default function Comment({ user, refreshComments }) {
 
                 {isReplyOpen === e._id &&
                   <div className="mt-2 pl-2 border-l-2 border-gray-200 dark:border-gray-700">
-
                     <CommentReply
                       open={true}
                       user={user}
@@ -160,7 +175,6 @@ export default function Comment({ user, refreshComments }) {
                     />
                   </div>
                 }
-
               </div>
             )}
           </div>

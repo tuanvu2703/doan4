@@ -104,7 +104,7 @@ export class PublicGroupService {
   async getPublicGroupForUser(userId: Types.ObjectId): Promise<PublicGroup[]> {
     const groups = await this.MemberGroupModel.find({ member: userId }).populate({
       path: 'group',
-      select: 'groupName avatarGroup'
+      select: 'groupName avatargroup'
     })
     return groups.map((group) => group.group);
   }
