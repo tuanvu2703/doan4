@@ -145,7 +145,7 @@ export class ReportService {
                 targetUserIds: report.sender, // Gửi đến tất cả người báo cáo trong mảng sender
                 data: {
                     postId: post._id,
-                    message: `Thank you for your report. The reported post has been reviewed and removed as of ${new Date().toISOString().split('T')[0]}.`,
+                    message: `Cảm ơn bạn đã báo bài viết vi phạm quy tắc cộng đồng bài viết đã bị gỡ từ ngày ${new Date().toISOString().split('T')[0]}.`,
                     timestamp: new Date(),
                 },
             });
@@ -157,7 +157,7 @@ export class ReportService {
                 targetUserId: post.author, // Người nhận thông báo: chủ bài viết
                 data: {
                     postId: post._id,
-                    message: `Your post has been removed due to a report for violating community guidelines. You can appeal this decision within 7 days until ${report.appealDeadline.toISOString().split('T')[0]}.`,
+                    message: `Bài viết của bạn đã bị xoá do vi phạm quy tắc cộng động bạn có 7 ngày để kháng cáo nếu bạn cho rằng đây là hiểu nhầm ${report.appealDeadline.toISOString().split('T')[0]}.`,
                     timestamp: new Date(),
                 },
             });
@@ -171,7 +171,7 @@ export class ReportService {
                 targetUserId: report.sender, // Người nhận thông báo: người gửi báo cáo
                 data: {
                     postId: post._id,
-                    message: `Your report against a post has been reviewed and rejected by the moderation team as of ${new Date().toISOString().split('T')[0]}.`,
+                    message: `Báo cáo của bạn về bài viết đã được xem xét và từ chối do không có vi phạm, cảm ơn bạn đã gửi báo cáo. ${new Date().toISOString().split('T')[0]}.`,
                     // avatar: post.authorAvatar || '', // Giả định có trường avatar
                     timestamp: new Date(),
                 },
@@ -198,7 +198,7 @@ export class ReportService {
                 targetUserIds: report.sender, // Gửi đến tất cả người báo cáo trong mảng sender
                 data: {
                     userId: user._id,
-                    message: `Thank you for your report. The reported account has been reviewed and deactivated as of ${new Date().toISOString().split('T')[0]}.`,
+                    message: `Cảm ơn bạn đã báo cáo người dùng ${user.firstName} ${user.lastName} sau khi xem xét chúng tôi đã xác nhận vi phạm và khoá tài khoản của họ ${new Date().toISOString().split('T')[0]}.`,
                     timestamp: new Date(),
                 },
             });
@@ -210,7 +210,7 @@ export class ReportService {
                 targetUserId: user._id, // Người nhận thông báo: người bị báo cáo
                 data: {
                     userId: user._id,
-                    message: `Your account has been deactivated due to a report for violating community guidelines. You can appeal within 7 days until ${report.appealDeadline.toISOString().split('T')[0]}.`,
+                    message: `Tài khoản của bạn đã bị báo cáo do vi phạm quy tắc cộng động, bạn có 7 ngày để kháng cáo nếu bạn cho rằng đây là hiểu nhầm ${report.appealDeadline.toISOString().split('T')[0]}.`,
                     timestamp: new Date(),
                 },
             });
@@ -224,7 +224,7 @@ export class ReportService {
                 targetUserId: report.sender, // Người nhận thông báo: người gửi báo cáo
                 data: {
                     userId: user._id,
-                    message: `Your report against a user has been reviewed and rejected by the moderation team.`,
+                    message: `Cảm ơn bạn đã báo cáo người dùng ${user.firstName} ${user.lastName} sau khi xem xét chúng tôi không thấy dấu hiệu vi phạm.`,
                     avatar: user.avatar || '', // Giả định có trường avatar
                     timestamp: new Date(),
                 },
@@ -375,7 +375,7 @@ export class ReportService {
                 targetUserId: appeal.appellant, // Người kháng cáo
                 data: {
                     postId: post._id,
-                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been approved. The post has been restored as of ${new Date().toISOString().split('T')[0]}.`,
+                    message: `Kháng cáo của bạn đối với bài viết đã được chấp thuận. Bài đăng đã được khôi phục kể từ ngày ${new Date().toISOString().split('T')[0]} chúng tôi xin lỗi vì sự bất tiện này.`,
                     timestamp: new Date(),
                 },
             });
@@ -391,7 +391,7 @@ export class ReportService {
                 targetUserId: appeal.appellant, // Người kháng cáo
                 data: {
                     postId: post._id,
-                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been rejected. The post remains removed as of ${new Date().toISOString().split('T')[0]}.`,
+                    message: `Kháng cáo của bạn đối với bài viết đã bị từ chối. Chúng tôi rất tiếc phải thông báo rằng bài viết của bạn hết cứu và nó sẽ chính thức bị gỡ xuống từ ngày ${new Date().toISOString().split('T')[0]}.`,
                     timestamp: new Date(),
                 },
             });
@@ -417,7 +417,7 @@ export class ReportService {
                 targetUserId: appeal.appellant, // Người kháng cáo
                 data: {
                     userId: user._id,
-                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been approved. Your account has been restored as of ${new Date().toISOString().split('T')[0]}.`,
+                    message: `Kháng cáo của bạn đối về báo cáo tài khoản đã được duyệt. Tài khoản của bạn đã được khôi phục từ ngày ${new Date().toISOString().split('T')[0]}.`,
                     avatar: user.avatar || '', // Giả định có trường avatar
                     timestamp: new Date(),
                 },
@@ -434,7 +434,7 @@ export class ReportService {
                 targetUserId: appeal.appellant, // Người kháng cáo
                 data: {
                     userId: user._id,
-                    message: `Your appeal against a report by ${report.sender ? 'another user' : 'the system'} has been rejected. Your account remains deactivated as of ${new Date().toISOString().split('T')[0]}.`,
+                     message: `kháng cáo của bạn đã được xem xét và chúng tôi rất tiếc phải thông báo rằng tài khoản của bạn hết cứu và nó sẽ chính thức bị gỡ xuống từ ngày ${new Date().toISOString().split('T')[0]}.`,
                     avatar: user.avatar || '', // Giả định có trường avatar
                     timestamp: new Date(),
                 },

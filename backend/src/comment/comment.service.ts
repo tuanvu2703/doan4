@@ -83,7 +83,7 @@ export class CommentService {
       userId: userId, 
       postId: postId,
       commentId: saveCMT._id,
-      message: `${userId} đã bình luận vào bài viết của bạn ${new Date().toISOString().split('T')[0]}.`,
+      message: `${user.firstName} ${user.lastName}  đã bình luận vào bài viết của bạn ${new Date().toISOString().split('T')[0]}.`,
       avatar: user.avatar,
       timestamp: new Date(),
     },

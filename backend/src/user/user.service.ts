@@ -240,6 +240,8 @@ export class UserService {
 
   async FriendsRequest(senderID: Types.ObjectId, receiverId: Types.ObjectId): Promise<any> {
     // Kiểm tra xem hai người đã là bạn bè hay chưa
+    const sender = await this.UserModel.findById(senderID);
+
     const swageSenderID = new Types.ObjectId(senderID);
     const swageReceiverId = new Types.ObjectId(receiverId);
     const areAlreadyFriends = await this.FriendModel.findOne({
@@ -285,13 +287,13 @@ export class UserService {
       status: 'waiting'
     });
 
-    await this.producerService.sendMessage('mypost', { 
+    await this.producerService.sendMessage('notification', { 
     type: 'friend_request',
     ownerId: senderID, // Người gửi yêu cầu
     targetUserId: receiverId, // Người nhận yêu cầu
     data: {
       userId: senderID,
-      message: `${senderID} đã gửi yêu cầu kết bạn cho bạn ${new Date().toISOString().split('T')[0]}.`,
+      message: `${sender.firstName} ${sender.lastName} đã gửi yêu cầu kết bạn cho bạn ${new Date().toISOString().split('T')[0]}.`,
       avatar: newRequest.sender.avatar,
       timestamp: new Date(),
     },
@@ -309,7 +311,8 @@ export class UserService {
     if (!friendRequest) {
       throw new NotFoundException('No friend request found');
     }
-
+    const userAccept = await this.UserModel.findById(currentUserId);
+    const receiverId = friendRequest.receiver;
     const { sender, receiver } = friendRequest;
 
     if (currentUserId.toString() !== receiver.toString()) {
@@ -337,8 +340,18 @@ export class UserService {
       receiver,
       status: 'friend',
     });
+    await this.producerService.sendMessage('notification', { 
+    type: 'friend_request',
+    ownerId: currentUserId, 
+    targetUserId: receiverId, 
+    data: {
+      userId: currentUserId,
+      message: `${userAccept.firstName} ${userAccept.lastName} đã gửi yêu cầu kết bạn cho bạn ${new Date().toISOString().split('T')[0]}.`,
+      avatar: userAccept.avatar,
+      timestamp: new Date(),
+    },
+  });
 
-    // Trả về mối quan hệ bạn bè và ID người gửi yêu cầu
     return { friend, senderId: sender.toString() };
   }
 
