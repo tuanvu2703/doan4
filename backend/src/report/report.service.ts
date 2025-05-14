@@ -356,94 +356,94 @@ export class ReportService {
 
         // Xử lý theo loại báo cáo (Post hoặc User)
         if (report.type === 'Post') {
-            const post = await this.PostModel.findById(report.reportedId).exec();
-            if (!post) {
-                throw new NotFoundException('Post not found');
-            }
-
-            if (implementationDto.implementation === 'approve') {
-                // Chấp thuận kháng cáo: Khôi phục bài viết
-                appeal.status = 'resolved';
-                appeal.implementation = 'approve';
-                post.isActive = true; // Khôi phục trạng thái bài viết
-                await post.save();
-                await report.save();
-
-                // Gửi thông báo cho người kháng cáo
-                await this.producerService.sendMessage('mypost', {
-                    type: 'appeal approve',
-                    ownerId: report.sender, // Người gửi báo cáo
-                    targetUserId: appeal.appellant, // Người kháng cáo
-                    data: {
-                        postId: post._id,
-                        message: `Kháng cáo của bạn đối với bài viết đã được chấp thuận. Bài đăng đã được khôi phục kể từ ngày ${new Date().toISOString().split('T')[0]} chúng tôi xin lỗi vì sự bất tiện này.`,
-                        timestamp: new Date(),
-                    },
-                });
-
-            } else if (implementationDto.implementation === 'reject') {
-                // Từ chối kháng cáo: Giữ nguyên hành động báo cáo
-                appeal.status = 'rejected';
-
-                // Gửi thông báo cho người kháng cáo
-                await this.producerService.sendMessage('mypost', {
-                    type: 'appeal reject',
-                    ownerId: report.sender, // Người gửi báo cáo
-                    targetUserId: appeal.appellant, // Người kháng cáo
-                    data: {
-                        postId: post._id,
-                        message: `Kháng cáo của bạn đối với bài viết đã bị từ chối. Chúng tôi rất tiếc phải thông báo rằng bài viết của bạn hết cứu và nó sẽ chính thức bị gỡ xuống từ ngày ${new Date().toISOString().split('T')[0]}.`,
-                        timestamp: new Date(),
-                    },
-                });
-            }
-        } else if (report.type === 'User') {
-            const user = await this.UserModel.findById(report.reportedId).exec();
-            if (!user) {
-                throw new NotFoundException('User not found');
-            }
-
-            if (implementationDto.implementation === 'approve') {
-                // Chấp thuận kháng cáo: Khôi phục tài khoản
-                appeal.status = 'approved';
-                report.status = 'rejected'; // Đảo ngược báo cáo
-                user.isActive = true; // Khôi phục trạng thái tài khoản
-                await user.save();
-                await report.save();
-
-                // Gửi thông báo cho người kháng cáo
-                await this.producerService.sendMessage('report', {
-                    type: 'appeal approve',
-                    ownerId: report.sender, // Người gửi báo cáo
-                    targetUserId: appeal.appellant, // Người kháng cáo
-                    data: {
-                        userId: user._id,
-                        message: `Kháng cáo của bạn đối về báo cáo tài khoản đã được duyệt. Tài khoản của bạn đã được khôi phục từ ngày ${new Date().toISOString().split('T')[0]}.`,
-                        avatar: user.avatar || '', // Giả định có trường avatar
-                        timestamp: new Date(),
-                    },
-                });
-
-            } else if (implementationDto.implementation === 'reject') {
-                // Từ chối kháng cáo: Giữ nguyên hành động báo cáo
-                appeal.status = 'resolved';
-                appeal.implementation = 'reject';
-                await report.save();
-                // Gửi thông báo cho người kháng cáo
-                await this.producerService.sendMessage('report', {
-                    type: 'appeal reject',
-                    ownerId: report.sender, // Người gửi báo cáo
-                    targetUserId: appeal.appellant, // Người kháng cáo
-                    data: {
-                        userId: user._id,
-                        message: `kháng cáo của bạn đã được xem xét và chúng tôi rất tiếc phải thông báo rằng tài khoản của bạn hết cứu và nó sẽ chính thức bị gỡ xuống từ ngày ${new Date().toISOString().split('T')[0]}.`,
-                        avatar: user.avatar || '', // Giả định có trường avatar
-                        timestamp: new Date(),
-                    },
-                });
-            }
+          const post = await this.PostModel.findById(report.reportedId).exec();
+          if (!post) {
+            throw new NotFoundException('Post not found');
+          }
+    
+          if (implementationDto.implementation === 'approve') {
+            // Chấp thuận kháng cáo: Khôi phục bài viết
+            appeal.status = 'resolved';
+            appeal.implementation = 'approve';
+            post.isActive = true; 
+            await post.save();
+            await report.save();
+    
+            // Gửi thông báo cho người kháng cáo
+           await this.producerService.sendMessage('report', {
+                type: 'appeal approve',
+                ownerId: report.sender[0], 
+                targetUserId: appeal.appellant, 
+                data: {
+                    postId: post._id,
+                    message: `Kháng cáo của bạn đối với bài viết đã được chấp nhận. Bài đăng đã được khôi phục kể từ ngày ${new Date().toISOString().split('T')[0]} chúng tôi xin lỗi vì sự bất tiện này.`,
+                    timestamp: new Date(),
+                },
+            });
+    
+          } else if (implementationDto.implementation === 'reject') {
+            // Từ chối kháng cáo: Giữ nguyên hành động báo cáo
+            appeal.status = 'resolved';
+            appeal.implementation = 'reject';
+            
+              await this.producerService.sendMessage('report', {
+                type: 'appeal rejected',
+                ownerId: report.sender[0], 
+                targetUserId: appeal.appellant, 
+                data: {
+                    postId: post._id,
+                    message: `Chúng tôi rất tiếc phải thông báo rằng kháng cáo của bạn đã bị từ chối. Bài viếc của bạn đã hết cứu nó sẽ chính thức bị gỡ xuống từ ngày ${report.appealDeadline.toISOString().split('T')[0]}.`,
+                    timestamp: new Date(),
+                },
+            });
         }
-
+        } else if (report.type === 'User') {
+          const user = await this.UserModel.findById(report.reportedId).exec();
+          if (!user) {
+            throw new NotFoundException('User not found');
+          }
+    
+          if (implementationDto.implementation === 'approve') {
+            // Chấp thuận kháng cáo: Khôi phục tài khoản
+            appeal.status = 'resolved';
+            appeal.implementation = 'approve';
+            report.status = 'rejected'; // Đảo ngược báo cáo
+            user.isActive = true; // Khôi phục trạng thái tài khoản
+            await user.save();
+            await report.save();
+    
+            // Gửi thông báo cho người kháng cáo
+            await this.producerService.sendMessage('report', {
+                type: 'appeal approve',
+                ownerId: report.sender, // Người gửi báo cáo
+                targetUserId: appeal.appellant, // Người kháng cáo
+                data: {
+                    userId: user._id,
+                    message: `Kháng cáo của bạn đối về báo cáo tài khoản đã được duyệt. Tài khoản của bạn đã được khôi phục từ ngày ${new Date().toISOString().split('T')[0]}.`,
+                    avatar: user.avatar || '', // Giả định có trường avatar
+                    timestamp: new Date(),
+                },
+            });
+    
+          } else if (implementationDto.implementation === 'reject') {
+            // Từ chối kháng cáo: Giữ nguyên hành động báo cáo
+            appeal.status = 'resolved';
+            appeal.implementation = 'reject';
+            // Gửi thông báo cho người kháng cáo
+            await this.producerService.sendMessage('report', {
+                type: 'appeal reject',
+                ownerId: report.sender, // Người gửi báo cáo
+                targetUserId: appeal.appellant, // Người kháng cáo
+                data: {
+                    userId: user._id,
+                     message: `kháng cáo của bạn đã được xem xét và chúng tôi rất tiếc phải thông báo rằng tài khoản của bạn hết cứu và nó sẽ chính thức bị gỡ xuống từ ngày ${new Date().toISOString().split('T')[0]}.`,
+                    avatar: user.avatar || '', // Giả định có trường avatar
+                    timestamp: new Date(),
+                },
+            });
+        }
+    }
+    
         // Lưu kháng cáo
         return await appeal.save();
     }
