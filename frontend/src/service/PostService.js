@@ -180,3 +180,18 @@ export async function deletePost(postId) {
 
     }
 }
+
+
+
+export async function submitAppealReport(postId, reason) {
+    try {
+        const request = await API.post(`${process.env.REACT_APP_API_URL}/report/createAppeal`, { postId, reason }, {
+            headers: {
+                Authorization: `Bearer ${authToken.getToken()}`,
+            }
+        })
+        return request
+    } catch (error) {
+
+    }
+}

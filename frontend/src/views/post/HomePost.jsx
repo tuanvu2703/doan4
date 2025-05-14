@@ -173,6 +173,8 @@ export default function HomePost({ onPostsUpdated }) {
                 return <span className="text-green-500">bạn bè</span>;
             case 'private':
                 return <span className="text-black">chỉ mình tôi</span>;
+            case 'thisGroup':
+                return <span className="text-gray-500">Nhóm</span>;
             default:
                 return <span>{privacy}</span>;
         }

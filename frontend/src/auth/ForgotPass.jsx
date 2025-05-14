@@ -85,7 +85,7 @@ export default function ForgotPass() {
             setErrors({ confirmNewPassword: "Mật khẩu xác nhận không khớp." });
             return;
         }
-        const response = await resetPassword(newPassword);
+        const response = await resetPassword(email, otp,newPassword);
         if (response) {
             toast.success('Mật khẩu đã được thay đổi', NotificationCss.Success);
             setTimeout(() => {

@@ -18,9 +18,9 @@ export async function verifyOTP(email, otp) {
     }
 }
 
-export async function resetPassword(newPassword) {
+export async function resetPassword(email, otp, newPassword) {
     try {
-        const request = await axios.post(`${process.env.REACT_APP_API_URL}/user/reset-password`, {newPassword });
+        const request = await axios.post(`${process.env.REACT_APP_API_URL}/user/reset-password`, { email, otp, newPassword });
         return request;
     } catch (error) {
         console.log(error);

@@ -3,7 +3,7 @@ import { Form, Link, useParams } from 'react-router-dom';
 import AVTUser from '../AVTUser';
 import { HandThumbUpIcon, ChatBubbleLeftIcon, ShareIcon, HandThumbDownIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
-import { getDetailPost, handleUnLike, handleLike, handleUnDisLike, handleDisLike } from '../../../service/PostService';
+import { getDetailPost, handleUnLike, handleLike, handleUnDisLike, handleDisLike, submitAppealReport } from '../../../service/PostService';
 import { profileUserCurrent } from '../../../service/ProfilePersonal';
 import { OtherProfile } from '../../../service/OtherProfile';
 import { differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
@@ -13,6 +13,7 @@ import FormComment from './FormComment';
 import Comment from './Comment';
 import 'animate.css';
 import FilePreview from '../../../components/fileViewer';
+import AppealReportModal from './AppealReportModal';
 
 export default function DetailPost() {
 
@@ -22,6 +23,7 @@ export default function DetailPost() {
   const [userLogin, setUserLogin] = useState({})
   const [currentIndexes, setCurrentIndexes] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
+  const [appealModalOpen, setAppealModalOpen] = useState(false);
   const { id } = useParams();
 
   const fetchComments = async () => {
@@ -186,6 +188,17 @@ export default function DetailPost() {
     );
   };
 
+  const handleAppealSubmit = async (postId, reason) => {
+    try {
+      const response = await submitAppealReport(postId, reason);
+      // After successful appeal, you might want to refresh the post
+      // or just update its local state depending on your API
+      return response;
+    } catch (error) {
+      console.error("Error submitting appeal:", error);
+      throw error;
+    }
+  };
 
   // console.log(posts)
   return (
@@ -230,9 +243,9 @@ export default function DetailPost() {
               </div>
               <div>
                 {userLogin._id === posts.author ? (
-                  <DropdownPostPersonal postId={posts._id} />
+                  posts.isActive !== false && <DropdownPostPersonal postId={posts._id} />
                 ) : (
-                  <DropdownOtherPost postId={posts._id} />
+                  posts.isActive !== false && <DropdownOtherPost postId={posts._id} />
                 )}
               </div>
             </div>
@@ -241,13 +254,19 @@ export default function DetailPost() {
             {posts.isActive === false ? (
               <div className="mt-2 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
                 <p className="font-medium">Bài viết này đã bị báo cáo hoặc tạm khóa.</p>
+                <button
+                  onClick={() => setAppealModalOpen(true)}
+                  className="mt-2 px-3 py-1 bg-white text-red-600 border border-red-300 rounded hover:bg-red-50 text-sm font-medium"
+                >
+                  Kháng báo cáo
+                </button>
               </div>
             ) : (
               renderPostContent(posts)
             )}
 
             {/* Carousel hiển thị hình ảnh (nếu có) */}
-            {posts?.img?.length > 0 && (
+            {posts.isActive !== false && posts?.img?.length > 0 && (
               <div className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto ">
                 {posts?.img?.length > 1 && (
                   <button
@@ -270,7 +289,7 @@ export default function DetailPost() {
                 )}
               </div>
             )}
-            {posts.gif && (
+            {posts.isActive !== false && posts.gif && (
               <div className='flex justify-center my-3'>
                 <img
                   className="rounded-xl shadow-md max-h-[450px] object-contain"
@@ -280,63 +299,75 @@ export default function DetailPost() {
             )}
 
             {/* Footer: Các nút tương tác */}
-            <div className="flex flex-wrap justify-between items-center mt-2 pt-3 border-t border-gray-200">
-              <div className="flex gap-2 sm:gap-4">
-                <button
-                  onClick={() => handleLikeClick(posts._id)}
-                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
-                >
-                  {posts?.likes?.includes(userLogin._id) ? (
-                    <HandThumbUpIcon className="size-4 sm:size-5 animate__animated animate__heartBeat text-blue-600" />
-                  ) : (
-                    <HandThumbUpIcon className="size-4 sm:size-5 text-gray-600" />
-                  )}
-                  <span className={`text-xs sm:text-sm font-medium ${posts?.likes?.includes(userLogin._id) ? 'text-blue-600' : 'text-gray-600'}`}>
-                    {posts?.likes?.length > 0 ? posts?.likes?.length : ''}
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleDislikeClick(posts._id)}
-                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-red-50 transition-all duration-200"
-                >
-                  {posts?.dislikes?.includes(userLogin._id) ? (
-                    <HandThumbDownIcon className="size-4 sm:size-5 animate__animated animate__heartBeat text-red-600" />
-                  ) : (
-                    <HandThumbDownIcon className="size-4 sm:size-5 text-gray-600" />
-                  )}
-                  <span className={`text-xs sm:text-sm font-medium ${posts?.dislikes?.includes(userLogin._id) ? 'text-red-600' : 'text-gray-600'}`}>
-                    {posts?.dislikes?.length > 0 ? posts?.dislikes?.length : ''}
-                  </span>
-                </button>
+            {posts.isActive !== false && (
+              <div className="flex flex-wrap justify-between items-center mt-2 pt-3 border-t border-gray-200">
+                <div className="flex gap-2 sm:gap-4">
+                  <button
+                    onClick={() => handleLikeClick(posts._id)}
+                    className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
+                  >
+                    {posts?.likes?.includes(userLogin._id) ? (
+                      <HandThumbUpIcon className="size-4 sm:size-5 animate__animated animate__heartBeat text-blue-600" />
+                    ) : (
+                      <HandThumbUpIcon className="size-4 sm:size-5 text-gray-600" />
+                    )}
+                    <span className={`text-xs sm:text-sm font-medium ${posts?.likes?.includes(userLogin._id) ? 'text-blue-600' : 'text-gray-600'}`}>
+                      {posts?.likes?.length > 0 ? posts?.likes?.length : ''}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleDislikeClick(posts._id)}
+                    className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-red-50 transition-all duration-200"
+                  >
+                    {posts?.dislikes?.includes(userLogin._id) ? (
+                      <HandThumbDownIcon className="size-4 sm:size-5 animate__animated animate__heartBeat text-red-600" />
+                    ) : (
+                      <HandThumbDownIcon className="size-4 sm:size-5 text-gray-600" />
+                    )}
+                    <span className={`text-xs sm:text-sm font-medium ${posts?.dislikes?.includes(userLogin._id) ? 'text-red-600' : 'text-gray-600'}`}>
+                      {posts?.dislikes?.length > 0 ? posts?.dislikes?.length : ''}
+                    </span>
+                  </button>
+                </div>
+                <div className="flex gap-2 sm:gap-4 mt-1 sm:mt-0">
+                  <button className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200">
+                    <ChatBubbleLeftIcon className="size-4 sm:size-5 text-gray-600" />
+                    <span className="text-xs sm:text-sm font-medium text-gray-600">
+                      {posts?.comments?.length > 0 ? posts?.comments?.length : ''}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => handleCopyLink(posts._id)}
+                    className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200"
+                  >
+                    <ShareIcon className="size-4 sm:size-5 text-gray-600" />
+                    {copied && <span className="text-xs text-green-600 font-medium">Đã sao chép!</span>}
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2 sm:gap-4 mt-1 sm:mt-0">
-                <button className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200">
-                  <ChatBubbleLeftIcon className="size-4 sm:size-5 text-gray-600" />
-                  <span className="text-xs sm:text-sm font-medium text-gray-600">
-                    {posts?.comments?.length > 0 ? posts?.comments?.length : ''}
-                  </span>
-                </button>
-                <button
-                  onClick={() => handleCopyLink(posts._id)}
-                  className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all duration-200"
-                >
-                  <ShareIcon className="size-4 sm:size-5 text-gray-600" />
-                  {copied && <span className="text-xs text-green-600 font-medium">Đã sao chép!</span>}
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
         {/* Form Comment và Comment */}
-        <div className="mt-6 bg-gray-50 rounded-lg shadow-sm p-4">
-          <FormComment postId={posts._id} onCommentAdded={fetchComments} />
-          <div className="mt-4 border-t pt-4">
-            <h3 className="font-medium text-lg mb-4">Bình luận</h3>
-            <Comment postId={posts._id} user={userLogin} refreshComments={fetchComments} />
+        {posts.isActive !== false && (
+          <div className="mt-6 bg-gray-50 rounded-lg shadow-sm p-4">
+            <FormComment postId={posts._id} onCommentAdded={fetchComments} />
+            <div className="mt-4 border-t pt-4">
+              <h3 className="font-medium text-lg mb-4">Bình luận</h3>
+              <Comment postId={posts._id} user={userLogin} refreshComments={fetchComments} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Appeal Report Modal */}
+      <AppealReportModal
+        isOpen={appealModalOpen}
+        onClose={() => setAppealModalOpen(false)}
+        postId={posts._id}
+        onSubmitAppeal={handleAppealSubmit}
+      />
     </div>
   )
 }
