@@ -24,6 +24,7 @@ export default function DetailPost() {
   const [currentIndexes, setCurrentIndexes] = useState({});
   const [expandedPosts, setExpandedPosts] = useState({});
   const [appealModalOpen, setAppealModalOpen] = useState(false);
+  const [hasExistingAppeal, setHasExistingAppeal] = useState(false);
   const { id } = useParams();
 
   const fetchComments = async () => {
@@ -191,10 +192,14 @@ export default function DetailPost() {
   const handleAppealSubmit = async (postId, reason) => {
     try {
       const response = await submitAppealReport(postId, reason);
-      // After successful appeal, you might want to refresh the post
-      // or just update its local state depending on your API
+      // After successful appeal, set the flag to true
+      setHasExistingAppeal(true);
       return response;
     } catch (error) {
+      if (error.response?.status === 409) {
+        // If the error is a conflict (409), set the flag to true
+        setHasExistingAppeal(true);
+      }
       console.error("Error submitting appeal:", error);
       throw error;
     }
@@ -254,12 +259,20 @@ export default function DetailPost() {
             {posts.isActive === false ? (
               <div className="mt-2 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
                 <p className="font-medium">Bài viết này đã bị báo cáo hoặc tạm khóa.</p>
-                <button
-                  onClick={() => setAppealModalOpen(true)}
-                  className="mt-2 px-3 py-1 bg-white text-red-600 border border-red-300 rounded hover:bg-red-50 text-sm font-medium"
-                >
-                  Kháng báo cáo
-                </button>
+                {userLogin._id === posts.author && (
+                  hasExistingAppeal ? (
+                    <div className="mt-2 px-3 py-1 bg-gray-50 text-gray-600 rounded text-sm font-medium">
+                      Kháng báo cáo đã được gửi và đang được xem xét
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setAppealModalOpen(true)}
+                      className="mt-2 px-3 py-1 bg-white text-red-600 border border-red-300 rounded hover:bg-red-50 text-sm font-medium"
+                    >
+                      Kháng báo cáo
+                    </button>
+                  )
+                )}
               </div>
             ) : (
               renderPostContent(posts)

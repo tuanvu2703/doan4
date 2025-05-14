@@ -90,6 +90,13 @@ export default function SideBarAdmin() {
                             <span>Report Post Management</span>
                         </Link>
                     </div>
+
+                    <div className={`py-3 px-7 my-2 hover:bg-[#353535] rounded-md ${isActiveTab('/admin/report/post') ? 'bg-[#1D1D1D]' : ''}`}>
+                        <Link className='flex items-center gap-4' to={'/admin/apeal'}>
+                            <FlagIcon className='size-7 fill-current ' />
+                            <span>Apeal Post Management</span>
+                        </Link>
+                    </div>
                 </ul>
             </div>
         </div>

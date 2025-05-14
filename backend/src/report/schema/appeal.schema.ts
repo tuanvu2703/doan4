@@ -6,27 +6,27 @@ import { Report } from './report.schema';
 @Schema({ timestamps: true })
 export class Appeal extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Report', required: true })
-  reportId: Report; 
+  reportId: Report;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  appellant: User; 
+  appellant: User;
 
   @Prop({ type: String, required: true })
-  reason: string; 
+  reason: string;
 
   @Prop([{ type: String, required: false }])
   attachments?: string[];
-  
+
   @Prop({ required: true, default: 'pending', enum: ['pending', 'resolved',] })
   status: string;
 
   @Prop({
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'approve', 'rejected'],
     default: 'pending',
     required: true,
   })
-  implementation?: string; 
+  implementation?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: false })
   handledBy?: User;

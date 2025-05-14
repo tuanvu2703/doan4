@@ -6,6 +6,7 @@ export default function AppealReportModal({ isOpen, onClose, postId, onSubmitApp
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [appealExists, setAppealExists] = useState(false);
 
     if (!isOpen) return null;
 
@@ -18,6 +19,7 @@ export default function AppealReportModal({ isOpen, onClose, postId, onSubmitApp
 
         setIsSubmitting(true);
         setError('');
+        setAppealExists(false);
 
         try {
             await onSubmitAppeal(postId, reason);
@@ -28,7 +30,15 @@ export default function AppealReportModal({ isOpen, onClose, postId, onSubmitApp
                 setSuccess('');
             }, 2000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Đã xảy ra lỗi khi gửi kháng báo cáo');
+            if (err.response?.status === 409) {
+                setAppealExists(true);
+                setError('Bạn đã gửi kháng báo cáo cho bài viết này rồi. Vui lòng chờ phản hồi.');
+                setTimeout(() => {
+                    onClose();
+                }, 3000);
+            } else {
+                setError(err.response?.data?.message || 'Đã xảy ra lỗi khi gửi kháng báo cáo');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -47,54 +57,72 @@ export default function AppealReportModal({ isOpen, onClose, postId, onSubmitApp
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4">
-                    <div className="mb-4">
-                        <label htmlFor="appeal-reason" className="block mb-2 text-sm font-medium text-gray-700">
-                            Lý do kháng báo cáo
-                        </label>
-                        <textarea
-                            id="appeal-reason"
-                            rows="4"
-                            value={reason}
-                            onChange={(e) => setReason(e.target.value)}
-                            placeholder="Hãy giải thích lý do bạn cho rằng báo cáo này không chính xác..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                            Vui lòng giải thích chi tiết lý do tại sao bạn cho rằng báo cáo này không chính xác.
-                        </p>
-                    </div>
-
-                    {error && (
-                        <div className="mb-4 p-2 bg-red-50 text-red-700 rounded-md text-sm">
-                            {error}
+                {appealExists ? (
+                    <div className="p-4">
+                        <div className="p-3 bg-yellow-50 text-yellow-700 rounded-md">
+                            <p className="font-medium">Bạn đã gửi kháng báo cáo cho bài viết này rồi.</p>
+                            <p className="text-sm mt-1">Vui lòng chờ quản trị viên xem xét yêu cầu của bạn.</p>
                         </div>
-                    )}
-
-                    {success && (
-                        <div className="mb-4 p-2 bg-green-50 text-green-700 rounded-md text-sm">
-                            {success}
+                        <div className="flex justify-end mt-4">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none"
+                            >
+                                Đóng
+                            </button>
                         </div>
-                    )}
-
-                    <div className="flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                            disabled={isSubmitting}
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Đang gửi...' : 'Gửi kháng báo cáo'}
-                        </button>
                     </div>
-                </form>
+                ) : (
+                    <form onSubmit={handleSubmit} className="p-4">
+                        <div className="mb-4">
+                            <label htmlFor="appeal-reason" className="block mb-2 text-sm font-medium text-gray-700">
+                                Lý do kháng báo cáo
+                            </label>
+                            <textarea
+                                id="appeal-reason"
+                                rows="4"
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                placeholder="Hãy giải thích lý do bạn cho rằng báo cáo này không chính xác..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                                Vui lòng giải thích chi tiết lý do tại sao bạn cho rằng báo cáo này không chính xác.
+                            </p>
+                        </div>
+
+                        {error && (
+                            <div className="mb-4 p-2 bg-red-50 text-red-700 rounded-md text-sm">
+                                {error}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="mb-4 p-2 bg-green-50 text-green-700 rounded-md text-sm">
+                                {success}
+                            </div>
+                        )}
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                                disabled={isSubmitting}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Đang gửi...' : 'Gửi kháng báo cáo'}
+                            </button>
+                        </div>
+                    </form>
+                )}
             </div>
         </div>
     );

@@ -97,4 +97,37 @@ async function unactivePost(postId) {
     }
 }
 
-export { getAllUser, getAllPost, getALlReport, activeUser, handleReport, unactivePost }
+async function getAllPeal() {
+    try {
+        const request = await API.get(`${process.env.REACT_APP_API_URL}/report/getAllAppeal`,
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json' // Use your auth token provider
+                }
+            }
+        )
+        return request
+    } catch (error) {
+
+    }
+}
+
+async function handleApeal(appealId, implementation) {
+    try {
+        const request = await API.patch(`${process.env.REACT_APP_API_URL}/report/implementationAppeal/${appealId}`, { implementation },
+            {
+                headers: {
+                    Authorization: `Bearer ${authToken.getToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+        return request
+    } catch (error) {
+        return error
+    }
+}
+
+
+export { getAllUser, getAllPost, getALlReport, activeUser, handleReport, unactivePost, getAllPeal, handleApeal }

@@ -45,6 +45,7 @@ import Layoutgr from "../views/group/layoutgr.jsx";
 import SelectGroup from "../views/group/select/SelectGroup.jsx";
 import Member from "../views/group/Member.jsx";
 import ReviewMember from "../views/group/ReviewMember.jsx";
+import ApealManagement from "../admin/page/apeal-management.jsx";
 
 function routers() {
     return (
@@ -115,6 +116,7 @@ function routers() {
                     <Route path="user" element={<UserManagement />} />
                     <Route path="post" element={<PostManagement />} />
                     <Route path="report/post" element={<ReportPostManagement />} />
+                    <Route path="apeal" element={<ApealManagement />} />
                 </Route>
             </Routes>
         </BrowserRouter>

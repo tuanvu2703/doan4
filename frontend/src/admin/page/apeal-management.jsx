@@ -2,11 +2,10 @@ import React from 'react'
 import Loading from '../../components/Loading'
 import { Suspense } from 'react'
 import { useState } from 'react'
-import TableReport from '../components/TableReport'
+import TableApeal from '../components/TableApeal'
 
 export default function ApealManagement() {
     const [query, setQuery] = useState('')
-
 
     return (
         <div className="overflow-x-auto mx-5 my-5 border-white border-2 rounded-sm">
@@ -33,19 +32,19 @@ export default function ApealManagement() {
             <table className="table">
                 <thead className=' text-[#EEEEEE]'>
                     <tr>
-                        {/* <th></th> */}
                         <th>No</th>
-                        <th>Type</th>
-                        <th>reported Id</th>
-                        <th>Message Report</th>
-                        <th>Reporter</th>
-                        <th>CreateAt</th>
+                        <th>Report Type</th>
+                        <th>Reported Item</th>
+                        <th>Appeal Reason</th>
+                        <th>Appellant</th>
+                        <th>Created At</th>
                         <th>Status</th>
+                        <th>Implementation</th>
                         <th></th>
                     </tr>
                 </thead>
                 <Suspense fallback={<Loading />}>
-                    <TableReport query={query} />
+                    <TableApeal query={query} />
                 </Suspense>
             </table>
         </div>
