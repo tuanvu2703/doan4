@@ -14,6 +14,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { FriendSchema } from './schemas/friend.schema';
 import { EventService } from '../event/event.service';
 import { GoogleStrategy } from './google.strategy';
+import { ProducerModule } from 'src/kafka/producer/producer.module';
 
 @Global()
 @Module({
@@ -34,6 +35,7 @@ import { GoogleStrategy } from './google.strategy';
       },
     }),
     OtpModule,
+    ProducerModule,
 
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     MongooseModule.forFeature([{ name: 'FriendRequest', schema:FriendRequestSchema}]),
