@@ -22,7 +22,7 @@ export class Appeal extends Document {
 
   @Prop({
     type: String,
-    enum: ['pending', 'approve', 'rejected'],
+    enum: ['pending', 'approve', 'reject'],
     default: 'pending',
     required: true,
   })

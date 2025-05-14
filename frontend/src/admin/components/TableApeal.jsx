@@ -53,7 +53,20 @@ export default function TableApeal({ query }) {
             const response = await handleApeal(appealId, "approve");
             if (response) {
                 setAppeals(prevAppeals => prevAppeals.map(appeal =>
-                    appeal._id === appealId ? { ...appeal, status: 'approved', implementation: 'processing' } : appeal
+                    appeal._id === appealId ? { ...appeal, status: 'resolved', implementation: 'approve' } : appeal
+                ));
+            }
+        } catch (error) {
+            console.error("Error approving appeal:", error);
+        }
+    }
+
+    const handleRejectAppeal = async (appealId) => {
+        try {
+            const response = await handleApeal(appealId, "reject");
+            if (response) {
+                setAppeals(prevAppeals => prevAppeals.map(appeal =>
+                    appeal._id === appealId ? { ...appeal, status: 'rejected', implementation: 'processing' } : appeal
                 ));
             }
         } catch (error) {
@@ -133,7 +146,7 @@ export default function TableApeal({ query }) {
                             ) : (
                                 <div className='flex gap-3'>
                                     <button className="btn btn-success btn-xs" onClick={() => { handleApproveAppeal(appeal._id) }} >Approve</button>
-
+                                    <button className="btn btn-error btn-xs" onClick={() => { handleRejectAppeal(appeal._id) }} >Reject</button>
                                 </div>
                             )}
                         </th>
