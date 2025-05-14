@@ -363,8 +363,9 @@ export class ReportService {
     
           if (implementationDto.implementation === 'approve') {
             // Chấp thuận kháng cáo: Khôi phục bài viết
-            appeal.status = 'approved';
-            post.isActive = true; // Khôi phục trạng thái bài viết
+            appeal.status = 'resolved';
+            appeal.implementation = 'approve';
+            post.isActive = true; 
             await post.save();
             await report.save();
     
@@ -382,9 +383,9 @@ export class ReportService {
     
           } else if (implementationDto.implementation === 'reject') {
             // Từ chối kháng cáo: Giữ nguyên hành động báo cáo
-            appeal.status = 'rejected';
-    
-            // Gửi thông báo cho người kháng cáo
+            appeal.status = 'resolved';
+            appeal.implementation = 'reject';
+            
             await this.producerService.sendMessage('mypost', {
                 type: 'appeal reject',
                 ownerId: report.sender, // Người gửi báo cáo
@@ -404,7 +405,8 @@ export class ReportService {
     
           if (implementationDto.implementation === 'approve') {
             // Chấp thuận kháng cáo: Khôi phục tài khoản
-            appeal.status = 'approved';
+            appeal.status = 'resolved';
+            appeal.implementation = 'approve';
             report.status = 'rejected'; // Đảo ngược báo cáo
             user.isActive = true; // Khôi phục trạng thái tài khoản
             await user.save();
@@ -425,8 +427,8 @@ export class ReportService {
     
           } else if (implementationDto.implementation === 'reject') {
             // Từ chối kháng cáo: Giữ nguyên hành động báo cáo
-            appeal.status = 'rejected';
-    
+            appeal.status = 'resolved';
+            appeal.implementation = 'reject';
             // Gửi thông báo cho người kháng cáo
             await this.producerService.sendMessage('report', {
                 type: 'appeal reject',

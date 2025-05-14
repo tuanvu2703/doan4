@@ -238,7 +238,10 @@ export class PublicGroupService {
 
     async getPostInGroup(groupId: Types.ObjectId): Promise<Post[]> {
       const group = await this.PublicGroupModel.findById(groupId)
-      const posts = await this.PostModel.find({ group : groupId })
+      const posts = await this.PostModel.find({
+         group : groupId,
+         isActive : true,
+         })
       .populate({
         path : 'author',
         select : 'firstName lastName avatar'
