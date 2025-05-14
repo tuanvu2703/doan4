@@ -108,6 +108,31 @@ export class NotificationService {
     await this.handleKafkaMessage({ value: JSON.stringify(notificationData) });
   }
 
+  async handleReportEvent(payload: any) {
+    const { type, ownerId, targetUserId, data } = payload;
+    const { userId, message, avatar, timestamp } = data;
+
+    if (!targetUserId || !Types.ObjectId.isValid(targetUserId)) {
+      console.log('🛑 Invalid or no targetUserId for report event, skipping:', payload);
+      return;
+    }
+
+    const notificationData = {
+      type: type || 'REPORT', // Mặc định là 'REPORT' nếu không có type
+      ownerId: new Types.ObjectId(ownerId),
+      targetUserId: new Types.ObjectId(targetUserId), // Người kháng cáo
+      data: {
+        userId: userId ? new Types.ObjectId(userId) : undefined,
+        message: message || `Your appeal has been rejected. Your account remains deactivated as of ${new Date().toISOString().split('T')[0]}.`,
+        avatar: avatar || '',
+        timestamp: timestamp || new Date().toISOString(),
+      },
+      readBy: [],
+    };
+
+    await this.handleKafkaMessage({ value: JSON.stringify(notificationData) });
+  }
+
 
   async handleKafkaMessage(message: any, shouldSave = true, skipSaveForTopics: string[] = []) {
     try {
