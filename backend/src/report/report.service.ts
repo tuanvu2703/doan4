@@ -376,7 +376,7 @@ export class ReportService {
                 targetUserId: appeal.appellant, 
                 data: {
                     postId: post._id,
-                    message: `Kháng cáo của bạn đối với bài viết đã được chấp thuận. Bài đăng đã được khôi phục kể từ ngày ${new Date().toISOString().split('T')[0]} chúng tôi xin lỗi vì sự bất tiện này.`,
+                    message: `Kháng cáo của bạn đối với bài viết đã được chấp nhận. Bài đăng đã được khôi phục kể từ ngày ${new Date().toISOString().split('T')[0]} chúng tôi xin lỗi vì sự bất tiện này.`,
                     timestamp: new Date(),
                 },
             });
@@ -392,7 +392,7 @@ export class ReportService {
                 targetUserId: appeal.appellant, 
                 data: {
                     postId: post._id,
-                    message: `Bài viết của bạn đã bị xoá do vi phạm quy tắc cộng động bạn có 7 ngày để kháng cáo nếu bạn cho rằng đây là hiểu nhầm ${report.appealDeadline.toISOString().split('T')[0]}.`,
+                    message: `Chúng tôi rất tiếc phải thông báo rằng kháng cáo của bạn đã bị từ chối. Bài viếc của bạn đã hết cứu nó sẽ chính thức bị gỡ xuống từ ngày ${report.appealDeadline.toISOString().split('T')[0]}.`,
                     timestamp: new Date(),
                 },
             });
