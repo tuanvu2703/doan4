@@ -3,7 +3,7 @@ import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAppealDto {
   @ApiProperty({
-    description: 'ID của báo cáo liên quan',
+    description: 'ID của bài viết bị báo cáo',
     example: '507f1f77bcf86cd799439011',
   })
   @IsMongoId()

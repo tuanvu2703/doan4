@@ -78,7 +78,7 @@ export class PostController {
             targetIds: targetIds, 
             data: {
                 postId: newPost._id,
-                message: `New post from ${currentUser.firstName} ${currentUser.lastName}`,
+                message: `${currentUser.firstName} ${currentUser.lastName} đã đăng bài viết mới`,
                 avatar: currentUser.avatar,
                 timestamp: new Date(),
             },
@@ -148,7 +148,7 @@ export class PostController {
                 ownerId: swUserId, 
                 data: {
                   postId: new Types.ObjectId(id), 
-                  message: `New like from ${currentUser.firstName} ${currentUser.lastName}`,
+                  message: `${currentUser.firstName} ${currentUser.lastName} đã thích bài viết của bạn`,
                   avatar: currentUser.avatar,
                   timestamp: new Date(),
                 },
