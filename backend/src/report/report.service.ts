@@ -235,7 +235,13 @@ export class ReportService {
     }
 
     async createAppeal(userId: Types.ObjectId, createAppealDto: CreateAppealDto): Promise<Appeal> {
-        // Kiểm tra user
+        const postId = new Types.ObjectId(createAppealDto.postId);
+        const reports = await this.ReportModel.find({
+          reportedId: postId,
+          type: 'Post', // Đảm bảo chỉ lấy báo cáo liên quan đến bài đăng
+          status: 'resolved', // Chỉ lấy báo cáo đã được admin xử lý
+          implementation: 'approve', // Đã được approve
+        }).exec();
         const user = await this.UserModel.findById(userId).exec();
         if (!user) {
           this.logger.error(`User not found: ${userId}`);
@@ -243,62 +249,52 @@ export class ReportService {
         }
     
         // Tìm báo cáo
-        const report = await this.ReportModel.findById(createAppealDto.reportId).exec();
-        if (!report) {
-          this.logger.error(`Report not found: ${createAppealDto.reportId}`);
-          throw new NotFoundException('Report not found');
+          if (!reports || reports.length === 0) {
+          this.logger.error(`No eligible reports found for post ${postId}`);
+          throw new NotFoundException('No eligible reports found for this post');
         }
-    
-        // Kiểm tra trạng thái báo cáo (phải được admin chấp nhận: status = 'resolved' và implementation = 'approve')
-        if (report.status !== 'resolved' || report.implementation !== 'approve') {
-          this.logger.warn(`Report not eligible for appeal: status=${report.status}, implementation=${report.implementation}`);
-          throw new ConflictException('This report has not been approved by admin, so it cannot be appealed');
+
+        // Lấy reportId đầu tiên (có thể thêm logic để chọn report phù hợp hơn nếu có nhiều báo cáo)
+        const report = reports[0];
+        const reportId = report._id;
+
+        // Tìm bài đăng để kiểm tra quyền kháng cáo
+        const post = await this.PostModel.findById(postId).exec();
+        if (!post) {
+          this.logger.error(`Post not found: ${postId}`);
+          throw new NotFoundException('Post not found');
         }
-    
-        // Kiểm tra quyền kháng cáo dựa trên type
-        if (report.type === 'Post') {
-          // Nếu là Post, kiểm tra xem userId có phải là author của Post
-          const post = await this.PostModel.findById(report.reportedId).exec();
-          if (!post) {
-            this.logger.error(`Post not found: ${report.reportedId}`);
-            throw new NotFoundException('Post not found');
-          }
-          if (post.author.toString() !== userId.toString()) {
-            this.logger.warn(`User ${userId} is not the author of post ${report.reportedId}`);
-            throw new ConflictException('Only the post owner can appeal this report');
-          }
-        } else if (report.type === 'User') {
-          // Nếu là User, kiểm tra xem userId có phải là reportedId
-          if (report.reportedId.toString() !== userId.toString()) {
-            this.logger.warn(`User ${userId} is not the reported user ${report.reportedId}`);
-            throw new ConflictException('Only the reported user can appeal this report');
-          }
+
+        // Kiểm tra quyền kháng cáo (chỉ tác giả của bài đăng mới được kháng cáo)
+        if (post.author.toString() !== userId.toString()) {
+          this.logger.warn(`User ${userId} is not the author of post ${postId}`);
+          throw new ConflictException('Only the post owner can appeal this report');
         }
-    
+
         // Kiểm tra thời hạn kháng cáo
         if (!report.appealDeadline || new Date() > report.appealDeadline) {
           this.logger.warn(`Appeal deadline passed for report ${report._id}`);
           throw new ConflictException('The appeal deadline has passed');
         }
-    
+
         // Kiểm tra xem đã có kháng cáo nào cho báo cáo này chưa
         const existingAppeal = await this.AppealModel
-          .findOne({ reportId: createAppealDto.reportId, appellant: userId })
+          .findOne({ reportId: reportId, appellant: userId })
           .exec();
         if (existingAppeal) {
           this.logger.warn(`Appeal already exists for report ${report._id} by user ${userId}`);
           throw new ConflictException('An appeal for this report already exists');
         }
-    
+
         // Tạo kháng cáo mới
         const appeal = new this.AppealModel({
-          reportId: createAppealDto.reportId,
+          reportId: reportId,
           appellant: userId,
           reason: createAppealDto.reason,
           attachments: createAppealDto.attachments || [],
           status: 'pending', // Mặc định
         });
-    
+
         // Lưu kháng cáo
         this.logger.log(`Creating appeal for report ${report._id} by user ${userId}`);
         return await appeal.save();

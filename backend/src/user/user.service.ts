@@ -26,6 +26,7 @@ import { UploadAvatarDto } from './dto/uploadAvartar.dto';
 import { UploadCoverImgDto } from './dto/uploadCoverImg.dto';
 import { Friend } from './schemas/friend.schema';
 import { Multer } from 'multer';
+import { ProducerService } from 'src/kafka/producer/kafka.Producer.service';
 
 @Injectable()
 export class UserService {
@@ -38,6 +39,7 @@ export class UserService {
     private configService: ConfigService,
     private cloudinaryService: CloudinaryService,
     private otpService: OtpService,
+    private producerService: ProducerService,
 
   ) { }
 
@@ -256,7 +258,7 @@ export class UserService {
       this.FriendRequestModel.findOne({ sender: swageSenderID, receiver: swageReceiverId }),
       this.FriendRequestModel.findOne({ sender: swageReceiverId, receiver: swageSenderID }),
     ]);
-
+    
     if (existingSentRequest) {
       throw new ConflictException('You has sent request with user.');
     }
@@ -269,6 +271,7 @@ export class UserService {
           this.FriendRequestModel.findOneAndUpdate({ _id: existingReceivedRequest._id }, { status: 'accepted' }),
           this.FriendRequestModel.create({ sender: swageSenderID, receiver: swageReceiverId, status: 'accepted' }),
         ]);
+
         return { message: 'Your request has been accepted' };
       } else {
         throw new ConflictException('This person has sent you a friend request. Please accept or decline their request first');
@@ -281,6 +284,18 @@ export class UserService {
       receiver: receiverId,
       status: 'waiting'
     });
+
+    await this.producerService.sendMessage('mypost', { 
+    type: 'friend_request',
+    ownerId: senderID, // Người gửi yêu cầu
+    targetUserId: receiverId, // Người nhận yêu cầu
+    data: {
+      userId: senderID,
+      message: `${senderID} đã gửi yêu cầu kết bạn cho bạn ${new Date().toISOString().split('T')[0]}.`,
+      avatar: newRequest.sender.avatar,
+      timestamp: new Date(),
+    },
+  });
 
     return newRequest.save();
   }

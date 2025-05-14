@@ -9,6 +9,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { User } from '../user/schemas/user.schemas';
 import { JwtService } from '@nestjs/jwt';
 import { Post } from '../post/schemas/post.schema';
+import { ProducerService } from 'src/kafka/producer/kafka.Producer.service';
 
 @Injectable()
 export class CommentService {
@@ -18,6 +19,7 @@ export class CommentService {
     @InjectModel(User.name) private readonly UserModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     private cloudinaryService: CloudinaryService,
+    private producerService: ProducerService,
 
     private jwtService: JwtService,
   ) { }
@@ -30,6 +32,10 @@ export class CommentService {
     files?: Express.Multer.File[],
   ): Promise<{ comment: Comment; authorId:string }> {
     const swageUserId = new Types.ObjectId(userId);
+    const user = await this.UserModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('Người dùng không tồn tại');
+    }
     const newCmt = new this.commentModel({
       content: commentDto.content,
       author: userId,
@@ -68,7 +74,20 @@ export class CommentService {
       },
       { new: true },
     );
-  
+
+    await this.producerService.sendMessage('report', {
+    type: 'new_comment',
+    ownerId: post.author, // ID của chủ bài viết
+    targetUserId: post.author, // Gửi thông báo cho chủ bài viết
+    data: {
+      userId: userId, 
+      postId: postId,
+      commentId: saveCMT._id,
+      message: `${userId} đã bình luận vào bài viết của bạn ${new Date().toISOString().split('T')[0]}.`,
+      avatar: user.avatar,
+      timestamp: new Date(),
+    },
+  });
     return { comment: saveCMT, authorId };
   }
   

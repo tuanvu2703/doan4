@@ -8,7 +8,7 @@ export class CreateAppealDto {
   })
   @IsMongoId()
   @IsNotEmpty()
-  reportId: string;
+  postId: string;
 
   @ApiProperty({
     description: 'Lý do kháng cáo',
