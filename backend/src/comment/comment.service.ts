@@ -75,7 +75,7 @@ export class CommentService {
       { new: true },
     );
 
-    await this.producerService.sendMessage('report', {
+    await this.producerService.sendMessage('mypost', {
     type: 'new_comment',
     ownerId: post.author, // ID của chủ bài viết
     targetUserId: post.author, // Gửi thông báo cho chủ bài viết

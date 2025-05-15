@@ -10,7 +10,7 @@ export class NotificationService {
   constructor(
     @InjectModel(Notification.name) private readonly notificationModel: Model<Notification>,
     private eventService: EventService,
-  ) {}
+  ) { }
 
   // 🔹 Xử lý tin nhắn nhóm
   async handleChatMessage(payload: any) {
@@ -110,7 +110,7 @@ export class NotificationService {
 
   async handleReportEvent(payload: any) {
     const { type, ownerId, targetUserId, data } = payload;
-    const { userId, message, avatar, timestamp } = data;
+    const { userId, message, avatar, postId, timestamp } = data;
 
     if (!targetUserId || !Types.ObjectId.isValid(targetUserId)) {
       console.log('🛑 Invalid or no targetUserId for report event, skipping:', payload);
@@ -125,6 +125,7 @@ export class NotificationService {
         userId: userId ? new Types.ObjectId(userId) : undefined,
         message: message || `Your appeal has been rejected. Your account remains deactivated as of ${new Date().toISOString().split('T')[0]}.`,
         avatar: avatar || '',
+        postId: postId ? new Types.ObjectId(postId) : undefined,
         timestamp: timestamp || new Date().toISOString(),
       },
       readBy: [],
@@ -274,30 +275,30 @@ export class NotificationService {
     }
   }
 
-  async getUserNotifications(userId: Types.ObjectId):Promise<any[]> {
-   const notifications = await this.notificationModel
-    .find({
-      $or: [
-        { targetUserId: userId },
-        { targetUserIds: userId },
-      ],
-    })
-    .select('_id type ownerId data createdAt readBy')
-    .populate('ownerId', 'firstName lastName avatar')
-    .sort({ createdAt: -1 })
-    .exec();
+  async getUserNotifications(userId: Types.ObjectId): Promise<any[]> {
+    const notifications = await this.notificationModel
+      .find({
+        $or: [
+          { targetUserId: userId },
+          { targetUserIds: userId },
+        ],
+      })
+      .select('_id type ownerId data createdAt readBy')
+      .populate('ownerId', 'firstName lastName avatar')
+      .sort({ createdAt: -1 })
+      .exec();
 
-  return notifications.map((notification : any) => {
-    const isRead = notification.readBy.includes(userId);
-    return {
-      _id: notification._id,
-      type: notification.type,
-      ownerId: notification.ownerId,
-      data: notification.data,
-      createdAt: notification.createdAt,
-      isRead, 
-    };
-  });
+    return notifications.map((notification: any) => {
+      const isRead = notification.readBy.includes(userId);
+      return {
+        _id: notification._id,
+        type: notification.type,
+        ownerId: notification.ownerId,
+        data: notification.data,
+        createdAt: notification.createdAt,
+        isRead,
+      };
+    });
   }
 
   async getUnreadNotifications(userId: Types.ObjectId) {
@@ -313,7 +314,7 @@ export class NotificationService {
       .populate('ownerId', 'firstName lastName avatar')
       .sort({ createdAt: -1 })
       .exec();
-      return notifications;
+    return notifications;
   }
 
   async getNotificationIsRead(userId: Types.ObjectId) {
@@ -329,28 +330,28 @@ export class NotificationService {
       .populate('ownerId', 'firstName lastName avatar')
       .sort({ createdAt: -1 })
       .exec();
-      return notifications;
+    return notifications;
   }
 
 
   async markAsRead(notificationId: Types.ObjectId, userId: Types.ObjectId) {
 
-  
+
     // Tìm thông báo
     const notification = await this.notificationModel.findById(notificationId);
     if (!notification) {
       throw new Error('Notification not found');
     }
-  
+
     // Kiểm tra xem user có phải là người nhận thông báo không
     const isRecipient =
       (notification.targetUserId && notification.targetUserId.toString() === userId.toString()) ||
       (notification.targetUserIds && notification.targetUserIds.some((id) => id.toString() === userId.toString()));
-  
+
     if (!isRecipient) {
       throw new UnauthorizedException('You are not a recipient of this notification');
     }
-  
+
     // Cập nhật trường readBy để đánh dấu thông báo là đã đọc
     return await this.notificationModel.findByIdAndUpdate(
       notificationId,

@@ -25,12 +25,17 @@ export default function Navbar() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await profileUserCurrent(); // Assume profileUserCurrent fetches user data
-            await fetchNotifications();
-            if (response && response.data) {
-                setUserContext(response.data); // Update the user state in context
-            } else {
-                console.warn("No data found in response.");
+            try {
+                const response = await profileUserCurrent(); // Assume profileUserCurrent fetches user data
+                await fetchNotifications();
+                if (response && response.data) {
+                    setUserContext(response.data); // Update the user state in context
+                } else {
+                    console.warn("No data found in response.");
+                }
+            }
+            catch (error) {
+                console.error("Error fetching data:", error);
             }
         };
         fetchData();

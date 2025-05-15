@@ -220,6 +220,7 @@ export default function HomePost({ onPostsUpdated }) {
         setDisplayedPosts(updatedPosts.slice(0, postsToShow));
     };
 
+    console.log(posts)
     return (
         <>
             {loading ? (

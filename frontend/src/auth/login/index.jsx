@@ -156,7 +156,7 @@ export default function Login() {
                     </div>
                     <div className="flex justify-center mt-4">
                         <Link
-                            to={"https://social-network-jbtx.onrender.com/user/google"}
+                            to={`${process.env.REACT_APP_API_URL}/user/google`}
                             className="flex items-center gap-2 py-2 px-4 border border-yellow-400 text-yellow-500 font-semibold rounded-lg hover:bg-yellow-100"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 488 512">

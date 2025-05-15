@@ -4,6 +4,7 @@ import AVTUser from '../post/AVTUser'
 import { useState, useEffect } from 'react'
 import { profileUserCurrent } from '../../service/ProfilePersonal'
 
+
 export default function Notification({ closeDropdown }) {
     const [AllNotification, setAllNotification] = useState([])
     const [unreadNotifications, setUnreadNotifications] = useState([])

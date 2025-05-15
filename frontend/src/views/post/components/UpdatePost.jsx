@@ -148,7 +148,7 @@ export default function UpdatePost() {
         if (textarea) {
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
-            const text = formData.content;
+            const text = formData.content || ''; // Add fallback to empty string if content is undefined
             const newText = text.substring(0, start) + emoji + text.substring(end, text.length);
             setFormData({ ...formData, content: newText });
 

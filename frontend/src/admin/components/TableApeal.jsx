@@ -66,7 +66,7 @@ export default function TableApeal({ query }) {
             const response = await handleApeal(appealId, "reject");
             if (response) {
                 setAppeals(prevAppeals => prevAppeals.map(appeal =>
-                    appeal._id === appealId ? { ...appeal, status: 'rejected', implementation: 'processing' } : appeal
+                    appeal._id === appealId ? { ...appeal, status: 'rejected', implementation: 'reject' } : appeal
                 ));
             }
         } catch (error) {
