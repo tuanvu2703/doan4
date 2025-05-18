@@ -9,13 +9,12 @@ import 'animate.css';
 import DropdownPostPersonal from './components/DropdownPostPersonal';
 import { format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
 import Loading from '../../components/Loading';
-import FilePreview from '../../components/fileViewer';
 import FileViewer from '../../components/fileViewer';
 
 export default function PostPersonal({ user }) {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [copied, setCopied] = useState(false);
+    const [ setCopied] = useState(false);
     const [expandedPosts, setExpandedPosts] = useState([]);
 
     useEffect(() => {

@@ -8,26 +8,17 @@ import { format, differenceInMinutes, differenceInHours, differenceInDays } from
 import { getAllOtherPosts } from '../../service/OtherProfile';
 import { profileUserCurrent } from '../../service/ProfilePersonal';
 import DropdownOtherPost from './components/DropdownOtherPost';
-import { useUser } from '../../service/UserContext';
-import FilePreview from '../../components/fileViewer';
 import FileViewer from '../../components/fileViewer';
 export default function AllPostOther({ user }) {
     const [posts, setPosts] = useState([]);
     const [userLogin, setUserLogin] = useState({})
     const [copied, setCopied] = useState(false);
-    const [currentIndexes, setCurrentIndexes] = useState({});
     const [expandedPosts, setExpandedPosts] = useState({}); // State to track expanded posts
     const { id } = useParams();
-    const { setShowZom } = useUser()
+
 
 
     // Toggle function to expand/collapse post content
-    const toggleExpand = (postId) => {
-        setExpandedPosts(prev => ({
-            ...prev,
-            [postId]: !prev[postId]
-        }));
-    };
 
     useEffect(() => {
         const fetchdata = async () => {
@@ -128,23 +119,6 @@ export default function AllPostOther({ user }) {
     };
 
 
-    const openModal = (file) => {
-        setShowZom({ file: file, show: true });
-    };
-    //carousel
-    const handlePrev = (post) => {
-        setCurrentIndexes((prevIndexes) => ({
-            ...prevIndexes,
-            [post._id]: (prevIndexes[post._id] > 0 ? prevIndexes[post._id] : post.img.length) - 1
-        }));
-    };
-
-    const handleNext = (post) => {
-        setCurrentIndexes((prevIndexes) => ({
-            ...prevIndexes,
-            [post._id]: (prevIndexes[post._id] + 1) % post.img.length
-        }));
-    };
 
     //share
     const handleCopyLink = (postId) => {

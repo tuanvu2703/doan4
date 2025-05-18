@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState, useEffect } from 'react';
 import { getSearchResult } from '../../service/SearchService';
-import { getAllPosts, getHomeFeed } from '../../service/PostService'; // Import the service to get all posts
+import {  getHomeFeed } from '../../service/PostService'; // Import the service to get all posts
 import AVTUser from '../post/AVTUser';
 import { Link } from 'react-router-dom';
 import Loading from '../../components/Loading';
@@ -9,7 +9,7 @@ import { debounce } from 'lodash';
 import FilePreview from '../../components/fileViewer';
 
 export default function CardPostResult({ query }) {
-    const [currentIndexes, setCurrentIndexes] = useState({});
+
     const [albums, setAlbums] = useState([]);
     const [allPosts, setAllPosts] = useState([]); // State to store all posts
     const [loading, setLoading] = useState(true);
@@ -69,20 +69,6 @@ export default function CardPostResult({ query }) {
         return <p className='mt-5'>không tìm thấy dữ liệu, Vui lòng nhập nội dung bài viết</p>;
     }
 
-    //carousel
-    const handlePrev = (post) => {
-        setCurrentIndexes((prevIndexes) => ({
-            ...prevIndexes,
-            [post._id]: (prevIndexes[post._id] > 0 ? prevIndexes[post._id] : post.img.length) - 1
-        }));
-    };
-
-    const handleNext = (post) => {
-        setCurrentIndexes((prevIndexes) => ({
-            ...prevIndexes,
-            [post._id]: (prevIndexes[post._id] + 1) % post.img.length
-        }));
-    };
 
     const toggleContentExpansion = (postId) => {
         setExpandedPosts(prev => ({

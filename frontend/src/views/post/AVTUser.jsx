@@ -1,6 +1,4 @@
 import React from 'react'
-import CardUser from './CardUser'
-import usersrv from '../../service/user';
 export default function AVTUser({ user }) {
     const handDetailUser = async (id) => {
         window.location.href = `/user/${id}`;

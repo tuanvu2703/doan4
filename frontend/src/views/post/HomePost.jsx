@@ -18,7 +18,6 @@ export default function HomePost({ onPostsUpdated }) {
     const [userLogin, setUserLogin] = useState({});
     const [loading, setLoading] = useState(true);
     const [postsToShow, setPostsToShow] = useState(10); // Controls the number of posts to display
-    const [currentIndex, setCurrentIndex] = useState(0);
     const [copied, setCopied] = useState({}); // Changed from boolean to object to track by post ID
     const [currentIndexes, setCurrentIndexes] = useState({});
     const [expandedPosts, setExpandedPosts] = useState({}); // Track which posts are expanded
@@ -37,7 +36,7 @@ export default function HomePost({ onPostsUpdated }) {
             setLoading(false);
         };
         setTimeout(fetchdata, 1000);
-    }, []);
+    }, [postsToShow]);
 
     // Function to add a new post to the posts array
     const addNewPost = (newPost) => {

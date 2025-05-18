@@ -1,7 +1,4 @@
-import { useState, useEffect, Suspense } from "react";
-import { getSearchResult } from "../../service/SearchService";
-import { useParams } from "react-router-dom";
-import CardPost from "./CardPost";
+import { useState, Suspense } from "react";
 import CardPostResult from "./CardPostResult";
 const PostSearch = () => {
     const [query, setQuery] = useState('');

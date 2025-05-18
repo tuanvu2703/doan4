@@ -134,8 +134,8 @@ export default function Register() {
                 onSubmit={handleSubmit}
                 className="bg-white rounded-3xl shadow-lg shadow-gray-500 p-8 w-full max-w-lg"
             >
-                <h1 className="text-4xl font-extrabold text-center mb-6 text-gray-800">Đăng ký</h1>
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <h1 className="text-3xl font-extrabold text-center mb-3 text-gray-800">Đăng ký</h1>
+                <div className="grid grid-cols-2 gap-2 mb-2">
                     <input
                         type="text"
                         name="lastName"
@@ -158,11 +158,11 @@ export default function Register() {
                         required
                     />
                 </div>
-                <div className="grid mb-4">
+                <div className="grid mb-2">
                     <input
                         type="email"
                         name="email"
-                        className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+                        className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2"
                         placeholder="Email"
                         value={formData.email}
                         onChange={handleChange}
@@ -173,7 +173,7 @@ export default function Register() {
                     <input
                         type="text"
                         name="numberPhone"
-                        className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+                        className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2"
                         placeholder="Số điện thoại"
                         value={formData.numberPhone}
                         onChange={handleChange}
@@ -185,7 +185,7 @@ export default function Register() {
 
                         type="date"
                         name="birthday"
-                        className={`bg-gray-100 shadow-inner rounded-lg p-3 ${!formData.birthday ? 'text-gray-400' : 'text-gray-700'} focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4`}
+                        className={`bg-gray-100 shadow-inner rounded-lg p-3 ${!formData.birthday ? 'text-gray-400' : 'text-gray-700'} focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2`}
                         value={formData.birthday}
                         onChange={handleChange}
                         required
@@ -194,7 +194,7 @@ export default function Register() {
                     <input
                         type="text"
                         name="address"
-                        className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+                        className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2"
                         placeholder="Địa chỉ"
                         value={formData.address}
                         maxLength={70}
@@ -203,7 +203,7 @@ export default function Register() {
                     />
                     <select
                         name="gender"
-                        className={`bg-gray-100 shadow-inner rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4 ${!formData.gender ? 'text-gray-400' : 'text-black'}`}
+                        className={`bg-gray-100 shadow-inner rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2 ${!formData.gender ? 'text-gray-400' : 'text-black'}`}
                         value={formData.gender}
                         onChange={handleChange}
                         required
@@ -229,7 +229,7 @@ export default function Register() {
                         type="password"
                         name="confirmPassword"
                         className={`
-                        bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mt-4`}
+                        bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mt-2`}
                         placeholder="Nhập lại mật khẩu"
                         value={formData.confirmPassword}
                         onChange={handleChange}
@@ -245,7 +245,7 @@ export default function Register() {
                 >
                     Đăng ký
                 </button>
-                <div className="flex items-center justify-between mt-4 mb-4 text-nowrap ">
+                <div className="flex items-center justify-between mt-4 mb-2 text-nowrap ">
                     <label className="block text-gray-600 text-sm font-medium mr-1">
                         <span className="text-sm text-gray-400 ">
                             Bạn đã có tài khoản?
