@@ -110,7 +110,7 @@ export class NotificationService {
 
   async handleReportEvent(payload: any) {
     const { type, ownerId, targetUserId, data } = payload;
-    const { userId, message, avatar, timestamp } = data;
+    const { userId, message, avatar, timestamp, postId } = data;
 
     if (!targetUserId || !Types.ObjectId.isValid(targetUserId)) {
       console.log('🛑 Invalid or no targetUserId for report event, skipping:', payload);

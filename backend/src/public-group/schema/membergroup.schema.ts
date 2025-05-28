@@ -25,7 +25,7 @@ export class MemberGroup extends Document {
   @Prop({
     default: false,
   })
-  blackList: boolean; //blackList: 0 - not in black list, 1 - in black list
+  blackList: boolean; 
 
 }
 

@@ -30,6 +30,7 @@ import { CommentService } from './comment/comment.service';
 import { EventGeteWay } from './event/event.geteway';
 import { WebRTCService } from './event/webrtc.service';
 
+
 @Global()
 @Module({
   imports: [
@@ -61,11 +62,14 @@ import { WebRTCService } from './event/webrtc.service';
     OtpController, 
     MailController, 
     PublicGroupController, 
-    ReportController
+    ReportController,
+
   ],
 
   providers: [
     AppService, 
+
   ],
+
 })
 export class AppModule { }
