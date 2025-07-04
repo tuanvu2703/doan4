@@ -12,7 +12,6 @@ export default function About() {
     const [dataProfile, setDataProfile] = useState({})
 
     useEffect(() => {
-
         const fetchdata = async () => {
             try {
                 setLoading(true)

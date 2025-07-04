@@ -57,7 +57,7 @@ export default function ReportForm({ postId }) {
                 >
                     ✕
                 </button>
-                <h3 className="font-bold text-xl text-center border-b-2 pb-2">Báo cáo {postId}</h3>
+                <h3 className="font-bold text-xl text-center border-b-2 pb-2">Báo cáo</h3>
                 <h2 className="font-bold text-lg p-3">Tại sao bạn báo cáo bài viết này?</h2>
                 <span className="p-3 block">Lưu ý: Chỉ báo cáo nội dung vi phạm để tránh trường hợp thù địch!</span>
 
